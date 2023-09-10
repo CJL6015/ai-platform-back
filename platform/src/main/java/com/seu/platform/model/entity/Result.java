@@ -1,4 +1,4 @@
-package com.seu.platform.common.model;
+package com.seu.platform.model.entity;
 
 import com.seu.platform.common.enums.ResultCode;
 import lombok.AllArgsConstructor;
@@ -28,6 +28,10 @@ public class Result<T> implements Serializable {
 
     public static <T> Result<T> success(T data) {
         return new Result<>(ResultCode.SUCCESS, "ok", data);
+    }
+
+    public static <T> Result<T> success() {
+        return new Result<>(ResultCode.SUCCESS, "ok", null);
     }
 
     public static <T> Result<T> fail(String message) {

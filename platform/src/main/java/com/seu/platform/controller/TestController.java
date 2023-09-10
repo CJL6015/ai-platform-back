@@ -1,8 +1,8 @@
 package com.seu.platform.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.seu.platform.common.model.Result;
-import com.seu.platform.vo.UserInfo;
+import com.seu.platform.model.entity.Result;
+import com.seu.platform.model.vo.UserInfo;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +30,7 @@ public class TestController {
                 "      desc: 'manager',\n" +
                 "      password: '123456',\n" +
                 "      token: 'fakeToken1',\n" +
-                "      homePath: '/model/list',\n" +
+                "      homePath: '/warn/history',\n" +
                 "      roles: [\n" +
                 "        {\n" +
                 "          roleName: 'Super Admin',\n" +

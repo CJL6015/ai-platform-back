@@ -1,4 +1,4 @@
-package com.seu.platform.vo;
+package com.seu.platform.model.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

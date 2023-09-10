@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author 陈小黑
  */
 @SpringBootApplication
-@MapperScan("seu.powersis.alert.dao.mapper")
+@MapperScan("com.seu.platform.dao.mapper")
 public class PlatformApplication {
 
     public static void main(String[] args) {
