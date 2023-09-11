@@ -68,8 +68,8 @@
             <option name="tableUIInfoList">
               <list>
                 <TableUIInfo>
-                  <option name="className" value="ProductionLine" />
-                  <option name="tableName" value="production_line" />
+                  <option name="className" value="PointStatistic" />
+                  <option name="tableName" value="point_statistic" />
                 </TableUIInfo>
               </list>
             </option>

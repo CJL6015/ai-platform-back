@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.WarnCfgMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.WarnCfg">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="pharmaceuticalProcessLimit" column="pharmaceutical_process_limit" jdbcType="INTEGER"/>
+            <result property="packagingProcessLimit" column="packaging_process_limit" jdbcType="INTEGER"/>
+            <result property="fillingProcessLimit" column="filling_process_limit" jdbcType="INTEGER"/>
+            <result property="loadingProcessLimit" column="loading_process_limit" jdbcType="INTEGER"/>
+            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+            <result property="modifyTime" column="modify_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,pharmaceutical_process_limit,packaging_process_limit,
+        filling_process_limit,loading_process_limit,line_id,
+        modify_time
+    </sql>
+</mapper>

@@ -1,4 +1,4 @@
-package com.seu.platform.controller.select;
+package com.seu.platform.controller;
 
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.OptionItemVO;

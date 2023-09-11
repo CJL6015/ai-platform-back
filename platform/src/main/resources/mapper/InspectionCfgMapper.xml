@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.InspectionCfgMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.InspectionCfg">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="inspectionCaptureInterval" column="inspection_capture_interval" jdbcType="INTEGER"/>
+            <result property="inspectionCaptureMode" column="inspection_capture_mode" jdbcType="INTEGER"/>
+            <result property="historicalPhotoRetentionPeriod" column="historical_photo_retention_period" jdbcType="INTEGER"/>
+            <result property="systemFreezeSt" column="system_freeze_st" jdbcType="TIMESTAMP"/>
+            <result property="systemFreezeEt" column="system_freeze_et" jdbcType="TIMESTAMP"/>
+            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,inspection_capture_interval,inspection_capture_mode,
+        historical_photo_retention_period,system_freeze_st,system_freeze_et,
+        line_id
+    </sql>
+</mapper>

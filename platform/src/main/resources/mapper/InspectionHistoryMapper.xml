@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.InspectionHistoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.InspectionHistory">
+            <result property="id" column="id" jdbcType="INTEGER"/>
+            <result property="st" column="st" jdbcType="TIMESTAMP"/>
+            <result property="et" column="et" jdbcType="TIMESTAMP"/>
+            <result property="freezeTime" column="freeze_time" jdbcType="INTEGER"/>
+            <result property="exceededNum" column="exceeded_num" jdbcType="INTEGER"/>
+            <result property="imageUrl" column="image_url" jdbcType="VARCHAR"/>
+            <result property="freeze" column="freeze" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,st,et,
+        freeze_time,exceeded_num,image_url,
+        freeze
+    </sql>
+</mapper>

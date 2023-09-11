@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.PointCfgMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.PointCfg">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="pointId" column="point_id" jdbcType="INTEGER"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="unit" column="unit" jdbcType="VARCHAR"/>
+            <result property="exceededTime" column="exceeded_time" jdbcType="BIGINT"/>
+            <result property="exceptionTime" column="exception_time" jdbcType="BIGINT"/>
+            <result property="modifyTime" column="modify_time" jdbcType="TIMESTAMP"/>
+            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+            <result property="upperLimit" column="upper_limit" jdbcType="FLOAT"/>
+            <result property="lowerLimit" column="lower_limit" jdbcType="FLOAT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,point_id,
+        description,unit,exceeded_time,
+        exception_time,modify_time,line_id,
+        upper_limit,lower_limit
+    </sql>
+</mapper>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.PointStatisticMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.PointStatistic">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="thresholdExceeded" column="threshold_exceeded" jdbcType="INTEGER"/>
+            <result property="thresholdWithin" column="threshold_within" jdbcType="INTEGER"/>
+            <result property="stopTime" column="stop_time" jdbcType="BIGINT"/>
+            <result property="runTime" column="run_time" jdbcType="BIGINT"/>
+            <result property="normalRefresh" column="normal_refresh" jdbcType="INTEGER"/>
+            <result property="exceptionRefresh" column="exception_refresh" jdbcType="INTEGER"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+            <result property="type" column="type" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,threshold_exceeded,threshold_within,
+        stop_time,run_time,normal_refresh,
+        exception_refresh,create_time,line_id,
+        type
+    </sql>
+</mapper>
