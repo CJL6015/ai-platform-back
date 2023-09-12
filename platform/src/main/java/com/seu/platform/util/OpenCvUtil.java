@@ -25,7 +25,7 @@ public class OpenCvUtil {
         File file1 = new File(imagePath);
         System.out.println(file1.exists());
         Mat image = opencv_imgcodecs.imread(imagePath);
-        File file = new File(modelPath);¡
+        File file = new File(modelPath);
         System.out.println(file.exists());
         Net net = opencv_dnn.readNetFromONNX(modelPath);
         Size size = new Size(660, 660);
