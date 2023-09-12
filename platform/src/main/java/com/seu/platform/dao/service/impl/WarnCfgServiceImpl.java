@@ -1,9 +1,12 @@
 package com.seu.platform.dao.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seu.platform.dao.entity.WarnCfg;
 import com.seu.platform.dao.service.WarnCfgService;
 import com.seu.platform.dao.mapper.WarnCfgMapper;
+import com.seu.platform.model.vo.WarnConfigVO;
+import com.seu.platform.util.BeanUtil;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,6 +18,14 @@ import org.springframework.stereotype.Service;
 public class WarnCfgServiceImpl extends ServiceImpl<WarnCfgMapper, WarnCfg>
     implements WarnCfgService{
 
+    @Override
+    public WarnConfigVO getWarnConfigVO(Integer lineId) {
+        LambdaQueryWrapper<WarnCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(WarnCfg::getLineId, lineId);
+        WarnCfg warnCfg = getOne(queryWrapper);
+        WarnConfigVO warnConfigVO = BeanUtil.convertBean(warnCfg, WarnConfigVO.class);
+        return warnConfigVO;
+    }
 }
 
 

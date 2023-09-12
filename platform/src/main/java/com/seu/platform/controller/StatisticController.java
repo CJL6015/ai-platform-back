@@ -1,16 +1,17 @@
 package com.seu.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.dao.service.PointStatisticService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.PointStatisticVO;
 import com.seu.platform.model.vo.StatisticVO;
+import com.seu.platform.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 
 /**
  * @author chenjiale
@@ -33,9 +34,18 @@ public class StatisticController {
     }
 
 
-    @GetMapping("/{id}")
+    @GetMapping("/point/{id}")
     public Result<Page<PointStatisticVO>> getPointStatistic(@PathVariable Integer id, int pageNum, int pageSize) {
         Page<PointStatisticVO> pointStatisticPage = pointCfgService.getPointStatisticPage(id, pageNum, pageSize);
         return Result.success(pointStatisticPage);
+    }
+
+    @PatchMapping("/point")
+    public Result<Boolean> updatePointThreshold(@RequestBody PointStatisticVO vo) {
+        PointCfg pointCfg = BeanUtil.convertBean(vo, PointCfg.class);
+        pointCfg.setModifyTime(new Date());
+        boolean b = pointCfgService.updateById(pointCfg);
+        return Result.success(b);
+
     }
 }
