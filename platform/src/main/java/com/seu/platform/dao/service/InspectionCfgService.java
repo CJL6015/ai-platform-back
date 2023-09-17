@@ -17,4 +17,12 @@ public interface InspectionCfgService extends IService<InspectionCfg> {
      * @return 巡检规则
      */
     InspectionConfigVO getInspectionConfig(Integer lineId);
+
+    /**
+     * 更新配置
+     *
+     * @param vo vo
+     * @return 更新结果
+     */
+    boolean updateInspectionConfig(InspectionConfigVO vo);
 }

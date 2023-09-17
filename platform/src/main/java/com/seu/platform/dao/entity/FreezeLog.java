@@ -9,13 +9,12 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- * 巡检抓拍规则
- * @author 陈小黑
- * @TableName inspection_cfg
+ * 冻结日志
+ * @TableName freeze_log
  */
-@TableName(value ="inspection_cfg")
+@TableName(value ="freeze_log")
 @Data
-public class InspectionCfg implements Serializable {
+public class FreezeLog implements Serializable {
     /**
      * 主键
      */
@@ -23,24 +22,24 @@ public class InspectionCfg implements Serializable {
     private Integer id;
 
     /**
-     * 巡检抓拍周期
+     * 开始时间
      */
-    private Integer inspectionCaptureInterval;
+    private Date startTime;
 
     /**
-     * 巡检抓拍模式
+     * 结束时间
      */
-    private Integer inspectionCaptureMode;
-
-    /**
-     * 历史照片存储时间
-     */
-    private Integer historicalPhotoRetentionPeriod;
+    private Date endTime;
 
     /**
      * 生产线id
      */
     private Integer lineId;
+
+    /**
+     * 状态
+     */
+    private Integer state;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

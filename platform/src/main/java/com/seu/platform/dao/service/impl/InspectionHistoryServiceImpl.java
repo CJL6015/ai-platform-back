@@ -12,6 +12,7 @@ import com.seu.platform.util.BeanUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,11 +25,11 @@ import java.util.Objects;
 public class InspectionHistoryServiceImpl extends ServiceImpl<InspectionHistoryMapper, InspectionHistory>
         implements InspectionHistoryService {
     @Override
-    public InspectionHistoryDataVO getInspectionHistoryValue(Integer lineId, Long st, Long et) {
+    public InspectionHistoryDataVO getInspectionHistoryValue(Integer lineId, Date st, Date et) {
         LambdaQueryWrapper<InspectionHistory> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(InspectionHistory::getLineId, lineId)
-                .ge(Objects.nonNull(st), InspectionHistory::getCreateTime, st)
-                .le(Objects.nonNull(et), InspectionHistory::getCreateTime, et)
+                .ge(Objects.nonNull(st), InspectionHistory::getSt, st)
+                .le(Objects.nonNull(et), InspectionHistory::getEt, et)
                 .orderByAsc(InspectionHistory::getCreateTime);
         List<InspectionHistory> histories = list(queryWrapper);
         List<Long> timestamps = new ArrayList<>();
@@ -40,8 +41,7 @@ public class InspectionHistoryServiceImpl extends ServiceImpl<InspectionHistoryM
             tableData.add(BeanUtil.convertBean(history, InspectionHistoryVO.class));
         });
         TimeValueChartVO vo = new TimeValueChartVO(timestamps, values);
-        InspectionHistoryDataVO data = new InspectionHistoryDataVO(vo, tableData);
-        return data;
+        return new InspectionHistoryDataVO(vo, tableData);
     }
 }
 

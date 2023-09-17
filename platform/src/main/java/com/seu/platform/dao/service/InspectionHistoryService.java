@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.InspectionHistory;
 import com.seu.platform.model.vo.InspectionHistoryDataVO;
 
+import java.util.Date;
+
 /**
  * @author 陈小黑
  * @description 针对表【inspection_history(巡检历史)】的数据库操作Service
@@ -18,5 +20,5 @@ public interface InspectionHistoryService extends IService<InspectionHistory> {
      * @param et     结束时间
      * @return 历史数据
      */
-    InspectionHistoryDataVO getInspectionHistoryValue(Integer lineId, Long st, Long et);
+    InspectionHistoryDataVO getInspectionHistoryValue(Integer lineId, Date st, Date et);
 }

@@ -9,14 +9,12 @@
             <result property="inspectionCaptureInterval" column="inspection_capture_interval" jdbcType="INTEGER"/>
             <result property="inspectionCaptureMode" column="inspection_capture_mode" jdbcType="INTEGER"/>
             <result property="historicalPhotoRetentionPeriod" column="historical_photo_retention_period" jdbcType="INTEGER"/>
-            <result property="systemFreezeSt" column="system_freeze_st" jdbcType="TIMESTAMP"/>
-            <result property="systemFreezeEt" column="system_freeze_et" jdbcType="TIMESTAMP"/>
             <result property="lineId" column="line_id" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,inspection_capture_interval,inspection_capture_mode,
-        historical_photo_retention_period,system_freeze_st,system_freeze_et,
-        line_id
+                id, inspection_capture_interval, inspection_capture_mode,
+                historical_photo_retention_period,
+                line_id
     </sql>
 </mapper>

@@ -2,8 +2,6 @@ package com.seu.platform.model.vo;
 
 import lombok.*;
 
-import java.util.Date;
-
 /**
  * @author chenjiale
  * @version 1.0
@@ -15,6 +13,10 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InspectionConfigVO {
+    /**
+     * 生产线id
+     */
+    private Integer lineId;
     /**
      * 巡检抓拍周期
      */
@@ -29,14 +31,4 @@ public class InspectionConfigVO {
      * 历史照片存储时间
      */
     private Integer historicalPhotoRetentionPeriod;
-
-    /**
-     * 系统冻结起始时间
-     */
-    private Date systemFreezeSt;
-
-    /**
-     * 系统冻结结束时间
-     */
-    private Date systemFreezeEt;
 }

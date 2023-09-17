@@ -30,6 +30,21 @@ public class InspectionCfgServiceImpl extends ServiceImpl<InspectionCfgMapper, I
         BeanUtil.copyProperties(entity, vo);
         return vo;
     }
+
+    @Override
+    public boolean updateInspectionConfig(InspectionConfigVO vo) {
+        LambdaQueryWrapper<InspectionCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(InspectionCfg::getLineId, vo.getLineId());
+        int count = count(queryWrapper);
+        InspectionCfg entity = com.seu.platform.util.BeanUtil.convertBean(vo, InspectionCfg.class);
+        boolean result;
+        if (count < 1) {
+            result = save(entity);
+        }else {
+            result = update(entity, queryWrapper);
+        }
+        return result;
+    }
 }
 
 
