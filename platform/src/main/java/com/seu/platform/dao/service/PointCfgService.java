@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.model.vo.PointStatisticVO;
 
+import java.util.List;
+
 /**
  * @author 陈小黑
  * @description 针对表【point_cfg(测点基表)】的数据库操作Service
@@ -20,4 +22,12 @@ public interface PointCfgService extends IService<PointCfg> {
      * @return 该页数据
      */
     Page<PointStatisticVO> getPointStatisticPage(Integer lineId, int pageNum, int pageSize);
+
+    /**
+     * 查询测点统计结果
+     *
+     * @param lineId 生产线id
+     * @return 数据
+     */
+    List<PointStatisticVO> getPointStatistic(Integer lineId);
 }

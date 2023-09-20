@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author chenjiale
@@ -34,10 +35,16 @@ public class StatisticController {
     }
 
 
-    @GetMapping("/point/{id}")
+    @GetMapping("/point/page/{id}")
     public Result<Page<PointStatisticVO>> getPointStatistic(@PathVariable Integer id, int pageNum, int pageSize) {
         Page<PointStatisticVO> pointStatisticPage = pointCfgService.getPointStatisticPage(id, pageNum, pageSize);
         return Result.success(pointStatisticPage);
+    }
+
+    @GetMapping("/point/{id}")
+    public Result<List<PointStatisticVO>> getPoint(@PathVariable Integer id) {
+        List<PointStatisticVO> pointStatistic = pointCfgService.getPointStatistic(id);
+        return Result.success(pointStatistic);
     }
 
     @PatchMapping("/point")

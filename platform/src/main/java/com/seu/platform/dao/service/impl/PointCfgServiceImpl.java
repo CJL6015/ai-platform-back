@@ -38,6 +38,16 @@ public class PointCfgServiceImpl extends ServiceImpl<PointCfgMapper, PointCfg>
         return result;
     }
 
+    @Override
+    public List<PointStatisticVO> getPointStatistic(Integer lineId) {
+        LambdaQueryWrapper<PointCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PointCfg::getLineId, lineId);
+        List<PointCfg> list = list(queryWrapper);
+        return list.stream()
+                .map(this::convertToPointStatisticVO)
+                .collect(Collectors.toList());
+    }
+
     private PointStatisticVO convertToPointStatisticVO(PointCfg pointCfg) {
         PointStatisticVO vo = new PointStatisticVO();
         BeanUtil.copyProperties(pointCfg, vo);
