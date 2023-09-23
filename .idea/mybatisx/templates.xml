@@ -68,8 +68,8 @@
             <option name="tableUIInfoList">
               <list>
                 <TableUIInfo>
-                  <option name="className" value="FreezeLog" />
-                  <option name="tableName" value="freeze_log" />
+                  <option name="className" value="PointStatisticHour" />
+                  <option name="tableName" value="point_statistic_hour" />
                 </TableUIInfo>
               </list>
             </option>

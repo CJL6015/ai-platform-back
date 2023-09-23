@@ -3,10 +3,12 @@ package com.seu.platform.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.service.PointCfgService;
+import com.seu.platform.dao.service.PointStatisticHourService;
 import com.seu.platform.dao.service.PointStatisticService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.PointStatisticVO;
 import com.seu.platform.model.vo.StatisticVO;
+import com.seu.platform.model.vo.TimeRange;
 import com.seu.platform.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +29,12 @@ public class StatisticController {
 
     private final PointCfgService pointCfgService;
 
+    private final PointStatisticHourService pointStatisticHourService;
+
 
     @GetMapping("/{id}")
-    public Result<StatisticVO> getStatistic(@PathVariable Integer id) {
-        StatisticVO vo = pointStatisticService.getOneVo(id);
+    public Result<StatisticVO> getStatistic(@PathVariable Integer id, TimeRange timeRange) {
+        StatisticVO vo = pointStatisticService.getStatistic(id, timeRange);
         return Result.success(vo);
     }
 
@@ -42,8 +46,8 @@ public class StatisticController {
     }
 
     @GetMapping("/point/{id}")
-    public Result<List<PointStatisticVO>> getPoint(@PathVariable Integer id) {
-        List<PointStatisticVO> pointStatistic = pointCfgService.getPointStatistic(id);
+    public Result<List<PointStatisticVO>> getPoint(@PathVariable Integer id, TimeRange timeRange) {
+        List<PointStatisticVO> pointStatistic = pointCfgService.getPointStatistic(id, timeRange);
         return Result.success(pointStatistic);
     }
 

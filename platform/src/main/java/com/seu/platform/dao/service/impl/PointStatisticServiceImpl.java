@@ -7,6 +7,7 @@ import com.seu.platform.dao.entity.PointStatistic;
 import com.seu.platform.dao.mapper.PointStatisticMapper;
 import com.seu.platform.dao.service.PointStatisticService;
 import com.seu.platform.model.vo.StatisticVO;
+import com.seu.platform.model.vo.TimeRange;
 import org.springframework.stereotype.Service;
 
 /**
@@ -27,6 +28,14 @@ public class PointStatisticServiceImpl extends ServiceImpl<PointStatisticMapper,
         StatisticVO vo = new StatisticVO();
         BeanUtil.copyProperties(entity, vo);
         return vo;
+    }
+
+    @Override
+    public StatisticVO getStatistic(Integer lineId, TimeRange timeRange) {
+        PointStatistic statistic = getBaseMapper().getStatistic(lineId,
+                timeRange.getSt(),
+                timeRange.getEt());
+        return com.seu.platform.util.BeanUtil.convertBean(statistic, StatisticVO.class);
     }
 }
 

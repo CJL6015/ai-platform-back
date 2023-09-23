@@ -1,18 +1,16 @@
-package com.seu.platform.model.vo;
+package com.seu.platform.model.dto;
 
-import lombok.*;
+import lombok.Data;
+import lombok.ToString;
 
 /**
  * @author chenjiale
  * @version 1.0
- * @date 2023-09-11 22:43
+ * @date 2023-09-23 16:22
  */
 @Data
-@Builder
 @ToString
-@NoArgsConstructor
-@AllArgsConstructor
-public class PointStatisticVO {
+public class PointStatisticDTO {
     /**
      * 点号名称
      */
@@ -42,11 +40,6 @@ public class PointStatisticVO {
      * 刷新异常时间
      */
     private Long exceptionTime;
-
-    /**
-     * 时实值
-     */
-    private Float value;
 
     /**
      * 刷新状态

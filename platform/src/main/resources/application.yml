@@ -24,5 +24,7 @@ logging:
   level:
     com.baomidou.mybatisplus: debug
 exa:
-  host: 47.98.32.148:9000
-  get-item-url: ${exa.host}/exawebapi/exaitem/getitems
+  host: 114.55.245.123:9000
+  get-value: ${exa.host}/data/SelectValueFloat
+  get-values: ${exa.host}/data/SelectValuesFloat
+  get-history: ${exa.host}/data/SelectRecordsFloat

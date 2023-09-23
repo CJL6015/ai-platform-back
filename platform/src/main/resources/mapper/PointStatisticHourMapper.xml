@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.PointStatisticHourMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.PointStatisticHour">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="pointId" column="point_id" jdbcType="INTEGER"/>
+            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+            <result property="equipmentId" column="equipment_id" jdbcType="INTEGER"/>
+            <result property="stopTime" column="stop_time" jdbcType="BIGINT"/>
+            <result property="runTime" column="run_time" jdbcType="BIGINT"/>
+            <result property="normalRefresh" column="normal_refresh" jdbcType="INTEGER"/>
+            <result property="exceptionRefresh" column="exception_refresh" jdbcType="INTEGER"/>
+            <result property="thresholdUpLowExceeded" column="threshold_up_low_exceeded" jdbcType="INTEGER"/>
+            <result property="thresholdUpupLowlowExceeded" column="threshold_upup_lowlow_exceeded" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,create_time,point_id,
+        line_id,equipment_id,stop_time,
+        run_time,normal_refresh,exception_refresh,
+        threshold_up_low_exceeded,threshold_upup_lowlow_exceeded
+    </sql>
+</mapper>

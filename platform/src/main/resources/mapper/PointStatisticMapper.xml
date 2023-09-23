@@ -23,4 +23,21 @@
         exception_refresh,create_time,line_id,
         type
     </sql>
+    <select id="getStatistic" resultType="com.seu.platform.dao.entity.PointStatistic">
+        select sum(threshold_exceeded) as threshold_exceeded,
+        sum(threshold_within) as threshold_within,
+        sum(stop_time) as stop_time,
+        sum(run_time) as run_time,
+        sum(normal_refresh) as normal_refresh,
+        sum(exception_refresh) as exception_refresh
+        from point_statistic
+        where
+        line_id=#{lineId}
+        <if test="st !=null">
+            and create_time>=#{st}
+        </if>
+        <if test="et !=null">
+            and create_time &lt;=#{et}
+        </if>
+    </select>
 </mapper>

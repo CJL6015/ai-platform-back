@@ -19,6 +19,9 @@ public class BeanUtil {
         T t = null;
         try {
             t = tClass.newInstance();
+            if(entity==null){
+                return t;
+            }
             BeanUtils.copyProperties(entity, t);
         } catch (InstantiationException | IllegalAccessException e) {
             log.error("entity转vo异常，entity:{}", entity, e);

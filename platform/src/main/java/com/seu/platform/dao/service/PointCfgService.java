@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.model.vo.PointStatisticVO;
+import com.seu.platform.model.vo.TimeRange;
 
 import java.util.List;
 
@@ -26,8 +27,9 @@ public interface PointCfgService extends IService<PointCfg> {
     /**
      * 查询测点统计结果
      *
-     * @param lineId 生产线id
+     * @param lineId    生产线id
+     * @param timeRange 时间
      * @return 数据
      */
-    List<PointStatisticVO> getPointStatistic(Integer lineId);
+    List<PointStatisticVO> getPointStatistic(Integer lineId, TimeRange timeRange);
 }

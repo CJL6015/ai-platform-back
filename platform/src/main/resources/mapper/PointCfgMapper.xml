@@ -24,4 +24,20 @@
         exception_time,modify_time,line_id,
         upper_limit,lower_limit
     </sql>
+    <select id="getPointStatistic" resultType="com.seu.platform.model.dto.PointStatisticDTO">
+        select t1.name,
+               t1.point_id,
+               t1.description,
+               t1.unit,
+               t1.state,
+               sum(t2.threshold_up_low_exceeded) as exceeded_time,
+               sum(t2.exception_refresh)         as exception_time
+        from point_cfg t1,
+             point_statistic_hour t2
+        where t1.point_id = t2.point_id
+          and t1.line_id = #{lineId}
+          and t2.create_time >= #{st}
+          and t2.create_time &lt;= #{et}
+        group by t1.name, t1.point_id, t1.description, t1.unit, t1.state
+    </select>
 </mapper>

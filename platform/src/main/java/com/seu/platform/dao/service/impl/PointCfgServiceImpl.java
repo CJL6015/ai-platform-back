@@ -7,9 +7,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.mapper.PointCfgMapper;
 import com.seu.platform.dao.service.PointCfgService;
+import com.seu.platform.exa.ExaClient;
+import com.seu.platform.model.dto.PointStatisticDTO;
 import com.seu.platform.model.vo.PointStatisticVO;
+import com.seu.platform.model.vo.TimeRange;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,8 +24,12 @@ import java.util.stream.Collectors;
  * @createDate 2023-09-11 22:24:42
  */
 @Service
+@RequiredArgsConstructor
 public class PointCfgServiceImpl extends ServiceImpl<PointCfgMapper, PointCfg>
         implements PointCfgService {
+
+    private final ExaClient exaClient;
+
     @Override
     public Page<PointStatisticVO> getPointStatisticPage(Integer lineId, int pageNum, int pageSize) {
         Page<PointCfg> page = new Page<>(pageNum, pageSize);
@@ -39,13 +48,22 @@ public class PointCfgServiceImpl extends ServiceImpl<PointCfgMapper, PointCfg>
     }
 
     @Override
-    public List<PointStatisticVO> getPointStatistic(Integer lineId) {
-        LambdaQueryWrapper<PointCfg> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(PointCfg::getLineId, lineId);
-        List<PointCfg> list = list(queryWrapper);
-        return list.stream()
-                .map(this::convertToPointStatisticVO)
+    public List<PointStatisticVO> getPointStatistic(Integer lineId, TimeRange timeRange) {
+        List<PointStatisticDTO> pointStatistic = getBaseMapper().getPointStatistic(lineId,
+                timeRange.getSt(), timeRange.getEt());
+        List<String> points = pointStatistic.stream()
+                .map(PointStatisticDTO::getName)
                 .collect(Collectors.toList());
+        Float[] values = exaClient.getValues(points);
+        List<PointStatisticVO> vos = new ArrayList<>();
+        for (int i = 0; i < pointStatistic.size(); i++) {
+            PointStatisticDTO dto = pointStatistic.get(i);
+            PointStatisticVO vo = new PointStatisticVO();
+            BeanUtil.copyProperties(dto, vo);
+            vo.setValue(values[i]);
+            vos.add(vo);
+        }
+        return vos;
     }
 
     private PointStatisticVO convertToPointStatisticVO(PointCfg pointCfg) {
