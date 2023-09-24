@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TimeValueChartVO {
-    private List<Long> timestamps;
+    private List<String> timestamps;
 
     private List<Integer> values;
 }

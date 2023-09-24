@@ -1,26 +1,20 @@
-package com.seu.platform.dao.entity;
+package com.seu.platform.model.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import lombok.*;
+
 import java.util.Date;
-import lombok.Data;
 
 /**
- * 测点基表
- * @TableName point_cfg
+ * @author chenjiale
+ * @version 1.0
+ * @date 2023-09-24 21:52
  */
-@TableName(value ="point_cfg")
 @Data
-public class PointCfg implements Serializable {
-    /**
-     * 主键
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-
+@Builder
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+public class PointConfigVO {
     /**
      * 点号名称
      */
@@ -67,7 +61,7 @@ public class PointCfg implements Serializable {
     private Double upperLimit;
 
     /**
-     * 
+     *
      */
     private Double lowerLimit;
 
@@ -105,7 +99,4 @@ public class PointCfg implements Serializable {
      * 该测点历史平均超限时间
      */
     private Integer duration;
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }

@@ -3,6 +3,7 @@ package com.seu.platform.dao.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.PointCfg;
+import com.seu.platform.model.vo.PointConfigVO;
 import com.seu.platform.model.vo.PointStatisticVO;
 import com.seu.platform.model.vo.TimeRange;
 
@@ -11,7 +12,7 @@ import java.util.List;
 /**
  * @author 陈小黑
  * @description 针对表【point_cfg(测点基表)】的数据库操作Service
- * @createDate 2023-09-11 22:24:42
+ * @createDate 2023-09-24 21:45:47
  */
 public interface PointCfgService extends IService<PointCfg> {
     /**
@@ -32,4 +33,12 @@ public interface PointCfgService extends IService<PointCfg> {
      * @return 数据
      */
     List<PointStatisticVO> getPointStatistic(Integer lineId, TimeRange timeRange);
+
+    /**
+     * 获取测点数据
+     *
+     * @param lineId 生产线id
+     * @return 测点数据
+     */
+    List<PointConfigVO> getPointList(Integer lineId);
 }

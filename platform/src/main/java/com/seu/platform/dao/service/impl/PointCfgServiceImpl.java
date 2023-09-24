@@ -9,6 +9,7 @@ import com.seu.platform.dao.mapper.PointCfgMapper;
 import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.exa.ExaClient;
 import com.seu.platform.model.dto.PointStatisticDTO;
+import com.seu.platform.model.vo.PointConfigVO;
 import com.seu.platform.model.vo.PointStatisticVO;
 import com.seu.platform.model.vo.TimeRange;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 /**
  * @author 陈小黑
  * @description 针对表【point_cfg(测点基表)】的数据库操作Service实现
- * @createDate 2023-09-11 22:24:42
+ * @createDate 2023-09-24 21:45:47
  */
 @Service
 @RequiredArgsConstructor
@@ -64,6 +65,17 @@ public class PointCfgServiceImpl extends ServiceImpl<PointCfgMapper, PointCfg>
             vos.add(vo);
         }
         return vos;
+    }
+
+    @Override
+    public List<PointConfigVO> getPointList(Integer lineId) {
+        LambdaQueryWrapper<PointCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PointCfg::getLineId, lineId);
+        List<PointCfg> list = list(queryWrapper);
+        return list.stream()
+                .map(cfg ->
+                        com.seu.platform.util.BeanUtil.convertBean(cfg, PointConfigVO.class))
+                .collect(Collectors.toList());
     }
 
     private PointStatisticVO convertToPointStatisticVO(PointCfg pointCfg) {

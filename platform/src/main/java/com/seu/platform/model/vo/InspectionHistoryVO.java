@@ -1,5 +1,6 @@
 package com.seu.platform.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.util.Date;
@@ -13,11 +14,13 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InspectionHistoryVO {
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date st;
 
     /**
      * 结束时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date et;
 
     /**

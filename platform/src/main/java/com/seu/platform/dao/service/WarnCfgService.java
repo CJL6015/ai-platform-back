@@ -18,4 +18,13 @@ public interface WarnCfgService extends IService<WarnCfg> {
      * @return vo
      */
     WarnConfigVO getWarnConfigVO(Integer lineId);
+
+    /**
+     * 更新配置
+     *
+     * @param lineId       生产线id
+     * @param warnConfigVO 配置
+     * @return 是否更新成功
+     */
+    boolean updateConfig(Integer lineId, WarnConfigVO warnConfigVO);
 }

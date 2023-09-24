@@ -1,5 +1,7 @@
 package com.seu.platform.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.seu.platform.dao.entity.InspectionCfg;
 import com.seu.platform.dao.entity.WarnCfg;
 import com.seu.platform.dao.service.WarnCfgService;
 import com.seu.platform.model.entity.Result;
@@ -25,12 +27,9 @@ public class WarnController {
         return Result.success(warnConfigVO);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/line/{id}")
     public Result<Boolean> updateWarnConfig(@PathVariable Integer id, @RequestBody WarnConfigVO warnConfigVO) {
-        WarnCfg warnCfg = BeanUtil.convertBean(warnConfigVO, WarnCfg.class);
-        warnCfg.setId(id);
-        warnCfg.setModifyTime(new Date());
-        boolean b = warnCfgService.updateById(warnCfg);
+        boolean b = warnCfgService.updateConfig(id, warnConfigVO);
         return Result.success(b);
     }
 }
