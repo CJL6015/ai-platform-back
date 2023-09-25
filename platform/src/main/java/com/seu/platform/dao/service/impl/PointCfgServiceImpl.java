@@ -1,6 +1,9 @@
 package com.seu.platform.dao.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -8,13 +11,17 @@ import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.mapper.PointCfgMapper;
 import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.exa.ExaClient;
+import com.seu.platform.exa.model.ExaPoint;
+import com.seu.platform.exa.model.RecordsFloat;
 import com.seu.platform.model.dto.PointStatisticDTO;
 import com.seu.platform.model.vo.PointConfigVO;
 import com.seu.platform.model.vo.PointStatisticVO;
+import com.seu.platform.model.vo.PointTrendVO;
 import com.seu.platform.model.vo.TimeRange;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -76,6 +83,31 @@ public class PointCfgServiceImpl extends ServiceImpl<PointCfgMapper, PointCfg>
                 .map(cfg ->
                         com.seu.platform.util.BeanUtil.convertBean(cfg, PointConfigVO.class))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PointTrendVO getPointTrend(String name, Long start, Long end) throws Exception {
+        List<ExaPoint> exaPoints = exaClient.getExaPoints(name);
+        if (CollUtil.isEmpty(exaPoints)) {
+            throw new Exception("exa不存在该点号");
+        }
+        ExaPoint exaPoint = exaPoints.get(0);
+        String comment = exaPoint.getComment();
+        JSONObject jsonObject = JSON.parseObject(comment);
+        RecordsFloat history = exaClient.getHistory(name, start, end);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        List<String> times = history.getTimestamps().stream()
+                .map(dateFormat::format).collect(Collectors.toList());
+        return PointTrendVO.builder()
+                .name(exaPoint.getName())
+                .lowerLimit(jsonObject.getDouble("低值"))
+                .lowerLowerLimit(jsonObject.getDouble("低低值"))
+                .upperLimit(jsonObject.getDouble("高值"))
+                .upperUpperLimit(jsonObject.getDouble("高高值"))
+                .times(times)
+                .value(history.getValues())
+                .build();
+
     }
 
     private PointStatisticVO convertToPointStatisticVO(PointCfg pointCfg) {

@@ -1,17 +1,23 @@
 package com.seu.platform.exa;
 
+import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.seu.platform.common.constant.Numbers;
+import com.seu.platform.exa.model.ExaPoint;
+import com.seu.platform.exa.model.ExaPointResponse;
 import com.seu.platform.exa.model.RecordsFloat;
 import com.seu.platform.exa.model.ValueFloat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +31,8 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class ExaClient {
+    private static final String SELECT_STR_FORMATTER = "Name like '%%%s%%'";
+
     @Value("${exa.get-value}")
     private String getValueUrl;
 
@@ -33,6 +41,9 @@ public class ExaClient {
 
     @Value("${exa.get-history}")
     private String getHistoryUrl;
+
+    @Value("${exa.get-points}")
+    private String getPoints;
 
     public Float getValue(String point) {
         Float value = null;
@@ -86,16 +97,38 @@ public class ExaClient {
      */
     public RecordsFloat getHistory(String point, Long st, Long et) {
         RecordsFloat result = null;
-        try {
-            Map<String, Object> body = new HashMap<>(Numbers.FOUR);
-            body.put("Name", point);
-            body.put("Start", st);
-            body.put("End", et);
-            String post = HttpUtil.post(getHistoryUrl, body);
+        Map<String, Object> body = new HashMap<>(Numbers.FOUR);
+        body.put("Name", point);
+        body.put("Start", st);
+        body.put("End", et);
+        try (HttpResponse response = HttpUtil.createPost(getHistoryUrl)
+                .body(JSON.toJSONString(body))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .execute()) {
+            String post = response.body();
             result = JSON.parseObject(post, RecordsFloat.class);
         } catch (Exception e) {
             log.error("exa获取历史异常,point:{},st:{},et:{}", point, st, et);
         }
         return result;
+    }
+
+    public List<ExaPoint> getExaPoints(String name) {
+        List<ExaPoint> list = new ArrayList<>();
+        String filter = String.format(SELECT_STR_FORMATTER, name);
+        Map<String, Object> body = new HashMap<>(Numbers.FOUR);
+        body.put("Filter", filter);
+        try (HttpResponse response = HttpUtil.createPost(getPoints)
+                .body(JSON.toJSONString(body))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .execute()) {
+            String post = response.body();
+            ExaPointResponse exaPointResponse = JSON.parseObject(post, ExaPointResponse.class);
+            String object = JSON.parseObject(exaPointResponse.getVariablesJson(), String.class);
+            list = JSON.parseArray(object, ExaPoint.class);
+        } catch (Exception e) {
+            log.error("exa获取测点异常,name:{}", name);
+        }
+        return list;
     }
 }

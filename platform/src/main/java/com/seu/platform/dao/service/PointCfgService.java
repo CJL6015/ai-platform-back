@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.model.vo.PointConfigVO;
 import com.seu.platform.model.vo.PointStatisticVO;
+import com.seu.platform.model.vo.PointTrendVO;
 import com.seu.platform.model.vo.TimeRange;
 
 import java.util.List;
@@ -41,4 +42,14 @@ public interface PointCfgService extends IService<PointCfg> {
      * @return 测点数据
      */
     List<PointConfigVO> getPointList(Integer lineId);
+
+    /**
+     * 获取测点趋势
+     *
+     * @param name  点号名称
+     * @param start 开始时间
+     * @param end   结束时间
+     * @return 测点趋势
+     */
+    PointTrendVO getPointTrend(String name, Long start, Long end) throws Exception;
 }

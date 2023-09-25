@@ -28,3 +28,4 @@ exa:
   get-value: ${exa.host}/data/SelectValueFloat
   get-values: ${exa.host}/data/SelectValuesFloat
   get-history: ${exa.host}/data/SelectRecordsFloat
+  get-points: ${exa.host}/meta/SelectVariables
