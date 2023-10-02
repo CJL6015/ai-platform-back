@@ -1,9 +1,6 @@
 package com.seu.platform.dao.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -11,7 +8,6 @@ import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.mapper.PointCfgMapper;
 import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.exa.ExaClient;
-import com.seu.platform.exa.model.ExaPoint;
 import com.seu.platform.exa.model.RecordsFloat;
 import com.seu.platform.model.dto.PointStatisticDTO;
 import com.seu.platform.model.vo.PointConfigVO;
@@ -87,23 +83,19 @@ public class PointCfgServiceImpl extends ServiceImpl<PointCfgMapper, PointCfg>
 
     @Override
     public PointTrendVO getPointTrend(String name, Long start, Long end) throws Exception {
-        List<ExaPoint> exaPoints = exaClient.getExaPoints(name);
-        if (CollUtil.isEmpty(exaPoints)) {
-            throw new Exception("exa不存在该点号");
-        }
-        ExaPoint exaPoint = exaPoints.get(0);
-        String comment = exaPoint.getComment();
-        JSONObject jsonObject = JSON.parseObject(comment);
+        LambdaQueryWrapper<PointCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(PointCfg::getName, name);
+        PointCfg pointCfg = getOne(queryWrapper);
         RecordsFloat history = exaClient.getHistory(name, start, end);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         List<String> times = history.getTimestamps().stream()
                 .map(dateFormat::format).collect(Collectors.toList());
         return PointTrendVO.builder()
-                .name(exaPoint.getName())
-                .lowerLimit(jsonObject.getDouble("低值"))
-                .lowerLowerLimit(jsonObject.getDouble("低低值"))
-                .upperLimit(jsonObject.getDouble("高值"))
-                .upperUpperLimit(jsonObject.getDouble("高高值"))
+                .name(pointCfg.getDescription() + "(" + pointCfg.getUnit() + ")")
+                .lowerLimit(pointCfg.getLowerLimit())
+                .lowerLowerLimit(pointCfg.getLowerLowerLimit())
+                .upperLimit(pointCfg.getUpperLimit())
+                .upperUpperLimit(pointCfg.getUpperUpperLimit())
                 .times(times)
                 .value(history.getValues())
                 .build();

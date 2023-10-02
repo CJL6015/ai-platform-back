@@ -5,33 +5,33 @@
 <mapper namespace="com.seu.platform.dao.mapper.PointCfgMapper">
 
     <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.PointCfg">
-            <id property="id" column="id" jdbcType="INTEGER"/>
-            <result property="name" column="name" jdbcType="VARCHAR"/>
-            <result property="pointId" column="point_id" jdbcType="INTEGER"/>
-            <result property="description" column="description" jdbcType="VARCHAR"/>
-            <result property="unit" column="unit" jdbcType="VARCHAR"/>
-            <result property="exceededTime" column="exceeded_time" jdbcType="BIGINT"/>
-            <result property="exceptionTime" column="exception_time" jdbcType="BIGINT"/>
-            <result property="modifyTime" column="modify_time" jdbcType="TIMESTAMP"/>
-            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
-            <result property="upperLimit" column="upper_limit" jdbcType="FLOAT"/>
-            <result property="lowerLimit" column="lower_limit" jdbcType="FLOAT"/>
-            <result property="pointType" column="point_type" jdbcType="INTEGER"/>
-            <result property="upperUpperLimit" column="upper_upper_limit" jdbcType="FLOAT"/>
-            <result property="lowerLowerLimit" column="lower_lower_limit" jdbcType="FLOAT"/>
-            <result property="equipmentId" column="equipment_id" jdbcType="INTEGER"/>
-            <result property="state" column="state" jdbcType="INTEGER"/>
-            <result property="threshold" column="threshold" jdbcType="INTEGER"/>
-            <result property="duration" column="duration" jdbcType="INTEGER"/>
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="pointId" column="point_id" jdbcType="INTEGER"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="unit" column="unit" jdbcType="VARCHAR"/>
+        <result property="exceededTime" column="exceeded_time" jdbcType="BIGINT"/>
+        <result property="exceptionTime" column="exception_time" jdbcType="BIGINT"/>
+        <result property="modifyTime" column="modify_time" jdbcType="TIMESTAMP"/>
+        <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+        <result property="upperLimit" column="upper_limit" jdbcType="FLOAT"/>
+        <result property="lowerLimit" column="lower_limit" jdbcType="FLOAT"/>
+        <result property="pointType" column="point_type" jdbcType="INTEGER"/>
+        <result property="upperUpperLimit" column="upper_upper_limit" jdbcType="FLOAT"/>
+        <result property="lowerLowerLimit" column="lower_lower_limit" jdbcType="FLOAT"/>
+        <result property="equipmentId" column="equipment_id" jdbcType="INTEGER"/>
+        <result property="state" column="state" jdbcType="INTEGER"/>
+        <result property="threshold" column="threshold" jdbcType="INTEGER"/>
+        <result property="duration" column="duration" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,name,point_id,
-        description,unit,exceeded_time,
-        exception_time,modify_time,line_id,
-        upper_limit,lower_limit,point_type,
-        upper_upper_limit,lower_lower_limit,equipment_id,
-        state,threshold,duration
+                id, name, point_id,
+                description, unit, exceeded_time,
+                exception_time, modify_time, line_id,
+                upper_limit, lower_limit, point_type,
+                upper_upper_limit, lower_lower_limit, equipment_id,
+                state, threshold, duration
     </sql>
     <select id="getPointStatistic" resultType="com.seu.platform.model.dto.PointStatisticDTO">
         select t1.name,
@@ -39,14 +39,18 @@
                t1.description,
                t1.unit,
                t1.state,
-               sum(t2.threshold_up_low_exceeded) as exceeded_time,
-               sum(t2.exception_refresh)         as exception_time
-        from point_cfg t1,
-             point_statistic_hour t2
-        where t1.point_id = t2.point_id
-          and t1.line_id = #{lineId}
-          and t2.create_time >= #{st}
-          and t2.create_time &lt;= #{et}
-        group by t1.name, t1.point_id, t1.description, t1.unit, t1.state
+               t2.exceeded_time,
+               t2.exception_time
+        from point_cfg t1
+                 left join
+             (select point_id,
+                     sum(threshold_up_low_exceeded) as exceeded_time,
+                     sum(exception_refresh)         as exception_time
+              from point_statistic_hour
+              where create_time >= #{st}
+                and create_time &lt;= #{et}
+              group by point_id) t2
+             on t1.point_id = t2.point_id
+        where t1.line_id = #{lineId}
     </select>
 </mapper>

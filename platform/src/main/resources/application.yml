@@ -27,5 +27,5 @@ exa:
   host: 114.55.245.123:9000
   get-value: ${exa.host}/data/SelectValueFloat
   get-values: ${exa.host}/data/SelectValuesFloat
-  get-history: ${exa.host}/data/SelectRecordsFloat
+  get-history: ${exa.host}/data/SelectDownsamplingRecordsFloat
   get-points: ${exa.host}/meta/SelectVariables

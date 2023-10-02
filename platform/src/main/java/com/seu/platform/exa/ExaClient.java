@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author chenjiale
@@ -31,6 +32,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class ExaClient {
+    private static final long TIME_DELTA = 8 * 60 * 60 * 1000;
     private static final String SELECT_STR_FORMATTER = "Name like '%%%s%%'";
 
     @Value("${exa.get-value}")
@@ -68,12 +70,15 @@ public class ExaClient {
      */
     public Float[] getValues(List<String> points) {
         Float[] res = new Float[points.size()];
-        try {
-            Map<String, Object> body = new HashMap<>(Numbers.FOUR);
-            body.put("Names", points);
-            String post = HttpUtil.post(getValuesUrl, body);
+        Map<String, Object> body = new HashMap<>(Numbers.FOUR);
+        body.put("Names", points);
+        try (HttpResponse response = HttpUtil.createPost(getValuesUrl)
+                .body(JSON.toJSONString(body))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .execute()) {
+            String post = response.body();
             JSONObject jsonObject = JSON.parseObject(post);
-            JSONArray values = jsonObject.getJSONArray("values");
+            JSONArray values = jsonObject.getJSONArray("Values");
             if (values.size() != points.size()) {
                 log.error("exa返回结果异常,points:{},返回结果:{}", points, post);
                 return res;
@@ -99,14 +104,19 @@ public class ExaClient {
         RecordsFloat result = null;
         Map<String, Object> body = new HashMap<>(Numbers.FOUR);
         body.put("Name", point);
-        body.put("Start", st);
-        body.put("End", et);
+        body.put("Aggregator", "avg");
+        body.put("Start", st - TIME_DELTA);
+        body.put("End", et - TIME_DELTA);
+        body.put("Interval", 300);
+
         try (HttpResponse response = HttpUtil.createPost(getHistoryUrl)
                 .body(JSON.toJSONString(body))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .execute()) {
             String post = response.body();
             result = JSON.parseObject(post, RecordsFloat.class);
+            List<Long> timestamps = result.getTimestamps();
+            result.setTimestamps(timestamps.stream().map(t -> t + TIME_DELTA).collect(Collectors.toList()));
         } catch (Exception e) {
             log.error("exa获取历史异常,point:{},st:{},et:{}", point, st, et);
         }

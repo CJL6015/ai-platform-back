@@ -5,10 +5,7 @@ import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.PointConfigVO;
 import com.seu.platform.model.vo.PointTrendVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -31,8 +28,11 @@ public class PointController {
     }
 
     @GetMapping("/trend/{name}")
-    public Result<PointTrendVO> getPointTrend(@PathVariable String name, Long start, Long end) throws Exception {
-        PointTrendVO pointTrend = pointCfgService.getPointTrend(name, start, end);
+    public Result<PointTrendVO> getPointTrend(@PathVariable String name,
+                                              @RequestParam Long st,
+                                              @RequestParam Long et)
+            throws Exception {
+        PointTrendVO pointTrend = pointCfgService.getPointTrend(name, st, et);
         return Result.success(pointTrend);
     }
 

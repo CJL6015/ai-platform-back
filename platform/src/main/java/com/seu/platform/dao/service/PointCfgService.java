@@ -50,6 +50,7 @@ public interface PointCfgService extends IService<PointCfg> {
      * @param start 开始时间
      * @param end   结束时间
      * @return 测点趋势
+     * @throws Exception 异常
      */
     PointTrendVO getPointTrend(String name, Long start, Long end) throws Exception;
 }
