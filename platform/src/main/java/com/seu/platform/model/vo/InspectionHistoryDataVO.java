@@ -16,4 +16,9 @@ public class InspectionHistoryDataVO {
     private TimeValueChartVO chartValue;
 
     private List<InspectionHistoryVO> tableValue;
+
+    private Integer unfreezeCount;
+
+    private Integer freezeCount;
+
 }

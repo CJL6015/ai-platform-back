@@ -51,8 +51,11 @@ public class InspectionController {
     @GetMapping("/history/line/{id}")
     public Result<InspectionHistoryDataVO> getInspectionHistory(@PathVariable Integer id,
                                                                 TimeRange timeRange) {
-        InspectionHistoryDataVO inspectionHistoryValue = inspectionHistoryService.getInspectionHistoryValue(id,
+        InspectionHistoryDataVO inspectionHistoryValue = freezeLogService.getInspectionHistoryFreeze(id,
                 timeRange.getSt(), timeRange.getEt());
+        Integer allCount = inspectionHistoryService.getAllCount(id,
+                timeRange.getSt(), timeRange.getEt());
+        inspectionHistoryValue.setUnfreezeCount(allCount - inspectionHistoryValue.getFreezeCount());
         return Result.success(inspectionHistoryValue);
     }
 
@@ -64,5 +67,11 @@ public class InspectionController {
         freezeLog.setEndTime(time.getEt());
         boolean save = freezeLogService.save(freezeLog);
         return Result.success(save);
+    }
+
+    @DeleteMapping("/unfreeze/{id}")
+    public Result<Boolean> unfreeze(@PathVariable Integer id) {
+        boolean b = freezeLogService.removeById(id);
+        return Result.success(b);
     }
 }

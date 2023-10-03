@@ -29,3 +29,5 @@ exa:
   get-values: ${exa.host}/data/SelectValuesFloat
   get-history: ${exa.host}/data/SelectDownsamplingRecordsFloat
   get-points: ${exa.host}/meta/SelectVariables
+static:
+  root: C:\work\民爆\图片\

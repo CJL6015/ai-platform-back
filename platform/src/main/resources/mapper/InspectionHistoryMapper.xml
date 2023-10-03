@@ -19,4 +19,11 @@
         freeze_time,exceeded_num,image_url,
         freeze
     </sql>
+    <select id="getAllExceededNum" resultType="java.lang.Integer">
+        select sum(exceeded_num) as exceeded_num
+        from inspection_history
+        where line_id = #{lineId}
+          and st >= #{st}
+          and et &lt;= #{et}
+    </select>
 </mapper>

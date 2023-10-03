@@ -10,6 +10,7 @@ import java.util.Date;
 /**
  * 巡检历史
  *
+ * @author 陈小黑
  * @TableName inspection_history
  */
 @TableName(value = "inspection_history")
