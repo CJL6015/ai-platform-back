@@ -17,10 +17,12 @@
         select t1.id,
                t1.equipment_description      as equipment_name,
                sum(t2.up_low_exceeded_count) as count,
+               sum(t2.threshold_up_low_exceeded) as duration,
                t2.time
         from equipment_cfg t1
                  left join (select equipment_id,
                                    up_low_exceeded_count,
+                                   threshold_up_low_exceeded,
                                    cast(statiatic_start_time as date) as time
                             from point_statistic_hour
                             where statiatic_start_time >= #{st}

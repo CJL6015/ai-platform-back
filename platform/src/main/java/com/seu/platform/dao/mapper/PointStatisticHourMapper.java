@@ -3,6 +3,7 @@ package com.seu.platform.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seu.platform.dao.entity.PointStatisticHour;
 import com.seu.platform.model.dto.BenchmarkDTO;
+import com.seu.platform.model.dto.HourTrendDTO;
 import com.seu.platform.model.dto.TrendDTO;
 
 import java.util.Date;
@@ -68,6 +69,24 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
      * @return 数据
      */
     List<BenchmarkDTO> getTrendDetailDaily(Integer lineId);
+
+    /**
+     * 获取总趋势
+     *
+     * @param st 开始时间
+     * @param et 结束时间
+     * @return 趋势
+     */
+    List<TrendDTO> getTotalTrend(Date st, Date et);
+
+    /**
+     * 获取总趋势
+     *
+     * @param st 开始时间
+     * @param et 结束时间
+     * @return 趋势
+     */
+    List<HourTrendDTO> getTimeOverrun(Date st, Date et);
 }
 
 

@@ -108,4 +108,22 @@
         group by t1.id, t1.equipment_description, t2.statiatic_start_time
         order by time, equipment_id
     </select>
+    <select id="getTotalTrend" resultType="com.seu.platform.model.dto.TrendDTO">
+        select sum(up_low_exceeded_count)         as count,
+               cast(statiatic_start_time as date) as time
+        from point_statistic_hour
+        where statiatic_start_time >= #{st}
+          and statiatic_start_time &lt;= #{et}
+        group by cast(statiatic_start_time as date)
+        order by time
+    </select>
+    <select id="getTimeOverrun" resultType="com.seu.platform.model.dto.HourTrendDTO">
+        select sum(up_low_exceeded_count)           as count,
+               DATEPART(HOUR, statiatic_start_time) as time
+        from point_statistic_hour
+        where statiatic_start_time >= #{st}
+          and statiatic_start_time &lt;= #{et}
+        group by DATEPART(HOUR, statiatic_start_time)
+        order by time
+    </select>
 </mapper>

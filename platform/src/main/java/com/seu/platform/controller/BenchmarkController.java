@@ -1,6 +1,7 @@
 package com.seu.platform.controller;
 
 import com.seu.platform.model.entity.Result;
+import com.seu.platform.model.vo.BenchmarkTrendVO;
 import com.seu.platform.model.vo.EquipmentTrendVO;
 import com.seu.platform.model.vo.TimeRange;
 import com.seu.platform.service.BenchmarkService;
@@ -25,5 +26,11 @@ public class BenchmarkController {
     public Result<EquipmentTrendVO> getEquipmentTrend(TimeRange timeRange) {
         EquipmentTrendVO equipmentTrend = benchmarkService.getEquipmentTrend(timeRange.getSt(), timeRange.getEt());
         return Result.success(equipmentTrend);
+    }
+
+    @GetMapping("/trend")
+    public Result<BenchmarkTrendVO> getTotalBenchmark(TimeRange timeRange) {
+        BenchmarkTrendVO benchmarkTrend = benchmarkService.getBenchmarkTrend(timeRange.getSt(), timeRange.getEt());
+        return Result.success(benchmarkTrend);
     }
 }

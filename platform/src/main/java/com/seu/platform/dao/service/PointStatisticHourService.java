@@ -2,6 +2,7 @@ package com.seu.platform.dao.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.PointStatisticHour;
+import com.seu.platform.model.dto.TrendDTO;
 import com.seu.platform.model.vo.BenchmarkDataVO;
 import com.seu.platform.model.vo.TrendDetailVO;
 import com.seu.platform.model.vo.TrendVO;

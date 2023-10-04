@@ -17,4 +17,5 @@ public class EquipmentTrendDTO {
     private String equipmentName;
     private Integer count;
     private Date time;
+    private Float duration;
 }

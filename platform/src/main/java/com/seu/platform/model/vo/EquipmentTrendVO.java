@@ -22,5 +22,9 @@ public class EquipmentTrendVO {
 
     private List<Integer> counts;
 
+    private List<Double> durations;
+
     private List<Integer> equipmentMax;
+
+    private List<String> trend;
 }

@@ -1,5 +1,6 @@
 package com.seu.platform.service;
 
+import com.seu.platform.model.vo.BenchmarkTrendVO;
 import com.seu.platform.model.vo.EquipmentTrendVO;
 
 import java.util.Date;
@@ -18,4 +19,14 @@ public interface BenchmarkService {
      * @return 趋势
      */
     EquipmentTrendVO getEquipmentTrend(Date st, Date et);
+
+
+    /**
+     * 查询总超限趋势
+     *
+     * @param st 开始时间
+     * @param et 结束时间
+     * @return 趋势
+     */
+    BenchmarkTrendVO getBenchmarkTrend(Date st, Date et);
 }
