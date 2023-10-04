@@ -68,8 +68,8 @@
             <option name="tableUIInfoList">
               <list>
                 <TableUIInfo>
-                  <option name="className" value="PointCfg" />
-                  <option name="tableName" value="point_cfg" />
+                  <option name="className" value="EquipmentCfg" />
+                  <option name="tableName" value="equipment_cfg" />
                 </TableUIInfo>
               </list>
             </option>

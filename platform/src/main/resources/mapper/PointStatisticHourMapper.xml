@@ -5,23 +5,107 @@
 <mapper namespace="com.seu.platform.dao.mapper.PointStatisticHourMapper">
 
     <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.PointStatisticHour">
-            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="id" column="id" jdbcType="BIGINT"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
             <result property="pointId" column="point_id" jdbcType="INTEGER"/>
             <result property="lineId" column="line_id" jdbcType="INTEGER"/>
             <result property="equipmentId" column="equipment_id" jdbcType="INTEGER"/>
-            <result property="stopTime" column="stop_time" jdbcType="BIGINT"/>
-            <result property="runTime" column="run_time" jdbcType="BIGINT"/>
-            <result property="normalRefresh" column="normal_refresh" jdbcType="INTEGER"/>
-            <result property="exceptionRefresh" column="exception_refresh" jdbcType="INTEGER"/>
-            <result property="thresholdUpLowExceeded" column="threshold_up_low_exceeded" jdbcType="INTEGER"/>
-            <result property="thresholdUpupLowlowExceeded" column="threshold_upup_lowlow_exceeded" jdbcType="INTEGER"/>
+            <result property="stopTime" column="stop_time" jdbcType="FLOAT"/>
+            <result property="runTime" column="run_time" jdbcType="FLOAT"/>
+            <result property="normalRefresh" column="normal_refresh" jdbcType="FLOAT"/>
+            <result property="exceptionRefresh" column="exception_refresh" jdbcType="FLOAT"/>
+            <result property="thresholdUpLowExceeded" column="threshold_up_low_exceeded" jdbcType="FLOAT"/>
+            <result property="thresholdUpupLowlowExceeded" column="threshold_upup_lowlow_exceeded" jdbcType="FLOAT"/>
+            <result property="upExceededDetails" column="up_exceeded_details" jdbcType="VARCHAR"/>
+            <result property="lowExceededDetails" column="low_exceeded_details" jdbcType="VARCHAR"/>
+            <result property="upupExceededDetails" column="upup_exceeded_details" jdbcType="VARCHAR"/>
+            <result property="lowlowExceededDetails" column="lowlow_exceeded_details" jdbcType="VARCHAR"/>
+            <result property="exceptionFreshDetails" column="exception_fresh_details" jdbcType="VARCHAR"/>
+            <result property="upLowExceededCount" column="up_low_exceeded_count" jdbcType="INTEGER"/>
+            <result property="upupLowlowExceededCount" column="upup_lowlow_exceeded_count" jdbcType="INTEGER"/>
+            <result property="statiaticStartTime" column="statiatic_start_time" jdbcType="TIMESTAMP"/>
+            <result property="statisticEndTime" column="statistic_end_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,create_time,point_id,
         line_id,equipment_id,stop_time,
         run_time,normal_refresh,exception_refresh,
-        threshold_up_low_exceeded,threshold_upup_lowlow_exceeded
+        threshold_up_low_exceeded,threshold_upup_lowlow_exceeded,up_exceeded_details,
+        low_exceeded_details,upup_exceeded_details,lowlow_exceeded_details,
+        exception_fresh_details,up_low_exceeded_count,upup_lowlow_exceeded_count,
+        statiatic_start_time,statistic_end_time
     </sql>
+    <select id="getOverrunCountMonth" resultType="com.seu.platform.model.dto.TrendDTO">
+        select sum(up_low_exceeded_count)         as count,
+               cast(statiatic_start_time as date) as time
+        from point_statistic_hour
+        where line_id = #{lineId}
+          and statiatic_start_time >= #{st}
+          and statiatic_start_time &lt;= #{et}
+        group by cast(statiatic_start_time as date)
+        order by time
+    </select>
+    <select id="getOverrunCountDaily" resultType="com.seu.platform.model.dto.TrendDTO">
+        select sum(up_low_exceeded_count) as count,
+               statiatic_start_time       as time
+        from point_statistic_hour
+        where line_id = #{lineId}
+          and statiatic_start_time >= dateadd(DAY, -1, (select max(statiatic_start_time)
+                                                          from point_statistic_hour))
+        group by statiatic_start_time
+        order by statiatic_start_time
+    </select>
+    <select id="getBenchmarkDaily" resultType="com.seu.platform.model.dto.BenchmarkDTO">
+        select t1.id                                 as equipment_id,
+               t1.equipment_description              as equipment_name,
+               sum(t2.up_low_exceeded_count)         as count,
+               cast(t2.statiatic_start_time as date) as time
+        from equipment_cfg t1
+                 left join point_statistic_hour t2 on t1.id = t2.equipment_id
+        where t2.line_id = #{lineId}
+          and statiatic_start_time >= dateadd(DAY, -2, (select max(statiatic_start_time)
+                                                        from point_statistic_hour))
+        group by t1.id, t1.equipment_description, cast(t2.statiatic_start_time as date)
+        order by time desc, equipment_id
+    </select>
+    <select id="getBenchmarkMonth" resultType="com.seu.platform.model.dto.BenchmarkDTO">
+        select t1.id                                      as equipment_id,
+               t1.equipment_description                   as equipment_name,
+               sum(t2.up_low_exceeded_count)              as count,
+               format(t2.statiatic_start_time, 'yyyy-MM') as time
+        from equipment_cfg t1
+                 left join point_statistic_hour t2 on t1.id = t2.equipment_id
+        where t2.line_id = #{lineId}
+          and statiatic_start_time >= dateadd(MONTH, -2, (select max(statiatic_start_time)
+                                                          from point_statistic_hour))
+        group by t1.id, t1.equipment_description, format(t2.statiatic_start_time, 'yyyy-MM')
+        order by time desc, equipment_id
+    </select>
+    <select id="getTrendDetailMonth" resultType="com.seu.platform.model.dto.BenchmarkDTO">
+        select t1.id                                 as equipment_id,
+               t1.equipment_description              as equipment_name,
+               sum(t2.up_low_exceeded_count)         as count,
+               cast(t2.statiatic_start_time as date) as time
+        from equipment_cfg t1
+                 left join point_statistic_hour t2 on t1.id = t2.equipment_id
+        where t2.line_id = #{lineId}
+          and statiatic_start_time >= dateadd(DAY, -1, (select max(statiatic_start_time)
+                                                        from point_statistic_hour))
+        group by t1.id, t1.equipment_description, cast(t2.statiatic_start_time as date)
+        order by time, equipment_id
+    </select>
+    <select id="getTrendDetailDaily" resultType="com.seu.platform.model.dto.BenchmarkDTO">
+        select t1.id                         as equipment_id,
+               t1.equipment_description      as equipment_name,
+               sum(t2.up_low_exceeded_count) as count,
+               t2.statiatic_start_time       as time
+        from equipment_cfg t1
+                 left join point_statistic_hour t2 on t1.id = t2.equipment_id
+        where t2.line_id = #{lineId}
+          and statiatic_start_time >= dateadd(DAY, -1, (select max(statiatic_start_time)
+                                                        from point_statistic_hour))
+        group by t1.id, t1.equipment_description, t2.statiatic_start_time
+        order by time, equipment_id
+    </select>
 </mapper>

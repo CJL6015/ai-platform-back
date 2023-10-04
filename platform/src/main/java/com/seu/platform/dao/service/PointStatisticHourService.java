@@ -2,25 +2,61 @@ package com.seu.platform.dao.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.PointStatisticHour;
-import com.seu.platform.model.vo.PointStatisticVO;
-import com.seu.platform.model.vo.TimeRange;
+import com.seu.platform.model.vo.BenchmarkDataVO;
+import com.seu.platform.model.vo.TrendDetailVO;
+import com.seu.platform.model.vo.TrendVO;
 
-import java.util.List;
+import java.util.Date;
 
 /**
  * @author 陈小黑
  * @description 针对表【point_statistic_hour】的数据库操作Service
- * @createDate 2023-09-23 16:14:08
+ * @createDate 2023-10-04 09:46:03
  */
 public interface PointStatisticHourService extends IService<PointStatisticHour> {
+    /**
+     * 查询超限趋势
+     *
+     * @param lineId 生产线id
+     * @param st     开始时间
+     * @param et     结束时间
+     * @return 超限趋势
+     */
+    TrendVO<String, Integer> getPointInspectionTrendMonth(Integer lineId, Date st, Date et);
 
 
     /**
-     * 查询测点统计结果
+     * 查询超限趋势
      *
-     * @param lineId    生产线id
-     * @param timeRange 时间
+     * @param lineId 生产线id
+     * @param st     开始时间
+     * @param et     结束时间
+     * @return 超限趋势
+     */
+    TrendVO<String, Integer> getPointInspectionTrendDaily(Integer lineId, Date st, Date et);
+
+    /**
+     * 获取对标数据
+     *
+     * @param lineId 生产线id
      * @return 数据
      */
-    List<PointStatisticVO> getPointStatistic(Integer lineId, TimeRange timeRange);
+    BenchmarkDataVO getBenchmarkData(Integer lineId);
+
+    /**
+     * 获取趋势详情
+     *
+     * @param lineId 生产线id
+     * @return 数据
+     */
+    TrendDetailVO getTrendDetailMonth(Integer lineId);
+
+    /**
+     * 获取趋势详情
+     *
+     * @param lineId 生产线id
+     * @return 数据
+     */
+    TrendDetailVO getTrendDetailDaily(Integer lineId);
+
 }

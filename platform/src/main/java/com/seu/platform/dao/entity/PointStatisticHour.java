@@ -16,10 +16,9 @@ import lombok.Data;
 @Data
 public class PointStatisticHour implements Serializable {
     /**
-     * 主键
+     * 
      */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
+    private Long id;
 
     /**
      * 
@@ -44,32 +43,77 @@ public class PointStatisticHour implements Serializable {
     /**
      * 
      */
-    private Long stopTime;
+    private Double stopTime;
 
     /**
      * 
      */
-    private Long runTime;
+    private Double runTime;
 
     /**
      * 
      */
-    private Integer normalRefresh;
+    private Double normalRefresh;
 
     /**
      * 
      */
-    private Integer exceptionRefresh;
+    private Double exceptionRefresh;
 
     /**
      * 
      */
-    private Integer thresholdUpLowExceeded;
+    private Double thresholdUpLowExceeded;
 
     /**
      * 
      */
-    private Integer thresholdUpupLowlowExceeded;
+    private Double thresholdUpupLowlowExceeded;
+
+    /**
+     * 
+     */
+    private String upExceededDetails;
+
+    /**
+     * 
+     */
+    private String lowExceededDetails;
+
+    /**
+     * 
+     */
+    private String upupExceededDetails;
+
+    /**
+     * 
+     */
+    private String lowlowExceededDetails;
+
+    /**
+     * 
+     */
+    private String exceptionFreshDetails;
+
+    /**
+     * 
+     */
+    private Integer upLowExceededCount;
+
+    /**
+     * 
+     */
+    private Integer upupLowlowExceededCount;
+
+    /**
+     * 
+     */
+    private Date statiaticStartTime;
+
+    /**
+     * 
+     */
+    private Date statisticEndTime;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

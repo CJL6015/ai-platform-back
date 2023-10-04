@@ -6,10 +6,10 @@ import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.PointValueVO;
 import com.seu.platform.model.vo.TimeRange;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author chenjiale
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/exa")
+@RequestMapping("/api/exa")
 public class ExaController {
     private final ExaClient exaClient;
 
@@ -36,5 +36,12 @@ public class ExaController {
         PointValueVO pointValueVO = PointValueVO.builder().values(history.getValues())
                 .timestamps(history.getTimestamps()).build();
         return Result.success(pointValueVO);
+    }
+
+    @GetMapping("/values")
+    public Result<Float[]> getValues(@RequestParam String names) {
+        List<String> list = Arrays.asList(names.split(","));
+        Float[] values = exaClient.getValues(list);
+        return Result.success(values);
     }
 }
