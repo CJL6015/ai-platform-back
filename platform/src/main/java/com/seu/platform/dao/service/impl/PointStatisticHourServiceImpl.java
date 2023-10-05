@@ -1,5 +1,7 @@
 package com.seu.platform.dao.service.impl;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seu.platform.dao.entity.PointStatisticHour;
 import com.seu.platform.dao.mapper.PointStatisticHourMapper;
@@ -7,6 +9,7 @@ import com.seu.platform.dao.service.PointStatisticHourService;
 import com.seu.platform.model.dto.BenchmarkDTO;
 import com.seu.platform.model.dto.TrendDTO;
 import com.seu.platform.model.vo.BenchmarkDataVO;
+import com.seu.platform.model.vo.CompareVO;
 import com.seu.platform.model.vo.TrendDetailVO;
 import com.seu.platform.model.vo.TrendVO;
 import com.seu.platform.util.MathUtil;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -157,6 +161,32 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
                 .equipments(equipments)
                 .times(times)
                 .build();
+    }
+
+
+    @Override
+    public CompareVO getCompare(Integer id) {
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.plusDays(-1);
+        LocalDate lastMonth = today.plusMonths(-1);
+        LocalDate lastYear = today.plusYears(-1);
+        List<String> days = new ArrayList<>();
+        days.add(LocalDateTimeUtil.formatNormal(today));
+        days.add(LocalDateTimeUtil.formatNormal(yesterday));
+        days.add(LocalDateTimeUtil.formatNormal(lastMonth));
+        days.add(LocalDateTimeUtil.formatNormal(lastYear));
+        List<TrendDTO> dayCompare = getBaseMapper().getDayCompare(days);
+
+        List<String> months = new ArrayList<>();
+        months.add(LocalDateTimeUtil.format(today, DatePattern.NORM_MONTH_FORMATTER));
+        months.add(LocalDateTimeUtil.format(lastMonth, DatePattern.NORM_MONTH_FORMATTER));
+        months.add(LocalDateTimeUtil.format(lastYear, DatePattern.NORM_MONTH_FORMATTER));
+
+        List<String> years = new ArrayList<>();
+        years.add(LocalDateTimeUtil.format(today, DatePattern.NORM_YEAR_PATTERN));
+        years.add(LocalDateTimeUtil.format(lastYear, DatePattern.NORM_YEAR_PATTERN));
+
+        return null;
     }
 }
 

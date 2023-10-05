@@ -25,4 +25,19 @@ public interface SelectService {
      * @return 生产线选项
      */
     List<OptionItemVO> getLinesOptions(Integer plantId);
+
+    /**
+     * 获取设备选项
+     *
+     * @param lineId 生产线id
+     * @return 设备选项
+     */
+    List<OptionItemVO> getEquipments(Integer lineId);
+
+    /**
+     * 获取所有参数
+     *
+     * @return 所有参数
+     */
+    List<OptionItemVO> getPoints();
 }

@@ -21,6 +21,7 @@
                t1.start_time                 as st,
                t1.end_time                   as et,
                sum(t2.exceeded_num)          as exceeded_num,
+               sum(t2.exceeded_people)       as exceeded_people,
                string_agg(t2.image_url, ',') as image_url
         from freeze_log t1
                  left join inspection_history t2

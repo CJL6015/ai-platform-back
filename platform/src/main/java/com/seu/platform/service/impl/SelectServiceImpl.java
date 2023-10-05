@@ -2,9 +2,13 @@ package com.seu.platform.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.seu.platform.dao.entity.EquipmentCfg;
 import com.seu.platform.dao.entity.Plant;
+import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.entity.ProductionLine;
+import com.seu.platform.dao.service.EquipmentCfgService;
 import com.seu.platform.dao.service.PlantService;
+import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.dao.service.ProductionLineService;
 import com.seu.platform.model.vo.OptionItemVO;
 import com.seu.platform.model.vo.SelectAllOptionVO;
@@ -27,6 +31,10 @@ public class SelectServiceImpl implements SelectService {
     private final PlantService plantService;
 
     private final ProductionLineService productionLineService;
+
+    private final EquipmentCfgService equipmentCfgService;
+
+    private final PointCfgService pointCfgService;
 
     @Override
     public SelectAllOptionVO getAllOptions() {
@@ -65,5 +73,35 @@ public class SelectServiceImpl implements SelectService {
                         .name(line.getName())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public List<OptionItemVO> getEquipments(Integer lineId) {
+        LambdaQueryWrapper<EquipmentCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(EquipmentCfg::getLineId, lineId);
+        List<EquipmentCfg> list = equipmentCfgService.list(queryWrapper);
+        List<OptionItemVO> collect = list.stream().map(equipmentCfg -> OptionItemVO.builder()
+                        .id(equipmentCfg.getId())
+                        .name(equipmentCfg.getEquipmentDescription().trim())
+                        .build())
+                .collect(Collectors.toList());
+        return collect;
+    }
+
+
+    @Override
+    public List<OptionItemVO> getPoints() {
+        List<PointCfg> list = pointCfgService.list();
+        List<OptionItemVO> collect = list.stream().map(point -> OptionItemVO.builder()
+                        .id(point.getPointId())
+                        .name(point.getDescription().trim())
+                        .build())
+                .collect(Collectors.toList());
+        collect.add(0, OptionItemVO.builder()
+                .id(-1)
+                .name("所有参数")
+                .build());
+        return collect;
     }
 }

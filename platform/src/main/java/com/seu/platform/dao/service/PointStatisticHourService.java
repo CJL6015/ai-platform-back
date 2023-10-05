@@ -2,8 +2,8 @@ package com.seu.platform.dao.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.PointStatisticHour;
-import com.seu.platform.model.dto.TrendDTO;
 import com.seu.platform.model.vo.BenchmarkDataVO;
+import com.seu.platform.model.vo.CompareVO;
 import com.seu.platform.model.vo.TrendDetailVO;
 import com.seu.platform.model.vo.TrendVO;
 
@@ -59,5 +59,13 @@ public interface PointStatisticHourService extends IService<PointStatisticHour> 
      * @return 数据
      */
     TrendDetailVO getTrendDetailDaily(Integer lineId);
+
+    /**
+     * 获取同比环比
+     *
+     * @param id point id
+     * @return 数据
+     */
+    CompareVO getCompare(Integer id);
 
 }

@@ -27,12 +27,17 @@ public class InspectionHistoryDTO {
     /**
      * 冻结时长(分)
      */
-    private Integer freezeTime;
+    private Float freezeTime;
 
     /**
      * 超员次数
      */
     private Integer exceededNum;
+
+    /**
+     * 超位次数
+     */
+    private Integer exceededPeople;
 
     /**
      * 图片地址

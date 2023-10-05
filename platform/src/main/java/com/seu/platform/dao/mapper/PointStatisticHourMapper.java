@@ -6,6 +6,7 @@ import com.seu.platform.model.dto.BenchmarkDTO;
 import com.seu.platform.model.dto.HourTrendDTO;
 import com.seu.platform.model.dto.TrendDTO;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -87,6 +88,14 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
      * @return 趋势
      */
     List<HourTrendDTO> getTimeOverrun(Date st, Date et);
+
+    /**
+     * 获取日同比
+     *
+     * @param times 时间
+     * @return 数据
+     */
+    List<TrendDTO> getDayCompare(List<String> times);
 }
 
 

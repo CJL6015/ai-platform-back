@@ -28,7 +28,7 @@ public class InspectionHistoryVO {
     /**
      * 冻结时长(分)
      */
-    private Integer freezeTime;
+    private Double freezeTime;
 
     /**
      * 超员次数
@@ -38,7 +38,12 @@ public class InspectionHistoryVO {
     /**
      * 图片地址
      */
-    private String imageUrl;
+    private String[] imageUrl;
+
+    /**
+     * 超位次数
+     */
+    private Integer exceededPeople;
 
     /**
      * 是否冻结:0-是;1-否

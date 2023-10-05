@@ -72,4 +72,9 @@ public class PointController {
         return Result.success(trendDetailMonth);
     }
 
+//    @GetMapping("/compare/{id}")
+//    public Result<CompareVO> getCompare(@PathVariable Integer id) {
+//
+//    }
+
 }

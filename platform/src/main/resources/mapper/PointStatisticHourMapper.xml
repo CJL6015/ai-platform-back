@@ -126,4 +126,15 @@
         group by DATEPART(HOUR, statiatic_start_time)
         order by time
     </select>
+    <select id="getDayCompare" resultType="com.seu.platform.model.dto.TrendDTO">
+        select sum(up_low_exceeded_count) as count,
+        cast(statiatic_start_time as date) as time
+        from point_statistic_hour
+        where cast(statiatic_start_time as date) in
+        <foreach collection="times" open="(" close=")" item="time" separator=",">
+            #{time}
+        </foreach>
+        group by cast(statiatic_start_time as date)
+        order by time
+    </select>
 </mapper>

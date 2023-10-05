@@ -11,9 +11,9 @@ import com.seu.platform.model.vo.TimeValueChartVO;
 import com.seu.platform.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -29,6 +29,8 @@ import java.util.Objects;
 public class FreezeLogServiceImpl extends ServiceImpl<FreezeLogMapper, FreezeLog>
         implements FreezeLogService {
     private static final int STEP = 60 * 60 * 1000;
+
+    private static final double HOUR = 60 * 60 * 1000.0;
 
 
     @Override
@@ -54,7 +56,10 @@ public class FreezeLogServiceImpl extends ServiceImpl<FreezeLogMapper, FreezeLog
                 history.setExceededNum(0);
             }
             InspectionHistoryVO vo = BeanUtil.convertBean(history, InspectionHistoryVO.class);
-            vo.setFreezeTime((int) Duration.ofMillis(end - start).toHours());
+            vo.setFreezeTime((end - start) / HOUR);
+            if (StringUtils.hasText(history.getImageUrl())) {
+                vo.setImageUrl(history.getImageUrl().split(","));
+            }
             tableData.add(vo);
         }
         fillValue(timestamps, values, t1, et.getTime(), null);

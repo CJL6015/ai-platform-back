@@ -31,3 +31,4 @@ exa:
   get-points: ${exa.host}/meta/SelectVariables
 static:
   root: C:\work\民爆\图片\
+#  root: D:\deploy\images\
