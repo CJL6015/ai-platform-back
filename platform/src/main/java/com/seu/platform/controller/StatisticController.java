@@ -34,7 +34,7 @@ public class StatisticController {
 
     @GetMapping("/{id}")
     public Result<StatisticVO> getStatistic(@PathVariable Integer id, TimeRange timeRange) {
-        StatisticVO vo = pointStatisticService.getStatistic(id, timeRange);
+        StatisticVO vo = pointStatisticHourService.getStatistic(id, timeRange);
         return Result.success(vo);
     }
 

@@ -18,8 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -65,6 +64,14 @@ public class PointCfgServiceImpl extends ServiceImpl<PointCfgMapper, PointCfg>
             PointStatisticVO vo = new PointStatisticVO();
             BeanUtil.copyProperties(dto, vo);
             vo.setValue(values[i]);
+            Float upperLimit = dto.getUpperLimit();
+            Float lowerLimit = dto.getLowerLimit();
+            if ((Objects.nonNull(upperLimit) && values[i] > upperLimit) ||
+                    (Objects.nonNull(lowerLimit) && values[i] < lowerLimit)) {
+                vo.setIsExceeded(Boolean.TRUE);
+            } else {
+                vo.setIsExceeded(Boolean.TRUE);
+            }
             vos.add(vo);
         }
         return vos;
@@ -100,6 +107,19 @@ public class PointCfgServiceImpl extends ServiceImpl<PointCfgMapper, PointCfg>
                 .value(history.getValues())
                 .build();
 
+    }
+
+    @Override
+    public Map<String, Double[]> getPointLimits(String names) {
+        LambdaQueryWrapper<PointCfg> queryWrapper = new LambdaQueryWrapper<>();
+        String[] split = names.split(",");
+        queryWrapper.in(PointCfg::getName, Arrays.asList(split));
+        List<PointCfg> list = list(queryWrapper);
+        Map<String, Double[]> limits = new HashMap<>(32);
+        list.forEach(pointCfg -> {
+            limits.put(pointCfg.getName(), new Double[]{pointCfg.getLowerLimit(), pointCfg.getUpperLimit()});
+        });
+        return limits;
     }
 
     private PointStatisticVO convertToPointStatisticVO(PointCfg pointCfg) {

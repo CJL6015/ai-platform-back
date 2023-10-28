@@ -14,10 +14,11 @@ import java.util.List;
 @UtilityClass
 public class MathUtil {
 
-    public double[] fitting(List<Integer> nums,int degree) {
+    public double[] fitting(List<Integer> nums, int degree) {
         WeightedObservedPoints points = new WeightedObservedPoints();
         for (int i = 0; i < nums.size(); i++) {
-            points.add(i, nums.get(i));
+            Integer num = nums.get(i);
+            points.add(i, num);
         }
         return PolynomialCurveFitter.create(degree).fit(points.toList());
     }

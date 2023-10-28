@@ -37,13 +37,19 @@
         statiatic_start_time,statistic_end_time
     </sql>
     <select id="getOverrunCountMonth" resultType="com.seu.platform.model.dto.TrendDTO">
-        select sum(up_low_exceeded_count)         as count,
-               cast(statiatic_start_time as date) as time
-        from point_statistic_hour
-        where line_id = #{lineId}
-          and statiatic_start_time >= #{st}
-          and statiatic_start_time &lt;= #{et}
-        group by cast(statiatic_start_time as date)
+        select sum(t1.up_low_exceeded_count)         as count,
+               cast(t1.statiatic_start_time as date) as time
+        from point_statistic_hour t1,
+             line_stop_run_statistic_hour t2
+        where t1.line_id = t2.line_id
+          and t1.statiatic_start_time = t2.start_time
+          and t1.line_id = #{lineId}
+          and t1.statiatic_start_time >= #{st}
+          and t1.statiatic_start_time &lt;= #{et}
+          and t2.start_time >= #{st}
+          and t2.start_time &lt;= #{et}
+          and t2.run_hour > 0.1
+        group by cast(t1.statiatic_start_time as date)
         order by time
     </select>
     <select id="getOverrunCountDaily" resultType="com.seu.platform.model.dto.TrendDTO">
@@ -136,5 +142,19 @@
         </foreach>
         group by cast(statiatic_start_time as date)
         order by time
+    </select>
+    <select id="getStatistic" resultType="com.seu.platform.dao.entity.PointStatistic">
+        select count(distinct case when t1.up_low_exceeded_count > 0 then t1.point_id end) as threshold_exceeded,
+               count(distinct case when t1.up_low_exceeded_count = 0 then t1.point_id end) as threshold_within,
+               count(distinct case when t1.normal_refresh > 0 then t1.point_id end)        as normal_refresh,
+               count(distinct case when t1.exception_refresh = 0 then t1.point_id end)     as exception_refresh,
+               sum(t1.run_time)                                                         as run_time,
+               sum(t1.stop_time)                                                        as stop_time
+        from point_statistic_hour t1,
+             point_cfg t2
+        where t1.point_id = t2.point_id
+          and t1.statiatic_start_time >= #{st}
+          and t1.statiatic_start_time &lt;= #{et}
+          and t1.line_id = #{lineId}
     </select>
 </mapper>

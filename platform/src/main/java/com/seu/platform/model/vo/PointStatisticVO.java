@@ -52,4 +52,19 @@ public class PointStatisticVO {
      * 刷新状态
      */
     private Integer state;
+
+    /**
+     * 上限
+     */
+    private Float upperLimit;
+
+    /**
+     * 下限
+     */
+    private Float lowerLimit;
+
+    /**
+     * 是否超限
+     */
+    private Boolean isExceeded;
 }

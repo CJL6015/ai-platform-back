@@ -1,5 +1,6 @@
 package com.seu.platform.util;
 
+import com.seu.platform.task.Detection;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author chenjiale
@@ -70,6 +71,13 @@ public class PointController {
     public Result<TrendDetailVO> getTrendDetailDaily(@PathVariable Integer lineId) {
         TrendDetailVO trendDetailMonth = pointStatisticHourService.getTrendDetailDaily(lineId);
         return Result.success(trendDetailMonth);
+    }
+
+
+    @GetMapping("/limits")
+    public Result<Map<String, Double[]>> getPointLimit(@RequestParam String names) {
+        Map<String, Double[]> pointLimits = pointCfgService.getPointLimits(names);
+        return Result.success(pointLimits);
     }
 
 //    @GetMapping("/compare/{id}")

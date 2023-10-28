@@ -3,15 +3,13 @@ package com.seu.platform.dao.service.impl;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.seu.platform.dao.entity.PointStatistic;
 import com.seu.platform.dao.entity.PointStatisticHour;
 import com.seu.platform.dao.mapper.PointStatisticHourMapper;
 import com.seu.platform.dao.service.PointStatisticHourService;
 import com.seu.platform.model.dto.BenchmarkDTO;
 import com.seu.platform.model.dto.TrendDTO;
-import com.seu.platform.model.vo.BenchmarkDataVO;
-import com.seu.platform.model.vo.CompareVO;
-import com.seu.platform.model.vo.TrendDetailVO;
-import com.seu.platform.model.vo.TrendVO;
+import com.seu.platform.model.vo.*;
 import com.seu.platform.util.MathUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -187,6 +185,14 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
         years.add(LocalDateTimeUtil.format(lastYear, DatePattern.NORM_YEAR_PATTERN));
 
         return null;
+    }
+
+    @Override
+    public StatisticVO getStatistic(Integer lineId, TimeRange timeRange) {
+        PointStatistic statistic = getBaseMapper().getStatistic(lineId,
+                timeRange.getSt(),
+                timeRange.getEt());
+        return com.seu.platform.util.BeanUtil.convertBean(statistic, StatisticVO.class);
     }
 }
 

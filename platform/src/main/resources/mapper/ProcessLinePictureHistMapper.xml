@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.ProcessLinePictureHistMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.ProcessLinePictureHist">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="cameraId" column="camera_id" jdbcType="VARCHAR"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="picturePath" column="picture_path" jdbcType="VARCHAR"/>
+            <result property="peopleHasChecked" column="people_has_checked" jdbcType="TINYINT"/>
+            <result property="detectionPicturePath" column="detection_picture_path" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,camera_id,update_time,
+        picture_path,people_has_checked,detection_picture_path
+    </sql>
+    <select id="getPendingChecks" resultType="com.seu.platform.dao.entity.ProcessLinePictureHist">
+        select top #{count} camera_id,
+                            min(picture_path) as picture_path,
+                            min(id)           as id
+        from process_line_picture_hist
+        where people_has_checked = 0
+        GROUP BY camera_id
+        ORDER BY COUNT(camera_id), camera_id
+    </select>
+</mapper>

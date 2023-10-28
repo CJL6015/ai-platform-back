@@ -9,6 +9,7 @@ import com.seu.platform.model.vo.PointTrendVO;
 import com.seu.platform.model.vo.TimeRange;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈小黑
@@ -53,4 +54,12 @@ public interface PointCfgService extends IService<PointCfg> {
      * @throws Exception 异常
      */
     PointTrendVO getPointTrend(String name, Long start, Long end) throws Exception;
+
+    /**
+     * 获取点号限值
+     *
+     * @param names 点号
+     * @return 限值
+     */
+    Map<String, Double[]> getPointLimits(String names);
 }

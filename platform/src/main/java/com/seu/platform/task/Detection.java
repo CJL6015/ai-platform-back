@@ -1,4 +1,4 @@
-package com.seu.platform.util;
+package com.seu.platform.task;
 
 public class Detection {
 

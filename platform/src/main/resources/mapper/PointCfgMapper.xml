@@ -39,6 +39,8 @@
                t1.description,
                t1.unit,
                t1.state,
+               t1.upper_limit,
+               t1.lower_limit,
                t2.exceeded_time,
                t2.exception_time
         from point_cfg t1

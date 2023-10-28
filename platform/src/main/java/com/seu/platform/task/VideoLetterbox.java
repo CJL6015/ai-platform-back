@@ -1,4 +1,4 @@
-package com.seu.platform.util;
+package com.seu.platform.task;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -6,7 +6,7 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-class VideoLetterbox {
+public class VideoLetterbox {
 
     private Size newShape = new Size(640, 640);
     private final double[] color = new double[]{114,114,114};

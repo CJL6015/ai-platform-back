@@ -1,6 +1,7 @@
 package com.seu.platform.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.seu.platform.dao.entity.PointStatistic;
 import com.seu.platform.dao.entity.PointStatisticHour;
 import com.seu.platform.model.dto.BenchmarkDTO;
 import com.seu.platform.model.dto.HourTrendDTO;
@@ -96,6 +97,16 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
      * @return 数据
      */
     List<TrendDTO> getDayCompare(List<String> times);
+
+    /**
+     * 获取统计结果
+     *
+     * @param lineId 生产线id
+     * @param st     开始时间
+     * @param et     结束时间
+     * @return 统计结果
+     */
+    PointStatistic getStatistic(Integer lineId, Date st, Date et);
 }
 
 
