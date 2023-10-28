@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seu.platform.dao.entity.ProcessLinePictureHist;
 import com.seu.platform.dao.mapper.ProcessLinePictureHistMapper;
 import com.seu.platform.dao.service.ProcessLinePictureHistService;
+import com.seu.platform.model.vo.DetectionResultVO;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -20,6 +22,11 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     @Override
     public List<ProcessLinePictureHist> getPendingChecks(int count) {
         return getBaseMapper().getPendingChecks(count);
+    }
+
+    @Override
+    public List<DetectionResultVO> getDetectionResult(List<String> ips, Date time) {
+        return getBaseMapper().getDetectionResult(ips, time);
     }
 }
 

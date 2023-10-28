@@ -2,7 +2,9 @@ package com.seu.platform.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seu.platform.dao.entity.ProcessLinePictureHist;
+import com.seu.platform.model.vo.DetectionResultVO;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -20,6 +22,15 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      * @return 等待检测的图片
      */
     List<ProcessLinePictureHist> getPendingChecks(int count);
+
+    /**
+     * 获取检测结果
+     *
+     * @param ips  相机ip
+     * @param time 时间
+     * @return 检测结果
+     */
+    List<DetectionResultVO> getDetectionResult(List<String> ips, Date time);
 }
 
 

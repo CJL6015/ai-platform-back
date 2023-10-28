@@ -26,4 +26,17 @@
         GROUP BY camera_id
         ORDER BY COUNT(camera_id), camera_id
     </select>
+    <select id="getDetectionResult" resultType="com.seu.platform.model.vo.DetectionResultVO">
+        select camera_id,
+        update_time as time,
+        detection_picture_path,
+        people_count
+        from process_line_picture_hist
+        where people_has_checked=1
+        and camera_id in
+        <foreach collection="ips" separator="," item="ip" open="(" close=")">
+            #{ip}
+        </foreach>
+        and update_time=#{time}
+    </select>
 </mapper>
