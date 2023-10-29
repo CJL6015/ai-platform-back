@@ -5,17 +5,17 @@
 <mapper namespace="com.seu.platform.dao.mapper.ProcessLinePictureHistMapper">
 
     <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.ProcessLinePictureHist">
-            <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="cameraId" column="camera_id" jdbcType="VARCHAR"/>
-            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-            <result property="picturePath" column="picture_path" jdbcType="VARCHAR"/>
-            <result property="peopleHasChecked" column="people_has_checked" jdbcType="TINYINT"/>
-            <result property="detectionPicturePath" column="detection_picture_path" jdbcType="VARCHAR"/>
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="cameraId" column="camera_id" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="picturePath" column="picture_path" jdbcType="VARCHAR"/>
+        <result property="peopleHasChecked" column="people_has_checked" jdbcType="TINYINT"/>
+        <result property="detectionPicturePath" column="detection_picture_path" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,camera_id,update_time,
-        picture_path,people_has_checked,detection_picture_path
+                id, camera_id, update_time,
+                picture_path, people_has_checked, detection_picture_path
     </sql>
     <select id="getPendingChecks" resultType="com.seu.platform.dao.entity.ProcessLinePictureHist">
         select top #{count} camera_id,
@@ -28,15 +28,45 @@
     </select>
     <select id="getDetectionResult" resultType="com.seu.platform.model.vo.DetectionResultVO">
         select camera_id,
-        update_time as time,
+        DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0) as time ,
+        detection_picture_path,people_count
+        from (
+        select camera_id,
+        update_time,
         detection_picture_path,
-        people_count
+        people_count,
+        row_number() over (partition by camera_id order
+        by update_time) as rtn
         from process_line_picture_hist
-        where people_has_checked=1
+        where people_has_checked=0
         and camera_id in
         <foreach collection="ips" separator="," item="ip" open="(" close=")">
             #{ip}
         </foreach>
-        and update_time=#{time}
+        and DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0)=#{time}
+        ) ranked
+        where rtn =1
+    </select>
+    <select id="lastTime" resultType="java.util.Date">
+        select DATEADD(HOUR, DATEDIFF(HOUR, 0, max(update_time)), 0) as time
+        from process_line_picture_hist
+    </select>
+    <select id="getMonthTrend" resultType="com.seu.platform.model.dto.TrendDTO">
+        select sum(IIF(people_count > 1, 1, 0)) as count,
+               cast(update_time as date)        as time
+        from process_line_picture_hist
+        where update_time >= #{st}
+          and update_time &lt;= #{et}
+        group by cast(update_time as date)
+        order by time
+    </select>
+    <select id="getDailyTrend" resultType="com.seu.platform.model.dto.TrendDTO">
+        select sum(IIF(people_count > 1, 1, 0)) as count,
+               update_time                      as time
+        from process_line_picture_hist
+        where update_time >= dateadd(DAY, -1, (select max(update_time)
+                                               from process_line_picture_hist))
+        group by update_time
+        order by update_time
     </select>
 </mapper>

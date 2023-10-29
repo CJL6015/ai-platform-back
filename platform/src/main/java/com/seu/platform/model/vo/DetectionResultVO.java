@@ -1,5 +1,6 @@
 package com.seu.platform.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.util.Date;
@@ -23,10 +24,13 @@ public class DetectionResultVO {
     /**
      * 检测时间
      */
+    @JsonFormat(pattern = "MM月dd日HH时", timezone = "GMT+8")
     private Date time;
 
     /**
      * 人员数
      */
     private Integer peopleCount;
+
+    private String cameraId;
 }

@@ -8,29 +8,26 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.thread.ThreadFactoryBuilder;
 import com.seu.platform.dao.entity.ProcessLinePictureHist;
 import com.seu.platform.dao.service.ProcessLinePictureHistService;
-import com.seu.platform.util.ImageUtil;
-import com.seu.platform.util.ODResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.nio.FloatBuffer;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.text.DecimalFormat;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author chenjiale
@@ -42,6 +39,13 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class HeadCountTask {
     private static final int CAMERA_COUNT = 9;
+
+    private static final float CONF_THRESHOLD = 0.35F;
+
+    private static final float NMS_THRESHOLD = 0.55F;
+
+    private static final double[] COLOR = {0, 0, 255};
+    private static final String[] LABELS = {"person", "no_man"};
 
     private final ProcessLinePictureHistService processLinePictureHistService;
     ExecutorService executorService = new ThreadPoolExecutor(9, 9,
@@ -56,6 +60,60 @@ public class HeadCountTask {
 
     private ThreadLocal<Object[]> threadLocal;
 
+    public static void xywh2xyxy(float[] bbox) {
+        float x = bbox[0];
+        float y = bbox[1];
+        float w = bbox[2];
+        float h = bbox[3];
+
+        bbox[0] = x - w * 0.5f;
+        bbox[1] = y - h * 0.5f;
+        bbox[2] = x + w * 0.5f;
+        bbox[3] = y + h * 0.5f;
+    }
+
+    public static int argmax(float[] a) {
+        float re = -Float.MAX_VALUE;
+        int arg = -1;
+        for (int i = 0; i < a.length; i++) {
+            if (a[i] >= re) {
+                re = a[i];
+                arg = i;
+            }
+        }
+        return arg;
+    }
+
+    public static List<float[]> nonMaxSuppression(List<float[]> bboxes, float iouThreshold) {
+
+        List<float[]> bestBboxes = new ArrayList<>();
+
+        bboxes.sort(Comparator.comparing(a -> a[4]));
+
+        while (!bboxes.isEmpty()) {
+            float[] bestBbox = bboxes.remove(bboxes.size() - 1);
+            bestBboxes.add(bestBbox);
+            bboxes = bboxes.stream().filter(a -> computeIOU(a, bestBbox) < iouThreshold).collect(Collectors.toList());
+        }
+
+        return bestBboxes;
+    }
+
+    public static float computeIOU(float[] box1, float[] box2) {
+
+        float area1 = (box1[2] - box1[0]) * (box1[3] - box1[1]);
+        float area2 = (box2[2] - box2[0]) * (box2[3] - box2[1]);
+
+        float left = Math.max(box1[0], box2[0]);
+        float top = Math.max(box1[1], box2[1]);
+        float right = Math.min(box1[2], box2[2]);
+        float bottom = Math.min(box1[3], box2[3]);
+
+        float interArea = Math.max(right - left, 0) * Math.max(bottom - top, 0);
+        float unionArea = area1 + area2 - interArea;
+        return Math.max(interArea / unionArea, 1e-8f);
+
+    }
 
     @PostConstruct
     public void init() {
@@ -94,9 +152,9 @@ public class HeadCountTask {
     }
 
     public void test() {
-        String path = "C:\\work\\model\\p1.jpg";
-        String outPath = "C:\\work\\model\\p2.jpg";
-        for (int i = 0; i < 60; i++) {
+        String path = "C:\\work\\model\\p3.jpg";
+        String outPath = "C:\\work\\model\\p4.jpg";
+        for (int i = 0; i < 1; i++) {
             executorService.execute(() -> {
                 try {
                     getPeopleCount(path, outPath);
@@ -126,20 +184,38 @@ public class HeadCountTask {
         OrtSession session = (OrtSession) threadLocal.get()[1];
         long t1 = System.currentTimeMillis();
         Mat image = Imgcodecs.imread(picturePath);
-        Mat outImage = Imgcodecs.imread(picturePath);
+        Size originalSize = image.size();
+        Imgproc.resize(image, image, new Size(640, 640));
+        Mat outImage = image.clone();
+        Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2RGB);
         long t2 = System.currentTimeMillis();
         log.info("加载图片耗时:{}", (t2 - t1));
         VideoLetterbox letterbox = new VideoLetterbox();
         image = letterbox.letterbox(image);
-        Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2RGB);
-        image.convertTo(image, CvType.CV_32FC1, 1. / 255);
-        float[] whc = new float[3 * 640 * 640];
-        image.get(0, 0, whc);
-        float[] chw = ImageUtil.whc2cwh(whc);
+
+        double ratio = letterbox.getRatio();
+        double dw = letterbox.getDw();
+        double dh = letterbox.getDh();
+        int rows = letterbox.getHeight();
+        int cols = letterbox.getWidth();
+        int channels = image.channels();
 
         OrtEnvironment environment = (OrtEnvironment) threadLocal.get()[0];
-        FloatBuffer inputBuffer = FloatBuffer.wrap(chw);
-        OnnxTensor tensor = OnnxTensor.createTensor(environment, inputBuffer, new long[]{1, 3, 640, 640});
+        // 将Mat对象的像素值赋值给Float[]对象
+        float[] pixels = new float[channels * rows * cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                double[] pixel = image.get(j, i);
+                for (int k = 0; k < channels; k++) {
+                    // 这样设置相当于同时做了image.transpose((2, 0, 1))操作
+                    pixels[rows * cols * k + j * cols + i] = (float) pixel[k] / 255.0f;
+                }
+            }
+        }
+
+        // 创建OnnxTensor对象
+        long[] shape = {1L, (long) channels, (long) rows, (long) cols};
+        OnnxTensor tensor = OnnxTensor.createTensor(environment, FloatBuffer.wrap(pixels), shape);
 
 
         HashMap<String, OnnxTensor> stringOnnxTensorHashMap = new HashMap<>();
@@ -152,26 +228,59 @@ public class HeadCountTask {
         log.info("预测时间：{}", (t3 - t2));
         // 得到结果,缓存结果
         float[][] outputData = ((float[][][]) output.get(0).getValue())[0];
-        int peopleCount = 0;
-        for (float[] x : outputData) {
-            if (x[6] < 0.25) {
+        Map<Integer, List<float[]>> class2Bbox = new HashMap<>();
+        for (float[] bbox : outputData) {
+
+            // center_x,center_y, width, height，score
+            float score = bbox[4];
+            if (score < CONF_THRESHOLD) {
                 continue;
             }
-            ODResult odResult = new ODResult(x);
-            // 画框
-            Point topLeft = new Point((odResult.getX0() - letterbox.getDw()) / letterbox.getRatio(), (odResult.getY0() - letterbox.getDh()) / letterbox.getRatio());
-            Point bottomRight = new Point((odResult.getX1() - letterbox.getDw()) / letterbox.getRatio(), (odResult.getY1() - letterbox.getDh()) / letterbox.getRatio());
-            Scalar color = new Scalar(255, 0, 0);
 
-            Imgproc.rectangle(outImage, topLeft, bottomRight, color, 5);
-            // 框上写文字
-            String boxName = "person";
-            Point boxNameLoc = new Point((odResult.getX0() - letterbox.getDw()) / letterbox.getRatio(), (odResult.getY0() - letterbox.getDh()) / letterbox.getRatio() - 3);
-            peopleCount++;
-            // 也可以二次往视频画面上叠加其他文字或者数据，比如物联网设备数据等等
-            Imgproc.putText(outImage, boxName, boxNameLoc, Imgproc.FONT_HERSHEY_SIMPLEX, 10, color, 20);
+            // 获取标签
+            float[] conditionalProbabilities = Arrays.copyOfRange(bbox, 5, bbox.length);
+            int label = argmax(conditionalProbabilities);
 
+            xywh2xyxy(bbox);
+
+            // 去除无效结果
+            if (bbox[0] >= bbox[2] || bbox[1] >= bbox[3]) {
+                continue;
+            }
+
+            class2Bbox.putIfAbsent(label, new ArrayList<>());
+            class2Bbox.get(label).add(bbox);
         }
+
+        List<Detection> detections = new ArrayList<>();
+        for (Map.Entry<Integer, List<float[]>> entry : class2Bbox.entrySet()) {
+
+            List<float[]> bboxes = entry.getValue();
+            bboxes = nonMaxSuppression(bboxes, NMS_THRESHOLD);
+            for (float[] bbox : bboxes) {
+                String labelString = LABELS[entry.getKey()];
+                if ("person".equals(labelString)) {
+                    detections.add(new Detection(labelString, entry.getKey(), Arrays.copyOfRange(bbox, 0, 4), bbox[4]));
+                }
+            }
+        }
+        int minDwDh = Math.min(image.width(), image.height());
+        int thickness = minDwDh / ODConfig.lineThicknessRatio;
+        DecimalFormat df = new DecimalFormat("0.00");
+        for (Detection detection : detections) {
+            float[] bbox = detection.getBbox();
+            // 画框
+            Point topLeft = new Point((bbox[0] - dw) / ratio, (bbox[1] - dh) / ratio);
+            Point bottomRight = new Point((bbox[2] - dw) / ratio, (bbox[3] - dh) / ratio);
+            Scalar color = new Scalar(COLOR);
+            Imgproc.rectangle(outImage, topLeft, bottomRight, color, thickness);
+            // 框上写文字
+            Point boxNameLoc = new Point((bbox[0] - dw) / ratio, (bbox[1]- dh) / ratio - 3 + 20);
+            Imgproc.putText(outImage, detection.getLabel() + df.format(detection.confidence),
+                    boxNameLoc, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, color, thickness);
+        }
+        int peopleCount = detections.size();
+        Imgproc.resize(outImage, outImage, originalSize);
         Imgcodecs.imwrite(outPath, outImage);
         long t4 = System.currentTimeMillis();
         log.info("检测完成,耗时:{}", (t4 - t1));

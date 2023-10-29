@@ -12,7 +12,7 @@ public class VideoLetterbox {
     private final double[] color = new double[]{114,114,114};
     private final Boolean auto = false;
     private final Boolean scaleUp = true;
-    private Integer stride = 32;
+    private Integer stride = 8;
 
     private double ratio;
     private double dw;

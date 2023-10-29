@@ -30,7 +30,7 @@ exa:
   get-history: ${exa.host}/data/SelectDownsamplingRecordsFloat
   get-points: ${exa.host}/meta/SelectVariables
 model:
-  model-path: C:\work\model\yolov5s1.onnx
+  model-path: C:\work\model\yolov5s.onnx
   out-dir: C:\work\detection\
 static:
   #  root: C:\work\民爆\图片\
