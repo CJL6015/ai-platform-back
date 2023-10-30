@@ -31,7 +31,8 @@ exa:
   get-points: ${exa.host}/meta/SelectVariables
 model:
   model-path: C:\work\model\yolov5s.onnx
-  out-dir: C:\work\detection\
+  out-dir: D:\deploy\images\
+  input-dir: D:\images_test\
 static:
   #  root: C:\work\民爆\图片\
   root: D:\deploy\images\

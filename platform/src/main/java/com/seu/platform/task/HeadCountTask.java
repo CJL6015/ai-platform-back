@@ -6,8 +6,8 @@ import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.thread.ThreadFactoryBuilder;
-import com.seu.platform.dao.entity.ProcessLinePictureHist;
-import com.seu.platform.dao.service.ProcessLinePictureHistService;
+import com.seu.platform.dao.entity.ProcessLinePictureHist1;
+import com.seu.platform.dao.service.ProcessLinePictureHist1Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opencv.core.Mat;
@@ -17,7 +17,9 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.nio.FloatBuffer;
@@ -47,9 +49,10 @@ public class HeadCountTask {
     private static final double[] COLOR = {0, 0, 255};
     private static final String[] LABELS = {"person", "no_man"};
 
-    private final ProcessLinePictureHistService processLinePictureHistService;
-    ExecutorService executorService = new ThreadPoolExecutor(9, 9,
-            1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(10000),
+    private final ProcessLinePictureHist1Service processLinePictureHistService;
+
+    ExecutorService executorService = new ThreadPoolExecutor(1, 1,
+            1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(Integer.MAX_VALUE),
             new ThreadFactoryBuilder().setNamePrefix("opencv-").build());
 
     @Value("${model.model-path}")
@@ -57,6 +60,10 @@ public class HeadCountTask {
 
     @Value("${model.out-dir}")
     private String outDir;
+
+    @Value("${model.input-dir}")
+    private String inputDir;
+
 
     private ThreadLocal<Object[]> threadLocal;
 
@@ -138,16 +145,35 @@ public class HeadCountTask {
     /**
      * 人员检测定时任务,每秒扫描一次数据库
      */
-//    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedRate = 1000)
+    @Transactional(rollbackFor = Exception.class)
     public void doTask() {
-        List<ProcessLinePictureHist> pendingChecks = processLinePictureHistService.getPendingChecks(CAMERA_COUNT);
+        List<ProcessLinePictureHist1> pendingChecks = processLinePictureHistService.getPendingChecks(CAMERA_COUNT);
         if (CollUtil.isEmpty(pendingChecks)) {
             log.info("未获取待检测图片");
         } else {
             log.info("本次待检测图片为:{}", pendingChecks);
         }
-        for (ProcessLinePictureHist pendingCheck : pendingChecks) {
+        for (ProcessLinePictureHist1 pendingCheck : pendingChecks) {
             executorService.execute(() -> detection(pendingCheck));
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void detection(ProcessLinePictureHist1 pendingCheck) {
+        String picturePath = pendingCheck.getPicturePath();
+        String fileName = pendingCheck.getPicturePath().substring(picturePath.lastIndexOf("\\") + 1);
+        String outPath = outDir + fileName;
+        String inputPath = inputDir + fileName;
+        try {
+            int peopleCount = getPeopleCount(inputPath, outPath);
+            pendingCheck.setDetectionPicturePath("http://114.55.245.123/api/static/images/" + fileName);
+            pendingCheck.setPeopleCount(peopleCount);
+            pendingCheck.setPeopleHasChecked(1);
+            log.info("巡检后数据:{}", pendingCheck);
+            processLinePictureHistService.updateById(pendingCheck);
+        } catch (OrtException e) {
+            log.error("人员检测异常,path:{}", picturePath, e);
         }
     }
 
@@ -166,19 +192,6 @@ public class HeadCountTask {
 
     }
 
-    public void detection(ProcessLinePictureHist pendingCheck) {
-        String picturePath = pendingCheck.getPicturePath();
-        String outPath = outDir + picturePath.substring(picturePath.lastIndexOf("\\"));
-        try {
-            int peopleCount = getPeopleCount(picturePath, outPath);
-            pendingCheck.setDetectionPicturePath(outPath);
-            pendingCheck.setUpdateTime(new Date());
-            pendingCheck.setPeopleCount(peopleCount);
-            processLinePictureHistService.updateById(pendingCheck);
-        } catch (OrtException e) {
-            log.error("人员检测异常,path:{}", picturePath, e);
-        }
-    }
 
     private int getPeopleCount(String picturePath, String outPath) throws OrtException {
         OrtSession session = (OrtSession) threadLocal.get()[1];
@@ -275,7 +288,7 @@ public class HeadCountTask {
             Scalar color = new Scalar(COLOR);
             Imgproc.rectangle(outImage, topLeft, bottomRight, color, thickness);
             // 框上写文字
-            Point boxNameLoc = new Point((bbox[0] - dw) / ratio, (bbox[1]- dh) / ratio - 3 + 20);
+            Point boxNameLoc = new Point((bbox[0] - dw) / ratio, (bbox[1] - dh) / ratio - 3 + 20);
             Imgproc.putText(outImage, detection.getLabel() + df.format(detection.confidence),
                     boxNameLoc, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, color, thickness);
         }
