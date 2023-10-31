@@ -20,9 +20,10 @@ public interface ProcessLinePictureHist1Mapper extends BaseMapper<ProcessLinePic
      * 获取等待检测的图片
      *
      * @param count 个数
+     * @param ids   ids
      * @return 等待检测的图片
      */
-    List<ProcessLinePictureHist1> getPendingChecks(int count, Set<Long> ids);
+    List<ProcessLinePictureHist1> getPendingChecks(Integer count, Set<Long> ids);
 
     /**
      * 获取检测结果

@@ -33,7 +33,7 @@ public class ProcessLinePictureHist1ServiceImpl extends ServiceImpl<ProcessLineP
     }
 
     @Override
-    public List<ProcessLinePictureHist1> getPendingChecks(int count, Set<Long> ids) {
+    public List<ProcessLinePictureHist1> getPendingChecks(Integer count, Set<Long> ids) {
         return getBaseMapper().getPendingChecks(count,ids);
     }
 

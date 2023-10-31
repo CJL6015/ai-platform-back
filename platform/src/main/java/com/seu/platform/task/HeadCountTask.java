@@ -141,13 +141,12 @@ public class HeadCountTask {
             model[1] = session;
             return model;
         });
-        test();
     }
 
     /**
      * 人员检测定时任务,每秒扫描一次数据库
      */
-    @Scheduled(fixedRate = 1000)
+//    @Scheduled(fixedRate = 1000)
     @Transactional(rollbackFor = Exception.class)
     public void doTask() {
         int activeCount = executorService.getActiveCount();
@@ -190,24 +189,17 @@ public class HeadCountTask {
             concurrentSet.remove(pendingCheck.getId());        }
     }
 
-    public void test() {
-        String path = "C:\\work\\model\\p3.jpg";
-        String outPath = "C:\\work\\model\\p4.jpg";
-        for (int i = 0; i < 1; i++) {
-            executorService.execute(() -> {
-                try {
-                    getPeopleCount(path, outPath);
-                } catch (OrtException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        }
-
-    }
 
 
     private int getPeopleCount(String picturePath, String outPath) throws OrtException {
-        OrtSession session = (OrtSession) threadLocal.get()[1];
+        OrtEnvironment environment = OrtEnvironment.getEnvironment();
+        OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
+        OrtSession session = null;
+        try {
+            session = environment.createSession(modelPath, sessionOptions);
+        } catch (OrtException e) {
+            throw new RuntimeException(e);
+        }
         long t1 = System.currentTimeMillis();
         Mat image = Imgcodecs.imread(picturePath);
         Size originalSize = image.size();
@@ -225,8 +217,6 @@ public class HeadCountTask {
         int rows = letterbox.getHeight();
         int cols = letterbox.getWidth();
         int channels = image.channels();
-
-        OrtEnvironment environment = (OrtEnvironment) threadLocal.get()[0];
         // 将Mat对象的像素值赋值给Float[]对象
         float[] pixels = new float[channels * rows * cols];
         for (int i = 0; i < rows; i++) {

@@ -38,7 +38,7 @@
         row_number() over (partition by camera_id order
         by update_time) as rtn
         from process_line_picture_hist
-        where people_has_checked=1
+        where people_has_checked=0
         and camera_id in
         <foreach collection="ips" separator="," item="ip" open="(" close=")">
             #{ip}
