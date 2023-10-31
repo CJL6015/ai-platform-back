@@ -1,7 +1,6 @@
 package com.seu.platform.dao.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.seu.platform.dao.entity.ProcessLinePictureHist;
 import com.seu.platform.dao.entity.ProcessLinePictureHist1;
 import com.seu.platform.model.vo.DetectionResultVO;
 import com.seu.platform.model.vo.TimeRange;
@@ -9,6 +8,7 @@ import com.seu.platform.model.vo.TrendVO;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author 陈小黑
@@ -22,7 +22,7 @@ public interface ProcessLinePictureHist1Service extends IService<ProcessLinePict
      * @param count 个数
      * @return 等待检测的图片
      */
-    List<ProcessLinePictureHist1> getPendingChecks(int count);
+    List<ProcessLinePictureHist1> getPendingChecks(int count, Set<Long> ids);
 
 
     /**

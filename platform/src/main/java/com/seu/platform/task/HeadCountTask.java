@@ -25,7 +25,7 @@ import javax.annotation.PostConstruct;
 import java.nio.FloatBuffer;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -51,9 +51,11 @@ public class HeadCountTask {
 
     private final ProcessLinePictureHist1Service processLinePictureHistService;
 
-    ExecutorService executorService = new ThreadPoolExecutor(1, 1,
+    private final ThreadPoolExecutor executorService = new ThreadPoolExecutor(9, 9,
             1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(Integer.MAX_VALUE),
             new ThreadFactoryBuilder().setNamePrefix("opencv-").build());
+
+    private Set<Long> concurrentSet = ConcurrentHashMap.newKeySet();
 
     @Value("${model.model-path}")
     private String modelPath;
@@ -148,14 +150,24 @@ public class HeadCountTask {
     @Scheduled(fixedRate = 1000)
     @Transactional(rollbackFor = Exception.class)
     public void doTask() {
-        List<ProcessLinePictureHist1> pendingChecks = processLinePictureHistService.getPendingChecks(CAMERA_COUNT);
+        int activeCount = executorService.getActiveCount();
+        if (activeCount > 9) {
+            return;
+        }
+        List<ProcessLinePictureHist1> pendingChecks = processLinePictureHistService.getPendingChecks(CAMERA_COUNT, concurrentSet);
         if (CollUtil.isEmpty(pendingChecks)) {
             log.info("未获取待检测图片");
         } else {
             log.info("本次待检测图片为:{}", pendingChecks);
         }
         for (ProcessLinePictureHist1 pendingCheck : pendingChecks) {
-            executorService.execute(() -> detection(pendingCheck));
+            Long id = pendingCheck.getId();
+            if (concurrentSet.contains(id)) {
+                log.info("{}已在任务中", id);
+            } else {
+                concurrentSet.add(id);
+                executorService.execute(() -> detection(pendingCheck));
+            }
         }
     }
 
@@ -174,7 +186,8 @@ public class HeadCountTask {
             processLinePictureHistService.updateById(pendingCheck);
         } catch (OrtException e) {
             log.error("人员检测异常,path:{}", picturePath, e);
-        }
+        } finally {
+            concurrentSet.remove(pendingCheck.getId());        }
     }
 
     public void test() {
