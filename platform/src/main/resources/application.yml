@@ -18,8 +18,8 @@ mybatis-plus:
       table-underline: true
       logic-not-delete-value: 0
       logic-delete-value: 1
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 logging:
   level:
     com.baomidou.mybatisplus: debug
@@ -30,9 +30,8 @@ exa:
   get-history: ${exa.host}/data/SelectDownsamplingRecordsFloat
   get-points: ${exa.host}/meta/SelectVariables
 model:
-  model-path: C:\work\model\yolov5s.onnx
+  model-path: C:\work\model\yolov8m.onnx
   out-dir: D:\deploy\images\
   input-dir: D:\images_test\
 static:
-  #  root: C:\work\民爆\图片\
   root: D:\deploy\images\

@@ -2,7 +2,6 @@ package com.seu.platform.task;
 
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OrtEnvironment;
-import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.thread.ThreadFactoryBuilder;
@@ -19,9 +18,11 @@ import org.opencv.imgproc.Imgproc;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.nio.FloatBuffer;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -29,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -47,15 +50,19 @@ public class HeadCountTask {
     private static final float NMS_THRESHOLD = 0.55F;
 
     private static final double[] COLOR = {0, 0, 255};
-    private static final String[] LABELS = {"person", "no_man"};
+    private static final String[] LABELS = {"man", "no_man"};
 
     private final ProcessLinePictureHist1Service processLinePictureHistService;
 
-    private final ThreadPoolExecutor executorService = new ThreadPoolExecutor(9, 9,
-            1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(Integer.MAX_VALUE),
+    private final ThreadPoolExecutor executorService = new ThreadPoolExecutor(4, 4,
+            1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(20),
             new ThreadFactoryBuilder().setNamePrefix("opencv-").build());
 
     private Set<Long> concurrentSet = ConcurrentHashMap.newKeySet();
+
+    private Lock lock = new ReentrantLock();
+
+    private Lock modelLock = new ReentrantLock();
 
     @Value("${model.model-path}")
     private String modelPath;
@@ -66,8 +73,6 @@ public class HeadCountTask {
     @Value("${model.input-dir}")
     private String inputDir;
 
-
-    private ThreadLocal<Object[]> threadLocal;
 
     public static void xywh2xyxy(float[] bbox) {
         float x = bbox[0];
@@ -127,51 +132,40 @@ public class HeadCountTask {
     @PostConstruct
     public void init() {
         nu.pattern.OpenCV.loadLocally();
-        threadLocal = ThreadLocal.withInitial(() -> {
-            Object[] model = new Object[2];
-            OrtEnvironment environment = OrtEnvironment.getEnvironment();
-            model[0] = environment;
-            OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
-            OrtSession session = null;
-            try {
-                session = environment.createSession(modelPath, sessionOptions);
-            } catch (OrtException e) {
-                throw new RuntimeException(e);
-            }
-            model[1] = session;
-            return model;
-        });
     }
 
     /**
      * 人员检测定时任务,每秒扫描一次数据库
      */
-//    @Scheduled(fixedRate = 1000)
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
+    @Scheduled(fixedDelay = 100)
     public void doTask() {
-        int activeCount = executorService.getActiveCount();
-        if (activeCount > 9) {
-            return;
-        }
-        List<ProcessLinePictureHist1> pendingChecks = processLinePictureHistService.getPendingChecks(CAMERA_COUNT, concurrentSet);
-        if (CollUtil.isEmpty(pendingChecks)) {
-            log.info("未获取待检测图片");
-        } else {
-            log.info("本次待检测图片为:{}", pendingChecks);
-        }
-        for (ProcessLinePictureHist1 pendingCheck : pendingChecks) {
-            Long id = pendingCheck.getId();
-            if (concurrentSet.contains(id)) {
-                log.info("{}已在任务中", id);
-            } else {
-                concurrentSet.add(id);
-                executorService.execute(() -> detection(pendingCheck));
+        lock.lock();
+        try {
+            int activeCount = concurrentSet.size();
+            if (activeCount > 20) {
+                return;
             }
+            List<ProcessLinePictureHist1> pendingChecks = processLinePictureHistService.getPendingChecks(CAMERA_COUNT, concurrentSet);
+            if (CollUtil.isNotEmpty(pendingChecks)) {
+                for (ProcessLinePictureHist1 pendingCheck : pendingChecks) {
+                    Long id = pendingCheck.getId();
+                    if (!concurrentSet.contains(id) && concurrentSet.size() < 20) {
+                        concurrentSet.add(id);
+                        executorService.execute(() -> detection(pendingCheck));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("提交任务异常", e);
+        } finally {
+            lock.unlock();
         }
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void detection(ProcessLinePictureHist1 pendingCheck) {
+        log.info("{}开始检测", pendingCheck.getId());
         String picturePath = pendingCheck.getPicturePath();
         String fileName = pendingCheck.getPicturePath().substring(picturePath.lastIndexOf("\\") + 1);
         String outPath = outDir + fileName;
@@ -181,125 +175,170 @@ public class HeadCountTask {
             pendingCheck.setDetectionPicturePath("http://114.55.245.123/api/static/images/" + fileName);
             pendingCheck.setPeopleCount(peopleCount);
             pendingCheck.setPeopleHasChecked(1);
-            log.info("巡检后数据:{}", pendingCheck);
             processLinePictureHistService.updateById(pendingCheck);
-        } catch (OrtException e) {
+        } catch (Exception e) {
             log.error("人员检测异常,path:{}", picturePath, e);
         } finally {
-            concurrentSet.remove(pendingCheck.getId());        }
+            lock.lock();
+            try {
+                concurrentSet.remove(pendingCheck.getId());
+            } finally {
+                lock.unlock();
+            }
+        }
+        log.info("{}检测结束", pendingCheck.getId());
     }
 
 
+    private int getPeopleCount(String picturePath, String outPath) throws Exception {
+        if (!new File(picturePath).exists()) {
+            log.warn("{}不存在", picturePath);
+            return 0;
+        }
 
-    private int getPeopleCount(String picturePath, String outPath) throws OrtException {
-        OrtEnvironment environment = OrtEnvironment.getEnvironment();
-        OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
         OrtSession session = null;
-        try {
-            session = environment.createSession(modelPath, sessionOptions);
-        } catch (OrtException e) {
-            throw new RuntimeException(e);
-        }
-        long t1 = System.currentTimeMillis();
-        Mat image = Imgcodecs.imread(picturePath);
-        Size originalSize = image.size();
-        Imgproc.resize(image, image, new Size(640, 640));
-        Mat outImage = image.clone();
-        Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2RGB);
-        long t2 = System.currentTimeMillis();
-        log.info("加载图片耗时:{}", (t2 - t1));
-        VideoLetterbox letterbox = new VideoLetterbox();
-        image = letterbox.letterbox(image);
+        try (OrtEnvironment environment = OrtEnvironment.getEnvironment();
+             OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
+        ) {
+            modelLock.lock();
+            try {
+                session = environment.createSession(modelPath, sessionOptions);
+            } finally {
+                modelLock.unlock();
+            }
+            Mat image = Imgcodecs.imread(picturePath);
+            Size originalSize = image.size();
+            Imgproc.resize(image, image, new Size(640, 640));
+            Mat outImage = image.clone();
+            Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2RGB);
+            VideoLetterbox letterbox = new VideoLetterbox();
+            image = letterbox.letterbox(image);
 
-        double ratio = letterbox.getRatio();
-        double dw = letterbox.getDw();
-        double dh = letterbox.getDh();
-        int rows = letterbox.getHeight();
-        int cols = letterbox.getWidth();
-        int channels = image.channels();
-        // 将Mat对象的像素值赋值给Float[]对象
-        float[] pixels = new float[channels * rows * cols];
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                double[] pixel = image.get(j, i);
-                for (int k = 0; k < channels; k++) {
-                    // 这样设置相当于同时做了image.transpose((2, 0, 1))操作
-                    pixels[rows * cols * k + j * cols + i] = (float) pixel[k] / 255.0f;
+            double ratio = letterbox.getRatio();
+            double dw = letterbox.getDw();
+            double dh = letterbox.getDh();
+            int rows = letterbox.getHeight();
+            int cols = letterbox.getWidth();
+            int channels = image.channels();
+            // 将Mat对象的像素值赋值给Float[]对象
+            float[] pixels = new float[channels * rows * cols];
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    double[] pixel = image.get(j, i);
+                    for (int k = 0; k < channels; k++) {
+                        // 这样设置相当于同时做了image.transpose((2, 0, 1))操作
+                        pixels[rows * cols * k + j * cols + i] = (float) pixel[k] / 255.0f;
+                    }
                 }
             }
-        }
 
-        // 创建OnnxTensor对象
-        long[] shape = {1L, (long) channels, (long) rows, (long) cols};
-        OnnxTensor tensor = OnnxTensor.createTensor(environment, FloatBuffer.wrap(pixels), shape);
+            // 创建OnnxTensor对象
+            long[] shape = {1L, (long) channels, (long) rows, (long) cols};
+            OnnxTensor tensor = OnnxTensor.createTensor(environment, FloatBuffer.wrap(pixels), shape);
 
 
-        HashMap<String, OnnxTensor> stringOnnxTensorHashMap = new HashMap<>();
-        stringOnnxTensorHashMap.put(session.getInputInfo().keySet().iterator().next(), tensor);
+            HashMap<String, OnnxTensor> stringOnnxTensorHashMap = new HashMap<>();
+            stringOnnxTensorHashMap.put(session.getInputInfo().keySet().iterator().next(), tensor);
 
-        // 运行推理
-        // 模型推理本质是多维矩阵运算，而GPU是专门用于矩阵运算，占用率低，如果使用cpu也可以运行，可能占用率100%属于正常现象，不必纠结。
-        OrtSession.Result output = session.run(stringOnnxTensorHashMap);
-        long t3 = System.currentTimeMillis();
-        log.info("预测时间：{}", (t3 - t2));
-        // 得到结果,缓存结果
-        float[][] outputData = ((float[][][]) output.get(0).getValue())[0];
-        Map<Integer, List<float[]>> class2Bbox = new HashMap<>();
-        for (float[] bbox : outputData) {
+            // 运行推理
+            // 模型推理本质是多维矩阵运算，而GPU是专门用于矩阵运算，占用率低，如果使用cpu也可以运行，可能占用率100%属于正常现象，不必纠结。
+            OrtSession.Result output = session.run(stringOnnxTensorHashMap);
+            // 得到结果,缓存结果
+            tensor.close();
+            float[][] outputData = ((float[][][]) output.get(0).getValue())[0];
+            if (modelPath.contains("yolov8m") || modelPath.contains("best")) {
+                float[][] outputD = outputData;
+                int numRows = outputD.length;
+                int numCols = 0;
 
-            // center_x,center_y, width, height，score
-            float score = bbox[4];
-            if (score < CONF_THRESHOLD) {
-                continue;
+                // 计算输入数组的列数，并检查每行的列数是否一致
+                for (int i = 0; i < numRows; i++) {
+                    if (i == 0) {
+                        numCols = outputD[i].length;
+                    } else if (outputD[i].length != numCols) {
+                        throw new IllegalArgumentException("Input array rows have different lengths.");
+                    }
+                }
+
+                // 创建转置后的数组
+                float[][] transposedArray = new float[numCols][numRows];
+
+                // 执行转置
+                for (int i = 0; i < numRows; i++) {
+                    for (int j = 0; j < numCols; j++) {
+                        transposedArray[j][i] = outputD[i][j];
+                    }
+                }
+                outputData = transposedArray;
+            }
+            Map<Integer, List<float[]>> class2Bbox = new HashMap<>();
+            for (float[] bbox : outputData) {
+
+                // center_x,center_y, width, height，score
+                float score = bbox[4];
+                if (score < CONF_THRESHOLD) {
+                    continue;
+                }
+
+                // 获取标签
+                float[] conditionalProbabilities = Arrays.copyOfRange(bbox, 5, bbox.length);
+                int label = argmax(conditionalProbabilities);
+
+                xywh2xyxy(bbox);
+
+                // 去除无效结果
+                if (bbox[0] >= bbox[2] || bbox[1] >= bbox[3]) {
+                    continue;
+                }
+
+                class2Bbox.putIfAbsent(label, new ArrayList<>());
+                class2Bbox.get(label).add(bbox);
             }
 
-            // 获取标签
-            float[] conditionalProbabilities = Arrays.copyOfRange(bbox, 5, bbox.length);
-            int label = argmax(conditionalProbabilities);
-
-            xywh2xyxy(bbox);
-
-            // 去除无效结果
-            if (bbox[0] >= bbox[2] || bbox[1] >= bbox[3]) {
-                continue;
-            }
-
-            class2Bbox.putIfAbsent(label, new ArrayList<>());
-            class2Bbox.get(label).add(bbox);
-        }
-
-        List<Detection> detections = new ArrayList<>();
-        for (Map.Entry<Integer, List<float[]>> entry : class2Bbox.entrySet()) {
-
-            List<float[]> bboxes = entry.getValue();
-            bboxes = nonMaxSuppression(bboxes, NMS_THRESHOLD);
-            for (float[] bbox : bboxes) {
-                String labelString = LABELS[entry.getKey()];
-                if ("person".equals(labelString)) {
-                    detections.add(new Detection(labelString, entry.getKey(), Arrays.copyOfRange(bbox, 0, 4), bbox[4]));
+            List<Detection> detections = new ArrayList<>();
+            if (CollUtil.isNotEmpty(class2Bbox)) {
+                for (Map.Entry<Integer, List<float[]>> entry : class2Bbox.entrySet()) {
+                    List<float[]> bboxes = entry.getValue();
+                    bboxes = nonMaxSuppression(bboxes, NMS_THRESHOLD);
+                    for (float[] bbox : bboxes) {
+                        Integer key = entry.getKey();
+                        if (key < LABELS.length) {
+                            String labelString = LABELS[key];
+                            if ("person".equals(labelString)) {
+                                detections.add(new Detection(labelString, key, Arrays.copyOfRange(bbox, 0, 4), bbox[4]));
+                            }
+                        }
+                    }
+                }
+                int minDwDh = Math.min(image.width(), image.height());
+                int thickness = minDwDh / ODConfig.lineThicknessRatio;
+                DecimalFormat df = new DecimalFormat("0.00");
+                for (Detection detection : detections) {
+                    float[] bbox = detection.getBbox();
+                    // 画框
+                    Point topLeft = new Point((bbox[0] - dw) / ratio, (bbox[1] - dh) / ratio);
+                    Point bottomRight = new Point((bbox[2] - dw) / ratio, (bbox[3] - dh) / ratio);
+                    Scalar color = new Scalar(COLOR);
+                    Imgproc.rectangle(outImage, topLeft, bottomRight, color, thickness);
+                    // 框上写文字
+                    Point boxNameLoc = new Point((bbox[0] - dw) / ratio, (bbox[1] - dh) / ratio - 3 + 20);
+                    Imgproc.putText(outImage, detection.getLabel() + df.format(detection.confidence),
+                            boxNameLoc, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, color, thickness);
                 }
             }
+            int peopleCount = detections.size();
+            Imgproc.resize(outImage, outImage, originalSize);
+            Imgcodecs.imwrite(outPath, outImage);
+            output.close();
+
+            return peopleCount;
+        } catch (Exception e) {
+            log.error("{}检测异常", picturePath, e);
+            throw new Exception(e);
+        } finally {
+            if (Objects.nonNull(session)) {
+                session.close();
+            }
         }
-        int minDwDh = Math.min(image.width(), image.height());
-        int thickness = minDwDh / ODConfig.lineThicknessRatio;
-        DecimalFormat df = new DecimalFormat("0.00");
-        for (Detection detection : detections) {
-            float[] bbox = detection.getBbox();
-            // 画框
-            Point topLeft = new Point((bbox[0] - dw) / ratio, (bbox[1] - dh) / ratio);
-            Point bottomRight = new Point((bbox[2] - dw) / ratio, (bbox[3] - dh) / ratio);
-            Scalar color = new Scalar(COLOR);
-            Imgproc.rectangle(outImage, topLeft, bottomRight, color, thickness);
-            // 框上写文字
-            Point boxNameLoc = new Point((bbox[0] - dw) / ratio, (bbox[1] - dh) / ratio - 3 + 20);
-            Imgproc.putText(outImage, detection.getLabel() + df.format(detection.confidence),
-                    boxNameLoc, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, color, thickness);
-        }
-        int peopleCount = detections.size();
-        Imgproc.resize(outImage, outImage, originalSize);
-        Imgcodecs.imwrite(outPath, outImage);
-        long t4 = System.currentTimeMillis();
-        log.info("检测完成,耗时:{}", (t4 - t1));
-        return peopleCount;
     }
 }

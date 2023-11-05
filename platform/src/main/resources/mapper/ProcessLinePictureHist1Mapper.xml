@@ -26,12 +26,6 @@
         min(id) as id
         from process_line_picture_hist_1
         where people_has_checked = 0
-        <if test="ids.size() > 0">
-            and id not in
-            <foreach collection="ids" open="(" close=")" item="id" separator=",">
-                #{id}
-            </foreach>
-        </if>
         GROUP BY camera_id
         ORDER BY COUNT(camera_id), camera_id
     </select>
