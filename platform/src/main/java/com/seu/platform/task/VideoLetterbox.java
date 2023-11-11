@@ -1,18 +1,16 @@
 package com.seu.platform.task;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 public class VideoLetterbox {
-
-    private Size newShape = new Size(640, 640);
+    private Size newShape;
+    //    private Size newShape = new Size(1088, 1088);
     private final double[] color = new double[]{114,114,114};
     private final Boolean auto = false;
     private final Boolean scaleUp = true;
-    private Integer stride = 8;
+    private Integer stride = 32;
 
     private double ratio;
     private double dw;
@@ -38,48 +36,47 @@ public class VideoLetterbox {
         return dh;
     }
 
+    public void setNewShape(Size newShape) {
+        this.newShape = newShape;
+    }
 
-     Size newUnpad;
-     int top;
-     int bottom;
-     int left;
-     int right;
+    public void setStride(Integer stride) {
+        this.stride = stride;
+    }
+
+    public VideoLetterbox(Size newShape) {
+        this.newShape = newShape;
+    }
 
     public Mat letterbox(Mat im) { // 调整图像大小和填充图像，使满足步长约束，并记录参数
+        // 获取原始图像的尺寸
+        int originalHeight = im.rows();
+        int originalWidth = im.cols();
+        // 选择较长的边作为正方形图像的边长
+        int maxDimension = Math.max(originalHeight, originalWidth);
 
-        // Compute padding
-        if(newUnpad == null){
-            int[] shape = {im.rows(), im.cols()}; // 当前形状 [height, width]
-            // Scale ratio (new / old)
-            double r = Math.min(this.newShape.height / shape[0], this.newShape.width / shape[1]);
-            if (!this.scaleUp) { // 仅缩小，不扩大（一且为了mAP）
-                r = Math.min(r, 1.0);
-            }
-            this.ratio = r;
-            newUnpad = new Size(Math.round(shape[1] * r), Math.round(shape[0] * r));
-            double dw = this.newShape.width - newUnpad.width, dh = this.newShape.height - newUnpad.height; // wh 填充
-            if (this.auto) { // 最小矩形
-                dw = dw % this.stride;
-                dh = dh % this.stride;
-            }
-            dw /= 2; // 填充的时候两边都填充一半，使图像居于中心
-            dh /= 2;
-            if (shape[1] != newUnpad.width || shape[0] != newUnpad.height) { // resize
-                Imgproc.resize(im, im, newUnpad, 0, 0, Imgproc.INTER_LINEAR);
-            }
-             top = (int) Math.round(dh - 0.1);
-             bottom = (int) Math.round(dh + 0.1);
-             left = (int) Math.round(dw - 0.1);
-             right = (int) Math.round(dw + 0.1);
-            // 将图像填充为正方形
-            Core.copyMakeBorder(im, im, top, bottom, left, right, Core.BORDER_CONSTANT, new Scalar(this.color));
+        // 创建一个黑色的正方形画布
+        Mat squareCanvas = Mat.zeros(maxDimension, maxDimension, im.type());
 
-            this.dh = dh;
-            this.dw = dw;
-        }else{
-            Imgproc.resize(im, im, newUnpad, 0, 0, Imgproc.INTER_LINEAR);
-            Core.copyMakeBorder(im, im, top, bottom, left, right, Core.BORDER_CONSTANT, new Scalar(this.color));
-        }
-        return im;
+        // 计算要将原始图像置于正中间时的起始坐标
+        int x = (maxDimension - originalWidth) / 2;
+        int y = (maxDimension - originalHeight) / 2;
+
+        // 将原始图像复制到正方形画布的中央
+        Mat roi = squareCanvas.submat(y, y + originalHeight, x, x + originalWidth);
+        im.copyTo(roi);
+
+        // 缩放图像到网络输入大小 (640, 640)
+        Mat resizedImage = new Mat();
+        Size sz = new Size(this.newShape.width, this.newShape.height);
+        Imgproc.resize(squareCanvas, resizedImage, sz);
+
+        // 更新缩放比例和填充信息
+        this.ratio = this.newShape.width / maxDimension;
+        this.dw = x * this.ratio;
+        this.dh = y * this.ratio;
+
+        // 返回缩放后的图像
+        return resizedImage;
     }
 }

@@ -45,12 +45,12 @@ import java.util.stream.Collectors;
 public class HeadCountTask {
     private static final int CAMERA_COUNT = 9;
 
-    private static final float CONF_THRESHOLD = 0.35F;
+    private static final float CONF_THRESHOLD = 0.5F;
 
     private static final float NMS_THRESHOLD = 0.55F;
 
     private static final double[] COLOR = {0, 0, 255};
-    private static final String[] LABELS = {"man", "no_man"};
+    private static final String[] LABELS = {"person", "no_man"};
 
     private final ProcessLinePictureHist1Service processLinePictureHistService;
 
@@ -132,6 +132,18 @@ public class HeadCountTask {
     @PostConstruct
     public void init() {
         nu.pattern.OpenCV.loadLocally();
+        test();
+    }
+
+    public void test() {
+        try {
+            String input = "C:\\work\\model\\p3.jpg";
+            String output = "C:\\work\\model\\test_1.jpg";
+            int peopleCount = getPeopleCount(input, output);
+            System.out.println(peopleCount);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -208,10 +220,10 @@ public class HeadCountTask {
             }
             Mat image = Imgcodecs.imread(picturePath);
             Size originalSize = image.size();
-            Imgproc.resize(image, image, new Size(640, 640));
+            Size size = new Size(640, 640);
             Mat outImage = image.clone();
             Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2RGB);
-            VideoLetterbox letterbox = new VideoLetterbox();
+            VideoLetterbox letterbox = new VideoLetterbox(size);
             image = letterbox.letterbox(image);
 
             double ratio = letterbox.getRatio();
@@ -224,10 +236,10 @@ public class HeadCountTask {
             float[] pixels = new float[channels * rows * cols];
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < cols; j++) {
-                    double[] pixel = image.get(j, i);
+                    double[] pixel = image.get(j,i);
                     for (int k = 0; k < channels; k++) {
-                        // 这样设置相当于同时做了image.transpose((2, 0, 1))操作
-                        pixels[rows * cols * k + j * cols + i] = (float) pixel[k] / 255.0f;
+                        // 这样设置相当于同时做了image.transpose((2, 0, 1))操作，切换了RGB到
+                        pixels[rows*cols*k+j*cols+i] = (float) pixel[k]/255.0f;
                     }
                 }
             }
@@ -302,12 +314,8 @@ public class HeadCountTask {
                     bboxes = nonMaxSuppression(bboxes, NMS_THRESHOLD);
                     for (float[] bbox : bboxes) {
                         Integer key = entry.getKey();
-                        if (key < LABELS.length) {
-                            String labelString = LABELS[key];
-                            if ("person".equals(labelString)) {
-                                detections.add(new Detection(labelString, key, Arrays.copyOfRange(bbox, 0, 4), bbox[4]));
-                            }
-                        }
+                        String labelString = LABELS[0];
+                        detections.add(new Detection(labelString, key, Arrays.copyOfRange(bbox, 0, 4), bbox[4]));
                     }
                 }
                 int minDwDh = Math.min(image.width(), image.height());
@@ -322,7 +330,7 @@ public class HeadCountTask {
                     Imgproc.rectangle(outImage, topLeft, bottomRight, color, thickness);
                     // 框上写文字
                     Point boxNameLoc = new Point((bbox[0] - dw) / ratio, (bbox[1] - dh) / ratio - 3 + 20);
-                    Imgproc.putText(outImage, detection.getLabel() + df.format(detection.confidence),
+                    Imgproc.putText(outImage, df.format(detection.confidence),
                             boxNameLoc, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, color, thickness);
                 }
             }
