@@ -9,10 +9,8 @@ import com.seu.platform.dao.entity.ProcessLinePictureHist1;
 import com.seu.platform.dao.service.ProcessLinePictureHist1Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
-import org.opencv.core.Size;
+import org.opencv.core.*;
+import org.opencv.dnn.Dnn;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.springframework.beans.factory.annotation.Value;
@@ -137,7 +135,7 @@ public class HeadCountTask {
 
     public void test() {
         try {
-            String input = "C:\\work\\model\\p3.jpg";
+            String input = "C:\\work\\model\\test.jpg";
             String output = "C:\\work\\model\\test_1.jpg";
             int peopleCount = getPeopleCount(input, output);
             System.out.println(peopleCount);
@@ -224,25 +222,38 @@ public class HeadCountTask {
             Mat outImage = image.clone();
             Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2RGB);
             VideoLetterbox letterbox = new VideoLetterbox(size);
-            image = letterbox.letterbox(image);
+            int height = image.rows();
+            int width = image.cols();
 
-            double ratio = letterbox.getRatio();
-            double dw = letterbox.getDw();
-            double dh = letterbox.getDh();
-            int rows = letterbox.getHeight();
-            int cols = letterbox.getWidth();
-            int channels = image.channels();
-            // 将Mat对象的像素值赋值给Float[]对象
+            // 准备一个正方形的图像用于推理
+            int length = Math.max(height, width);
+            Mat squareImage = new Mat(length, length, CvType.CV_8UC3, new Scalar(0, 0, 0));
+
+            // 将原始图像复制到正方形图像的左上角
+            Mat roi = squareImage.submat(0, height, 0, width);
+            image.copyTo(roi);
+
+            // 计算缩放因子
+            double scale = length / 640.0;
+//            Imgcodecs.imwrite("./Detec/DealImg.jpg", squareImage);
+            Mat blob = Dnn.blobFromImage(squareImage, 1 / 255.0, new Size(640, 640), new Scalar(0, 0, 0), true, false);
+            int channels = blob.size(1);
+            int rows = blob.size(2);
+            int cols = blob.size(3);
+
             float[] pixels = new float[channels * rows * cols];
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < cols; j++) {
-                    double[] pixel = image.get(j,i);
-                    for (int k = 0; k < channels; k++) {
-                        // 这样设置相当于同时做了image.transpose((2, 0, 1))操作，切换了RGB到
-                        pixels[rows*cols*k+j*cols+i] = (float) pixel[k]/255.0f;
+
+            // 提取blob数据， 并用pixels储存。
+            for (int c = 0; c < channels; c++) {
+                for (int h = 0; h < rows; h++) {
+                    for (int w = 0; w < cols; w++) {
+                        float[] data = new float[1];
+                        blob.get(new int[]{0, c, h, w}, data);
+                        pixels[c * (rows * cols) + h * cols + w] = data[0];
                     }
                 }
             }
+
 
             // 创建OnnxTensor对象
             long[] shape = {1L, (long) channels, (long) rows, (long) cols};
@@ -286,22 +297,20 @@ public class HeadCountTask {
             Map<Integer, List<float[]>> class2Bbox = new HashMap<>();
             for (float[] bbox : outputData) {
 
-                // center_x,center_y, width, height，score
                 float score = bbox[4];
-                if (score < CONF_THRESHOLD) {
-                    continue;
-                }
-
-                // 获取标签
-                float[] conditionalProbabilities = Arrays.copyOfRange(bbox, 5, bbox.length);
-                int label = argmax(conditionalProbabilities);
-
+                if (score < CONF_THRESHOLD) continue;
+                int label = 0;
                 xywh2xyxy(bbox);
 
-                // 去除无效结果
-                if (bbox[0] >= bbox[2] || bbox[1] >= bbox[3]) {
-                    continue;
-                }
+                //跳过无效图片
+                if (bbox[0] >= bbox[2] || bbox[1] >= bbox[3]) continue;
+
+
+                class2Bbox.putIfAbsent(label, new ArrayList<>());
+                class2Bbox.get(label).add(bbox);
+
+
+                if (class2Bbox.containsKey(label)) continue;
 
                 class2Bbox.putIfAbsent(label, new ArrayList<>());
                 class2Bbox.get(label).add(bbox);
@@ -313,25 +322,27 @@ public class HeadCountTask {
                     List<float[]> bboxes = entry.getValue();
                     bboxes = nonMaxSuppression(bboxes, NMS_THRESHOLD);
                     for (float[] bbox : bboxes) {
-                        Integer key = entry.getKey();
                         String labelString = LABELS[0];
-                        detections.add(new Detection(labelString, key, Arrays.copyOfRange(bbox, 0, 4), bbox[4]));
+                        detections.add(new Detection(labelString,16, Arrays.copyOfRange(bbox, 0, 4), bbox[4]));
                     }
                 }
                 int minDwDh = Math.min(image.width(), image.height());
                 int thickness = minDwDh / ODConfig.lineThicknessRatio;
                 DecimalFormat df = new DecimalFormat("0.00");
                 for (Detection detection : detections) {
+
                     float[] bbox = detection.getBbox();
-                    // 画框
-                    Point topLeft = new Point((bbox[0] - dw) / ratio, (bbox[1] - dh) / ratio);
-                    Point bottomRight = new Point((bbox[2] - dw) / ratio, (bbox[3] - dh) / ratio);
                     Scalar color = new Scalar(COLOR);
+
+                    // 画框
+                    Point topLeft = new Point(bbox[0] * scale, bbox[1] * scale);
+                    Point bottomRight = new Point(bbox[2] * scale, bbox[3] * scale);
                     Imgproc.rectangle(outImage, topLeft, bottomRight, color, thickness);
                     // 框上写文字
-                    Point boxNameLoc = new Point((bbox[0] - dw) / ratio, (bbox[1] - dh) / ratio - 3 + 20);
-                    Imgproc.putText(outImage, df.format(detection.confidence),
-                            boxNameLoc, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, color, thickness);
+                    Point boxNameLoc = new Point(bbox[0] * scale, bbox[1] * scale-3+20);
+                    Point boxNameLoc1 = new Point(bbox[0] * scale, bbox[1] * scale-3+35);
+                    Imgproc.putText(outImage, detection.getLabel(), boxNameLoc, Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness);
+                    Imgproc.putText(outImage, "confi:"+detection.confidence, boxNameLoc1, Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness);
                 }
             }
             int peopleCount = detections.size();

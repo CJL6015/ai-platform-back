@@ -192,6 +192,8 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
         PointStatistic statistic = getBaseMapper().getStatistic(lineId,
                 timeRange.getSt(),
                 timeRange.getEt());
+        statistic.setThresholdWithin(statistic.getNormalRefresh() - statistic.getThresholdExceeded());
+        statistic.setNormalRefresh(statistic.getNormalRefresh() - statistic.getExceptionRefresh());
         return com.seu.platform.util.BeanUtil.convertBean(statistic, StatisticVO.class);
     }
 }

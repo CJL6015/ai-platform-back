@@ -5,7 +5,15 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 public class VideoLetterbox {
-    private Size newShape;
+
+    private Size newShape = new Size(640, 640);
+    public void setSize(String input) {
+        if ("yolov5s".equals(input)|| "yolov8m".equals(input)) {
+            newShape = new Size(640, 640);
+        } else if ("best".equals(input)) {
+            newShape = new Size(1088, 1088);
+        }
+    }
     //    private Size newShape = new Size(1088, 1088);
     private final double[] color = new double[]{114,114,114};
     private final Boolean auto = false;
