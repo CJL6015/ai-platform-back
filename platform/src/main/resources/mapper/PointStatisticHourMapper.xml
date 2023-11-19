@@ -5,36 +5,36 @@
 <mapper namespace="com.seu.platform.dao.mapper.PointStatisticHourMapper">
 
     <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.PointStatisticHour">
-            <result property="id" column="id" jdbcType="BIGINT"/>
-            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-            <result property="pointId" column="point_id" jdbcType="INTEGER"/>
-            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
-            <result property="equipmentId" column="equipment_id" jdbcType="INTEGER"/>
-            <result property="stopTime" column="stop_time" jdbcType="FLOAT"/>
-            <result property="runTime" column="run_time" jdbcType="FLOAT"/>
-            <result property="normalRefresh" column="normal_refresh" jdbcType="FLOAT"/>
-            <result property="exceptionRefresh" column="exception_refresh" jdbcType="FLOAT"/>
-            <result property="thresholdUpLowExceeded" column="threshold_up_low_exceeded" jdbcType="FLOAT"/>
-            <result property="thresholdUpupLowlowExceeded" column="threshold_upup_lowlow_exceeded" jdbcType="FLOAT"/>
-            <result property="upExceededDetails" column="up_exceeded_details" jdbcType="VARCHAR"/>
-            <result property="lowExceededDetails" column="low_exceeded_details" jdbcType="VARCHAR"/>
-            <result property="upupExceededDetails" column="upup_exceeded_details" jdbcType="VARCHAR"/>
-            <result property="lowlowExceededDetails" column="lowlow_exceeded_details" jdbcType="VARCHAR"/>
-            <result property="exceptionFreshDetails" column="exception_fresh_details" jdbcType="VARCHAR"/>
-            <result property="upLowExceededCount" column="up_low_exceeded_count" jdbcType="INTEGER"/>
-            <result property="upupLowlowExceededCount" column="upup_lowlow_exceeded_count" jdbcType="INTEGER"/>
-            <result property="statiaticStartTime" column="statiatic_start_time" jdbcType="TIMESTAMP"/>
-            <result property="statisticEndTime" column="statistic_end_time" jdbcType="TIMESTAMP"/>
+        <result property="id" column="id" jdbcType="BIGINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="pointId" column="point_id" jdbcType="INTEGER"/>
+        <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+        <result property="equipmentId" column="equipment_id" jdbcType="INTEGER"/>
+        <result property="stopTime" column="stop_time" jdbcType="FLOAT"/>
+        <result property="runTime" column="run_time" jdbcType="FLOAT"/>
+        <result property="normalRefresh" column="normal_refresh" jdbcType="FLOAT"/>
+        <result property="exceptionRefresh" column="exception_refresh" jdbcType="FLOAT"/>
+        <result property="thresholdUpLowExceeded" column="threshold_up_low_exceeded" jdbcType="FLOAT"/>
+        <result property="thresholdUpupLowlowExceeded" column="threshold_upup_lowlow_exceeded" jdbcType="FLOAT"/>
+        <result property="upExceededDetails" column="up_exceeded_details" jdbcType="VARCHAR"/>
+        <result property="lowExceededDetails" column="low_exceeded_details" jdbcType="VARCHAR"/>
+        <result property="upupExceededDetails" column="upup_exceeded_details" jdbcType="VARCHAR"/>
+        <result property="lowlowExceededDetails" column="lowlow_exceeded_details" jdbcType="VARCHAR"/>
+        <result property="exceptionFreshDetails" column="exception_fresh_details" jdbcType="VARCHAR"/>
+        <result property="upLowExceededCount" column="up_low_exceeded_count" jdbcType="INTEGER"/>
+        <result property="upupLowlowExceededCount" column="upup_lowlow_exceeded_count" jdbcType="INTEGER"/>
+        <result property="statiaticStartTime" column="statiatic_start_time" jdbcType="TIMESTAMP"/>
+        <result property="statisticEndTime" column="statistic_end_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,create_time,point_id,
-        line_id,equipment_id,stop_time,
-        run_time,normal_refresh,exception_refresh,
-        threshold_up_low_exceeded,threshold_upup_lowlow_exceeded,up_exceeded_details,
-        low_exceeded_details,upup_exceeded_details,lowlow_exceeded_details,
-        exception_fresh_details,up_low_exceeded_count,upup_lowlow_exceeded_count,
-        statiatic_start_time,statistic_end_time
+                id, create_time, point_id,
+                line_id, equipment_id, stop_time,
+                run_time, normal_refresh, exception_refresh,
+                threshold_up_low_exceeded, threshold_upup_lowlow_exceeded, up_exceeded_details,
+                low_exceeded_details, upup_exceeded_details, lowlow_exceeded_details,
+                exception_fresh_details, up_low_exceeded_count, upup_lowlow_exceeded_count,
+                statiatic_start_time, statistic_end_time
     </sql>
     <select id="getOverrunCountMonth" resultType="com.seu.platform.model.dto.TrendDTO">
         select sum(t1.up_low_exceeded_count)         as count,
@@ -58,7 +58,7 @@
         from point_statistic_hour
         where line_id = #{lineId}
           and statiatic_start_time >= dateadd(DAY, -1, (select max(statiatic_start_time)
-                                                          from point_statistic_hour))
+                                                        from point_statistic_hour))
         group by statiatic_start_time
         order by statiatic_start_time
     </select>
@@ -184,5 +184,15 @@
           and t1.statiatic_start_time &lt;= #{et}
         group by t1.statiatic_start_time
         order by time
+    </select>
+    <select id="getCount" resultType="java.lang.Integer">
+        select sum(up_low_exceeded_count) as count
+        from point_statistic_hour
+        where line_id = #{lineId}
+        and statiatic_start_time >= #{st}
+        and statiatic_start_time &lt;= #{et}
+        <if test="pointId != null and pointId >0">
+            and point_id=#{pointId}
+        </if>
     </select>
 </mapper>
