@@ -31,8 +31,8 @@ public class BenchmarkServiceImpl implements BenchmarkService {
     private final PointStatisticHourMapper pointStatisticHourMapper;
 
     @Override
-    public EquipmentTrendVO getEquipmentTrend(Date st, Date et) {
-        List<EquipmentTrendDTO> equipmentTrend = equipmentCfgMapper.getEquipmentTrend(st, et);
+    public EquipmentTrendVO getEquipmentTrend(Integer lineId, Date st, Date et) {
+        List<EquipmentTrendDTO> equipmentTrend = equipmentCfgMapper.getEquipmentTrend(lineId, st, et);
         List<String> equipments = new ArrayList<>();
         List<List<Object[]>> data = new ArrayList<>();
         List<Object[]> value = new ArrayList<>();
@@ -93,15 +93,15 @@ public class BenchmarkServiceImpl implements BenchmarkService {
 
 
     @Override
-    public BenchmarkTrendVO getBenchmarkTrend(Date st, Date et) {
-        List<TrendDTO> totalTrend = pointStatisticHourMapper.getTotalTrend(st, et);
+    public BenchmarkTrendVO getBenchmarkTrend(Integer lineId, Date st, Date et) {
+        List<TrendDTO> totalTrend = pointStatisticHourMapper.getTotalTrend(lineId, st, et);
         List<Object[]> trend = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         for (TrendDTO dto : totalTrend) {
             trend.add(new Object[]{dateFormat.format(dto.getTime()), dto.getCount()});
         }
 
-        List<HourTrendDTO> timeOverrun = pointStatisticHourMapper.getTimeOverrun(st, et);
+        List<HourTrendDTO> timeOverrun = pointStatisticHourMapper.getTimeOverrun(lineId, st, et);
         int[] hours = new int[24];
         for (HourTrendDTO dto : timeOverrun) {
             Integer time = dto.getTime();
@@ -113,4 +113,6 @@ public class BenchmarkServiceImpl implements BenchmarkService {
                 .hours(hours)
                 .build();
     }
+
+
 }

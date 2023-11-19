@@ -91,12 +91,11 @@ public class PointConfigVO {
     private Integer state;
 
     /**
-     * 持续时间阈值
+     * 超限扣分
      */
-    private Integer threshold;
-
+    private Double score;
     /**
-     * 该测点历史平均超限时间
+     * 超高高限扣分
      */
-    private Integer duration;
+    private Double highScore;
 }

@@ -1,13 +1,14 @@
 package com.seu.platform.dao.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seu.platform.dao.entity.ProcessLinePictureHist;
 import com.seu.platform.dao.mapper.ProcessLinePictureHistMapper;
 import com.seu.platform.dao.service.ProcessLinePictureHistService;
+import com.seu.platform.model.dto.DetectionTrendDTO;
+import com.seu.platform.model.dto.HourTrendDTO;
 import com.seu.platform.model.dto.TrendDTO;
-import com.seu.platform.model.vo.DetectionResultVO;
-import com.seu.platform.model.vo.TimeRange;
-import com.seu.platform.model.vo.TrendVO;
+import com.seu.platform.model.vo.*;
 import com.seu.platform.util.MathUtil;
 import org.springframework.stereotype.Service;
 
@@ -76,6 +77,91 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
         double[] doubles = MathUtil.fitting(counts, 1);
         List<Double> fitValues = getPredictions(counts, doubles);
         return new TrendVO<>(times, counts, fitValues, doubles);
+    }
+
+    @Override
+    public DetectionTrendVO getPeopleTrend(Integer lineId, Date st, Date et) {
+        List<DetectionTrendDTO> peopleTrend = getBaseMapper().getPeopleTrend(lineId, st, et);
+        List<String> names = new ArrayList<>();
+        List<List<Object[]>> data = new ArrayList<>();
+        List<Object[]> value = new ArrayList<>();
+        List<Integer> peopleMax = new ArrayList<>();
+        List<Integer> countMax = new ArrayList<>();
+        data.add(value);
+        List<Integer> counts = new ArrayList<>();
+        List<String> trend = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        if (CollUtil.isNotEmpty(peopleTrend)) {
+            String name = peopleTrend.get(0).getName().trim();
+            int count = 0;
+            int max = 0;
+            int maxPeople = 0;
+            for (DetectionTrendDTO dto : peopleTrend) {
+                String processName = dto.getName().trim();
+                if (!names.contains(processName)) {
+                    names.add(processName);
+                }
+                if (!name.equals(processName)) {
+                    value = new ArrayList<>();
+                    data.add(value);
+                    name = processName;
+                    counts.add(count);
+                    count = 0;
+                    countMax.add(max);
+                    max = 0;
+                    peopleMax.add(maxPeople);
+                    maxPeople = 0;
+                }
+                Integer dtoCount = dto.getCount();
+                max = Math.max(max, dtoCount);
+                Integer maxCount = dto.getMaxCount();
+                maxPeople = Math.max(maxCount, maxPeople);
+                count += dtoCount;
+                value.add(new Object[]{dateFormat.format(dto.getTime()), dtoCount});
+            }
+            counts.add(count);
+            countMax.add(max);
+            peopleMax.add(maxPeople);
+            for (List<Object[]> list : data) {
+                List<Integer> nums = new ArrayList<>();
+                for (Object[] objects : list) {
+                    nums.add((int) objects[1]);
+                }
+                double a = MathUtil.fitting(nums, 1)[1];
+                trend.add(a > 0 ? "上升趋势" : "下降趋势");
+            }
+        }
+
+        return DetectionTrendVO.builder()
+                .values(data)
+                .names(names)
+                .peopleMax(peopleMax)
+                .countMax(countMax)
+                .counts(counts)
+                .trend(trend)
+                .build();
+    }
+
+    @Override
+    public BenchmarkTrendVO getBenchmarkTrend(Integer lineId, Date st, Date et) {
+        List<TrendDTO> totalTrend = getBaseMapper().getTotalTrend(lineId, st, et);
+        List<Object[]> trend = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        for (TrendDTO dto : totalTrend) {
+            trend.add(new Object[]{dateFormat.format(dto.getTime()), dto.getCount()});
+        }
+
+        List<HourTrendDTO> timeOverrun = getBaseMapper().getTimeOverrun(lineId, st, et);
+        int[] hours = new int[24];
+        for (HourTrendDTO dto : timeOverrun) {
+            Integer time = dto.getTime();
+            hours[time] = dto.getCount();
+        }
+
+        return BenchmarkTrendVO.builder()
+                .trend(trend)
+                .hours(hours)
+                .build();
     }
 }
 

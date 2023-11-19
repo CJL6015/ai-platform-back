@@ -2,9 +2,7 @@ package com.seu.platform.dao.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.ProcessLinePictureHist;
-import com.seu.platform.model.vo.DetectionResultVO;
-import com.seu.platform.model.vo.TimeRange;
-import com.seu.platform.model.vo.TrendVO;
+import com.seu.platform.model.vo.*;
 
 import java.util.Date;
 import java.util.List;
@@ -48,4 +46,24 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
      * @return 趋势
      */
     TrendVO<String, Integer> getTrendDaily(TimeRange timeRange);
+
+    /**
+     * 查询设备超限趋势
+     *
+     * @param lineId 生产线id
+     * @param st     开始时间
+     * @param et     结束时间
+     * @return 趋势
+     */
+    DetectionTrendVO getPeopleTrend(Integer lineId, Date st, Date et);
+
+    /**
+     * 查询总超限趋势
+     *
+     * @param lineId 生产线id
+     * @param st     开始时间
+     * @param et     结束时间
+     * @return 趋势
+     */
+    BenchmarkTrendVO getBenchmarkTrend(Integer lineId, Date st, Date et);
 }

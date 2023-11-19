@@ -1,5 +1,6 @@
 package com.seu.platform.util;
 
+import cn.hutool.core.collection.CollUtil;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
@@ -15,6 +16,9 @@ import java.util.List;
 public class MathUtil {
 
     public double[] fitting(List<Integer> nums, int degree) {
+        if (CollUtil.isEmpty(nums)) {
+            return new double[]{0, 0};
+        }
         WeightedObservedPoints points = new WeightedObservedPoints();
         for (int i = 0; i < nums.size(); i++) {
             Integer num = nums.get(i);

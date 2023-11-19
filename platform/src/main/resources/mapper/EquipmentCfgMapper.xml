@@ -15,8 +15,8 @@
     </sql>
     <select id="getEquipmentTrend" resultType="com.seu.platform.model.dto.EquipmentTrendDTO">
         select t1.id,
-               t1.equipment_description      as equipment_name,
-               sum(t2.up_low_exceeded_count) as count,
+               t1.equipment_description          as equipment_name,
+               sum(t2.up_low_exceeded_count)     as count,
                sum(t2.threshold_up_low_exceeded) as duration,
                t2.time
         from equipment_cfg t1
@@ -27,8 +27,9 @@
                             from point_statistic_hour
                             where statiatic_start_time >= #{st}
                               and statiatic_start_time &lt;= #{et}) t2 on t1.id = t2.equipment_id
-        where time is not null
+        where t1.line_id = #{lineId}
+          and time is not null
         group by t1.id, t1.equipment_description, t2.time
-        order by id,time
+        order by id, time
     </select>
 </mapper>

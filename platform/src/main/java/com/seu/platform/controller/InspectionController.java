@@ -1,11 +1,15 @@
 package com.seu.platform.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.seu.platform.dao.entity.FreezeLog;
 import com.seu.platform.dao.entity.InspectionCfg;
+import com.seu.platform.dao.entity.InspectionHistory;
+import com.seu.platform.dao.entity.ProcessLinePictureHist1;
 import com.seu.platform.dao.service.FreezeLogService;
 import com.seu.platform.dao.service.InspectionCfgService;
 import com.seu.platform.dao.service.InspectionHistoryService;
+import com.seu.platform.dao.service.ProcessLinePictureHist1Service;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.InspectionConfigVO;
 import com.seu.platform.model.vo.InspectionHistoryDataVO;
@@ -27,6 +31,8 @@ public class InspectionController {
     private final InspectionHistoryService inspectionHistoryService;
 
     private final FreezeLogService freezeLogService;
+
+    private final ProcessLinePictureHist1Service processLinePictureHist1Service;
 
     @GetMapping("/line/{id}")
     public Result<InspectionConfigVO> getInspectionConfig(@PathVariable Integer id) {
@@ -66,6 +72,11 @@ public class InspectionController {
         freezeLog.setStartTime(time.getSt());
         freezeLog.setEndTime(time.getEt());
         boolean save = freezeLogService.save(freezeLog);
+        LambdaUpdateWrapper<ProcessLinePictureHist1> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.ge(ProcessLinePictureHist1::getUpdateTime, time.getSt())
+                .le(ProcessLinePictureHist1::getUpdateTime, time.getEt());
+        updateWrapper.set(ProcessLinePictureHist1::getFreeze, 1);
+        processLinePictureHist1Service.update(updateWrapper);
         return Result.success(save);
     }
 

@@ -17,11 +17,12 @@ public interface EquipmentCfgMapper extends BaseMapper<EquipmentCfg> {
     /**
      * 获取设备超限趋势
      *
-     * @param st 开始时间
-     * @param et 结束时间
+     * @param lineId 生产线id
+     * @param st     开始时间
+     * @param et     结束时间
      * @return 趋势
      */
-    List<EquipmentTrendDTO> getEquipmentTrend(Date st, Date et);
+    List<EquipmentTrendDTO> getEquipmentTrend(Integer lineId, Date st, Date et);
 }
 
 

@@ -47,4 +47,9 @@ public class ProcessLinePictureHist implements Serializable {
      * 人数
      */
     private Integer peopleCount;
+
+    /**
+     * 是否冻结
+     */
+    private Integer freeze;
 }

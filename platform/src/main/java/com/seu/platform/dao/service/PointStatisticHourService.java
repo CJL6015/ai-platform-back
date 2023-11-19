@@ -5,6 +5,7 @@ import com.seu.platform.dao.entity.PointStatisticHour;
 import com.seu.platform.model.vo.*;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author 陈小黑
@@ -37,9 +38,10 @@ public interface PointStatisticHourService extends IService<PointStatisticHour> 
      * 获取对标数据
      *
      * @param lineId 生产线id
+     * @param num    对比个数
      * @return 数据
      */
-    BenchmarkDataVO getBenchmarkData(Integer lineId);
+    BenchmarkDataVO getBenchmarkData(Integer lineId, Integer num);
 
     /**
      * 获取趋势详情
@@ -73,5 +75,7 @@ public interface PointStatisticHourService extends IService<PointStatisticHour> 
      * @return 统计结果
      */
     StatisticVO getStatistic(Integer lineId, TimeRange timeRange);
+
+    List<ScoreVO> getScores(Integer lineId, TimeRange timeRange);
 
 }

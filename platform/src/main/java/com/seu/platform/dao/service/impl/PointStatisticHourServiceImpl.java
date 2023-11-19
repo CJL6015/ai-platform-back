@@ -1,5 +1,6 @@
 package com.seu.platform.dao.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -13,12 +14,15 @@ import com.seu.platform.model.vo.*;
 import com.seu.platform.util.MathUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author 陈小黑
@@ -70,26 +74,29 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
     }
 
     @Override
-    public BenchmarkDataVO getBenchmarkData(Integer lineId) {
-        List<BenchmarkDTO> benchmarkDaily = getBaseMapper().getBenchmarkDaily(lineId);
+    public BenchmarkDataVO getBenchmarkData(Integer lineId, Integer num) {
+        List<BenchmarkDTO> benchmarkDaily = getBaseMapper().getBenchmarkDaily(lineId, -num);
         List<String> equipments = new ArrayList<>();
-        Date time = benchmarkDaily.get(0).getTime();
         List<List<Integer>> dayData = new ArrayList<>();
-        List<Integer> counts = new ArrayList<>();
-        dayData.add(counts);
-        for (BenchmarkDTO benchmarkDTO : benchmarkDaily) {
-            String equipmentName = benchmarkDTO.getEquipmentName().trim();
-            if (!equipments.contains(equipmentName)) {
-                equipments.add(equipmentName);
+        if (CollUtil.isNotEmpty(benchmarkDaily)) {
+            Date time = benchmarkDaily.get(0).getTime();
+            List<Integer> counts = new ArrayList<>();
+            dayData.add(counts);
+            for (BenchmarkDTO benchmarkDTO : benchmarkDaily) {
+                String equipmentName = benchmarkDTO.getEquipmentName().trim();
+                if (!equipments.contains(equipmentName)) {
+                    equipments.add(equipmentName);
+                }
+                Date dtoTime = benchmarkDTO.getTime();
+                if (time.compareTo(dtoTime) != 0) {
+                    counts = new ArrayList<>();
+                    dayData.add(counts);
+                    time = dtoTime;
+                }
+                counts.add(benchmarkDTO.getCount());
             }
-            Date dtoTime = benchmarkDTO.getTime();
-            if (time.compareTo(dtoTime) != 0) {
-                counts = new ArrayList<>();
-                dayData.add(counts);
-                time = dtoTime;
-            }
-            counts.add(benchmarkDTO.getCount());
         }
+
 
         return BenchmarkDataVO.builder()
                 .equipments(equipments)
@@ -195,6 +202,18 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
         statistic.setThresholdWithin(statistic.getNormalRefresh() - statistic.getThresholdExceeded());
         statistic.setNormalRefresh(statistic.getNormalRefresh() - statistic.getExceptionRefresh());
         return com.seu.platform.util.BeanUtil.convertBean(statistic, StatisticVO.class);
+    }
+
+    @Override
+    public List<ScoreVO> getScores(Integer lineId, TimeRange timeRange) {
+        List<ScoreVO> score = getBaseMapper().getScore(lineId, timeRange.getSt(), timeRange.getEt());
+        score = score.stream().filter(Objects::nonNull).peek(t -> {
+            String name = t.getName();
+            if (StringUtils.hasText(name)) {
+                t.setName(name.trim());
+            }
+        }).collect(Collectors.toList());
+        return score;
     }
 }
 

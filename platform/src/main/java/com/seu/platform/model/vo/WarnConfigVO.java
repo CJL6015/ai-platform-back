@@ -30,4 +30,9 @@ public class WarnConfigVO {
      * 装车工序人员上限
      */
     private Integer loadingProcessLimit;
+
+    /**
+     * 生产线总限值
+     */
+    private Integer totalLimit;
 }

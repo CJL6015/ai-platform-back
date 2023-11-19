@@ -14,19 +14,22 @@ public interface BenchmarkService {
     /**
      * 查询设备超限趋势
      *
-     * @param st 开始时间
-     * @param et 结束时间
+     * @param lineId 生产线id
+     * @param st     开始时间
+     * @param et     结束时间
      * @return 趋势
      */
-    EquipmentTrendVO getEquipmentTrend(Date st, Date et);
+    EquipmentTrendVO getEquipmentTrend(Integer lineId, Date st, Date et);
 
 
     /**
      * 查询总超限趋势
      *
-     * @param st 开始时间
-     * @param et 结束时间
+     * @param lineId 生产线id
+     * @param st     开始时间
+     * @param et     结束时间
      * @return 趋势
      */
-    BenchmarkTrendVO getBenchmarkTrend(Date st, Date et);
+    BenchmarkTrendVO getBenchmarkTrend(Integer lineId, Date st, Date et);
+
 }

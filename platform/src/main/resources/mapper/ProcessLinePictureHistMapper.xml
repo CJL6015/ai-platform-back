@@ -69,4 +69,48 @@
         group by update_time
         order by update_time
     </select>
+    <select id="getPeopleTrend" resultType="com.seu.platform.model.dto.DetectionTrendDTO">
+        select t1.id,
+               t1.camera_description as name,
+               sum(t2.count)         as count,
+               t2.time,
+               max(t2.people_count)  as max_count
+        from camera_cfg t1
+                 left join (select camera_id,
+                                   1                         as count,
+                                   cast(update_time as date) as time,
+                                   people_count
+                            from process_line_picture_hist_1
+                            where process_line_picture_hist_1.update_time >= #{st}
+                              and process_line_picture_hist_1.update_time &lt;= #{et}
+                              and process_line_picture_hist_1.exceed = 1) t2 on t1.camera_ip = t2.camera_id
+        where t1.line_id = #{lineId}
+          and time is not null
+        group by t1.id, t1.camera_description, t2.time
+        order by id, time
+    </select>
+    <select id="getTotalTrend" resultType="com.seu.platform.model.dto.TrendDTO">
+        select sum(iif(t1.exceed = 1, 1, 0)) as count,
+               cast(t1.update_time as date)  as time
+        from process_line_picture_hist_1 t1,
+             camera_cfg t2
+        where t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+        group by cast(t1.update_time as date)
+        order by time
+    </select>
+    <select id="getTimeOverrun" resultType="com.seu.platform.model.dto.HourTrendDTO">
+        select sum(iif(t1.exceed = 1, 1, 0))  as count,
+               DATEPART(HOUR, t1.update_time) as time
+        from process_line_picture_hist_1 t1,
+             camera_cfg t2
+        where t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+        group by DATEPART(HOUR, t1.update_time)
+        order by time
+    </select>
 </mapper>

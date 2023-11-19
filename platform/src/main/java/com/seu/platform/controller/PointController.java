@@ -56,8 +56,8 @@ public class PointController {
     }
 
     @GetMapping("/benchmark/line/{lineId}")
-    public Result<BenchmarkDataVO> getBenchmark(@PathVariable Integer lineId) {
-        BenchmarkDataVO benchmarkData = pointStatisticHourService.getBenchmarkData(lineId);
+    public Result<BenchmarkDataVO> getBenchmark(@PathVariable Integer lineId, Integer num) {
+        BenchmarkDataVO benchmarkData = pointStatisticHourService.getBenchmarkData(lineId, num);
         return Result.success(benchmarkData);
     }
 
