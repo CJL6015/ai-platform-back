@@ -6,6 +6,7 @@ import com.seu.platform.model.dto.DetectionTrendDTO;
 import com.seu.platform.model.dto.HourTrendDTO;
 import com.seu.platform.model.dto.TrendDTO;
 import com.seu.platform.model.vo.DetectionResultVO;
+import com.seu.platform.model.vo.ScoreDailyVO;
 
 import java.util.Date;
 import java.util.List;
@@ -90,6 +91,8 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      * @return 趋势
      */
     List<HourTrendDTO> getTimeOverrun(Integer lineId, Date st, Date et);
+
+    List<TrendDTO> getScoreDaily(Integer lineId, Date st, Date et);
 }
 
 

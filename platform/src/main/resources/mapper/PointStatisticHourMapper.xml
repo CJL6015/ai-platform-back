@@ -173,4 +173,16 @@
         group by t2.equipment_id, t3.equipment_description
         order by t2.equipment_id
     </select>
+    <select id="getScoreDaily" resultType="com.seu.platform.model.vo.ScoreDailyVO">
+        select sum(t1.up_low_exceeded_count * t2.score + t1.upup_lowlow_exceeded_count * t2.high_score) as score,
+               cast(t1.statiatic_start_time as date)                                                    as time
+        from point_statistic_hour t1
+                 left join
+             point_cfg t2 on t1.point_id = t2.point_id
+        where t1.line_id = #{lineId}
+          and t1.statiatic_start_time >= #{st}
+          and t1.statiatic_start_time &lt;= #{et}
+        group by t1.statiatic_start_time
+        order by time
+    </select>
 </mapper>

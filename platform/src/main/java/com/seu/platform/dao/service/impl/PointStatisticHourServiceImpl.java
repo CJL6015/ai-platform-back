@@ -215,6 +215,8 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
         }).collect(Collectors.toList());
         return score;
     }
+
+
 }
 
 

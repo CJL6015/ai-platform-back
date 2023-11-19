@@ -6,6 +6,7 @@ import com.seu.platform.dao.entity.PointStatisticHour;
 import com.seu.platform.model.dto.BenchmarkDTO;
 import com.seu.platform.model.dto.HourTrendDTO;
 import com.seu.platform.model.dto.TrendDTO;
+import com.seu.platform.model.vo.ScoreDailyVO;
 import com.seu.platform.model.vo.ScoreVO;
 
 import java.util.Date;
@@ -77,8 +78,8 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
      * 获取总趋势
      *
      * @param lineId 生产线id
-     * @param st 开始时间
-     * @param et 结束时间
+     * @param st     开始时间
+     * @param et     结束时间
      * @return 趋势
      */
     List<TrendDTO> getTotalTrend(Integer lineId, Date st, Date et);
@@ -87,8 +88,8 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
      * 获取总趋势
      *
      * @param lineId 生产线id
-     * @param st 开始时间
-     * @param et 结束时间
+     * @param st     开始时间
+     * @param et     结束时间
      * @return 趋势
      */
     List<HourTrendDTO> getTimeOverrun(Integer lineId, Date st, Date et);
@@ -112,6 +113,8 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
     PointStatistic getStatistic(Integer lineId, Date st, Date et);
 
     List<ScoreVO> getScore(Integer lineId, Date st, Date et);
+
+    List<ScoreDailyVO> getScoreDaily(Integer lineId, Date st, Date et);
 }
 
 

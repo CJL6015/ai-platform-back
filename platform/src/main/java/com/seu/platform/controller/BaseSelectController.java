@@ -1,5 +1,8 @@
 package com.seu.platform.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.seu.platform.dao.entity.PointCfg;
+import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.OptionItemVO;
 import com.seu.platform.model.vo.SelectAllOptionVO;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author chenjiale
@@ -22,6 +26,8 @@ import java.util.List;
 @RequestMapping("/api/select")
 public class BaseSelectController {
     private final SelectService selectService;
+
+    private final PointCfgService pointCfgService;
 
 
     @GetMapping("/list")
@@ -47,5 +53,14 @@ public class BaseSelectController {
     public Result<List<OptionItemVO>> getPoints() {
         List<OptionItemVO> points = selectService.getPoints();
         return Result.success(points);
+    }
+
+    @GetMapping("/point/line/{lineId}")
+    public Result<List<String>> getPointNames(@PathVariable Integer lineId) {
+        LambdaQueryWrapper<PointCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PointCfg::getLineId, lineId);
+        List<PointCfg> list = pointCfgService.list(queryWrapper);
+        List<String> names = list.stream().map(t -> t.getDescription().trim()).collect(Collectors.toList());
+        return Result.success(names);
     }
 }

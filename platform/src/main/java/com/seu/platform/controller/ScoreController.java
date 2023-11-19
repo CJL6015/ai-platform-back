@@ -4,6 +4,7 @@ import com.seu.platform.dao.service.PointStatisticHourService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.ScoreVO;
 import com.seu.platform.model.vo.TimeRange;
+import com.seu.platform.service.ScoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,9 +24,17 @@ import java.util.List;
 public class ScoreController {
     private final PointStatisticHourService pointStatisticHourService;
 
+    private final ScoreService scoreService;
+
     @GetMapping("/{lineId}")
     public Result<List<ScoreVO>> getScore(@PathVariable Integer lineId, TimeRange timeRange) {
         List<ScoreVO> scores = pointStatisticHourService.getScores(lineId, timeRange);
         return Result.success(scores);
+    }
+
+    @GetMapping("/trend/{lineId}")
+    public Result<List<List<Object>>> getScoreTrend(@PathVariable Integer lineId, TimeRange timeRange) {
+        List<List<Object>> scoreTrend = scoreService.getScoreTrend(lineId, timeRange);
+        return Result.success(scoreTrend);
     }
 }

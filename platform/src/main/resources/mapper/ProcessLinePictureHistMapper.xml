@@ -113,4 +113,17 @@
         group by DATEPART(HOUR, t1.update_time)
         order by time
     </select>
+    <select id="getScoreDaily" resultType="com.seu.platform.model.dto.TrendDTO">
+        select sum(iif(t1.exceed = 1, 1, 0)) as count,
+               cast(t1.update_time as date)  as time
+        from process_line_picture_hist_1 t1,
+             camera_cfg t2
+        where t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+          and t1.inspection = 1
+        group by cast(t1.update_time as date)
+        order by time
+    </select>
 </mapper>

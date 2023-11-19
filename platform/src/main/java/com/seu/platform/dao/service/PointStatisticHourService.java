@@ -78,4 +78,5 @@ public interface PointStatisticHourService extends IService<PointStatisticHour> 
 
     List<ScoreVO> getScores(Integer lineId, TimeRange timeRange);
 
+
 }
