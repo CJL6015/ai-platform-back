@@ -31,11 +31,6 @@ public class InspectionHistoryVO {
     private Double freezeTime;
 
     /**
-     * 超员次数
-     */
-    private Integer exceededNum;
-
-    /**
      * 图片地址
      */
     private String[] imageUrl;

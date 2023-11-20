@@ -17,17 +17,19 @@
         line_id,state
     </sql>
     <select id="getHistoryFreeze" resultType="com.seu.platform.model.dto.InspectionHistoryDTO">
-        select t1.id                         as id,
-               t1.start_time                 as st,
-               t1.end_time                   as et,
-               sum(t2.exceeded_num)          as exceeded_num,
-               sum(t2.exceeded_people)       as exceeded_people,
-               string_agg(t2.image_url, ',') as image_url
+        select t1.id                                      as id,
+               t1.start_time                              as st,
+               t1.end_time                                as et,
+               count(t2.detection_picture_path)           as exceeded_num,
+               string_agg(t2.detection_picture_path, ',') as image_url
         from freeze_log t1
-                 left join inspection_history t2
-                           on t1.line_id = t2.line_id
-                               and t2.st >= t1.start_time
-                               and t2.et &lt;= t1.end_time
+                 left join dbo.camera_cfg cc on t1.line_id = cc.line_id
+                 left join process_line_picture_hist_1 t2
+                           on t2.camera_id = cc.camera_ip
+                               and t2.update_time >= t1.start_time
+                               and t2.update_time &lt;= t1.end_time
+                               and t2.freeze = 1
+                               and t2.exceed = 1
         where t1.start_time >= #{st}
           and t1.end_time &lt;= #{et}
           and t1.line_id = #{lineId}

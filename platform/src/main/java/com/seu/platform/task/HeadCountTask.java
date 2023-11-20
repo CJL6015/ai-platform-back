@@ -130,7 +130,7 @@ public class HeadCountTask {
     @PostConstruct
     public void init() {
         nu.pattern.OpenCV.loadLocally();
-        test();
+//        test();
     }
 
     public void test() {

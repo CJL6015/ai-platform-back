@@ -35,11 +35,6 @@ public class InspectionHistoryDTO {
     private Integer exceededNum;
 
     /**
-     * 超位次数
-     */
-    private Integer exceededPeople;
-
-    /**
      * 图片地址
      */
     private String imageUrl;

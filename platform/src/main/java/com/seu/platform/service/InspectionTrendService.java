@@ -1,5 +1,6 @@
 package com.seu.platform.service;
 
+import com.seu.platform.model.vo.InspectionHistoryDataVO;
 import com.seu.platform.model.vo.TrendVO;
 
 import java.util.Date;
@@ -20,4 +21,6 @@ public interface InspectionTrendService {
      * @return 超限趋势
      */
     TrendVO<String, Integer> getPointInspectionTrendMonth(Integer lineId, Date st, Date et);
+
+    InspectionHistoryDataVO getInspectionHistory(Integer lineId, Date st, Date et);
 }

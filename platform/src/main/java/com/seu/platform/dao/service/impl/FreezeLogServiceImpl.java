@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seu.platform.dao.entity.FreezeLog;
 import com.seu.platform.dao.mapper.FreezeLogMapper;
 import com.seu.platform.dao.service.FreezeLogService;
+import com.seu.platform.dao.service.ProcessLinePictureHist1Service;
 import com.seu.platform.model.dto.InspectionHistoryDTO;
 import com.seu.platform.model.vo.InspectionHistoryDataVO;
 import com.seu.platform.model.vo.InspectionHistoryVO;
@@ -32,6 +33,8 @@ public class FreezeLogServiceImpl extends ServiceImpl<FreezeLogMapper, FreezeLog
 
     private static final double HOUR = 60 * 60 * 1000.0;
 
+    private final ProcessLinePictureHist1Service processLinePictureHist1Service;
+
 
     @Override
     public InspectionHistoryDataVO getInspectionHistoryFreeze(Integer lineId, Date st, Date et) {
@@ -55,12 +58,18 @@ public class FreezeLogServiceImpl extends ServiceImpl<FreezeLogMapper, FreezeLog
             } else {
                 history.setExceededNum(0);
             }
-            InspectionHistoryVO vo = BeanUtil.convertBean(history, InspectionHistoryVO.class);
-            vo.setFreezeTime((end - start) / HOUR);
             if (StringUtils.hasText(history.getImageUrl())) {
-                vo.setImageUrl(history.getImageUrl().split(","));
+                String[] imgs = history.getImageUrl().split(",");
+                for (int i = 0; i < imgs.length; i++) {
+                    InspectionHistoryVO vo = BeanUtil.convertBean(history, InspectionHistoryVO.class);
+                    vo.setFreezeTime((end - start) / HOUR);
+                    vo.setImageUrl(new String[]{imgs[i]});
+                    vo.setExceededPeople(i + 1);
+                    tableData.add(vo);
+                }
             }
-            tableData.add(vo);
+
+
         }
         fillValue(timestamps, values, t1, et.getTime(), null);
         TimeValueChartVO vo = new TimeValueChartVO(timestamps, values);

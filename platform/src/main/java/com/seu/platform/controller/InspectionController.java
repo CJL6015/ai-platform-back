@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.seu.platform.dao.entity.FreezeLog;
 import com.seu.platform.dao.entity.InspectionCfg;
-import com.seu.platform.dao.entity.InspectionHistory;
 import com.seu.platform.dao.entity.ProcessLinePictureHist1;
 import com.seu.platform.dao.service.FreezeLogService;
 import com.seu.platform.dao.service.InspectionCfgService;
@@ -80,9 +79,12 @@ public class InspectionController {
         return Result.success(save);
     }
 
-    @DeleteMapping("/unfreeze/{id}")
-    public Result<Boolean> unfreeze(@PathVariable Integer id) {
-        boolean b = freezeLogService.removeById(id);
+    @DeleteMapping("/unfreeze")
+    public Result<Boolean> unfreeze(String img) {
+        LambdaUpdateWrapper<ProcessLinePictureHist1> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(ProcessLinePictureHist1::getDetectionPicturePath, img);
+        updateWrapper.set(ProcessLinePictureHist1::getFreeze, 0);
+        boolean b = processLinePictureHist1Service.update(updateWrapper);
         return Result.success(b);
     }
 }
