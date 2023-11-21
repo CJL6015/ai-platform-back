@@ -30,6 +30,7 @@
                                and t2.update_time &lt;= t1.end_time
                                and t2.freeze = 1
                                and t2.exceed = 1
+                               and t2.inspection = 1
         where t1.start_time >= #{st}
           and t1.end_time &lt;= #{et}
           and t1.line_id = #{lineId}

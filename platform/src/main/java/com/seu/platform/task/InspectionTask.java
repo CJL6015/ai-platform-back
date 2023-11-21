@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 @Slf4j
 @Component
@@ -26,8 +27,8 @@ public class InspectionTask {
     private final InspectionCfgService inspectionCfgService;
 
 
-    @Transactional
-    @Scheduled(cron = "0 0 * * * *")
+    @Transactional(rollbackFor = Exception.class)
+    @Scheduled(cron = "0 0/5 * * * *")
     public void doTask() {
         List<LineInspection> last = processLinePictureHist1Service.getLast();
         if (CollUtil.isEmpty(last)) {
@@ -37,14 +38,24 @@ public class InspectionTask {
         DateTime now = DateUtil.beginOfHour(new Date());
         for (LineInspection inspection : last) {
             Date time = inspection.getTime();
+            String cameraIp = inspection.getCameraIp().trim();
+            Integer interval = inspection.getInterval();
             if (Objects.isNull(time)) {
-
+                time = processLinePictureHist1Service.getFirstTime(cameraIp);
+                time = DateUtil.offsetHour(time, -interval);
             }
             DateTime lasTime = DateUtil.beginOfHour(time);
             long diff = DateUtil.between(lasTime, now, DateUnit.HOUR);
-            Integer interval = inspection.getInterval();
-            if (diff >= interval) {
-
+            if (diff > interval) {
+                DateTime st = DateUtil.offsetHour(lasTime, interval);
+                if (0 == inspection.getMode()) {
+                    Random random = new Random();
+                    int minutes = random.nextInt(60);
+                    st = DateUtil.offsetMinute(st, minutes);
+                }
+                DateTime et = DateUtil.offsetMinute(st, 1);
+                Boolean result = processLinePictureHist1Service.setInspectionMinute(cameraIp, st, et);
+                log.info("{}巡检时间为{},结果:{}", cameraIp, st, result);
             }
         }
     }

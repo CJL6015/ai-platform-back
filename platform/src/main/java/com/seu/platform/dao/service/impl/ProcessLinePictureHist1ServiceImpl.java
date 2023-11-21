@@ -76,8 +76,24 @@ public class ProcessLinePictureHist1ServiceImpl extends ServiceImpl<ProcessLineP
     }
 
     @Override
+    public Integer exceedCount(Integer lineId, Date st, Date et) {
+        return getBaseMapper().exceedCount(lineId, st, et);
+    }
+
+    @Override
     public List<LineInspection> getLast() {
         return getBaseMapper().getLast();
+    }
+
+
+    @Override
+    public Boolean setInspectionMinute(String cameraIp, Date st, Date et) {
+        return getBaseMapper().setInspectionMinute(cameraIp, st, et);
+    }
+
+    @Override
+    public Date getFirstTime(String cameraIp) {
+        return getBaseMapper().getFirstTime(cameraIp);
     }
 }
 

@@ -1,6 +1,7 @@
 package com.seu.platform.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.seu.platform.dao.entity.FreezeLog;
 import com.seu.platform.dao.entity.InspectionCfg;
@@ -58,7 +59,7 @@ public class InspectionController {
                                                                 TimeRange timeRange) {
         InspectionHistoryDataVO inspectionHistoryValue = freezeLogService.getInspectionHistoryFreeze(id,
                 timeRange.getSt(), timeRange.getEt());
-        Integer allCount = inspectionHistoryService.getAllCount(id,
+        Integer allCount = processLinePictureHist1Service.exceedCount(id,
                 timeRange.getSt(), timeRange.getEt());
         inspectionHistoryValue.setUnfreezeCount(allCount - inspectionHistoryValue.getFreezeCount());
         return Result.success(inspectionHistoryValue);
@@ -79,7 +80,7 @@ public class InspectionController {
         return Result.success(save);
     }
 
-    @DeleteMapping("/unfreeze")
+    @GetMapping("/unfreeze")
     public Result<Boolean> unfreeze(String img) {
         LambdaUpdateWrapper<ProcessLinePictureHist1> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(ProcessLinePictureHist1::getDetectionPicturePath, img);

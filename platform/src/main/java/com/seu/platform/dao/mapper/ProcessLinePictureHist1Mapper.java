@@ -62,6 +62,13 @@ public interface ProcessLinePictureHist1Mapper extends BaseMapper<ProcessLinePic
     List<TrendDTO> getDailyTrend(Date st, Date et);
 
     List<LineInspection> getLast();
+
+    Integer exceedCount(Integer lineId, Date st, Date et);
+
+
+    Boolean setInspectionMinute(String cameraIp, Date st, Date et);
+
+    Date getFirstTime(String cameraIp);
 }
 
 

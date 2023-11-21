@@ -20,6 +20,17 @@
         people_count
     </sql>
 
+    <update id="setInspectionMinute">
+        update process_line_picture_hist_1
+        set inspection =1
+        where id = (select top 1 id
+                    from process_line_picture_hist_1
+                    where update_time >= #{st}
+                      and update_time &lt;= #{et}
+                      and camera_id = #{cameraIp}
+                    ORDER BY NEWID())
+    </update>
+
     <select id="getPendingChecks" resultType="com.seu.platform.dao.entity.ProcessLinePictureHist1">
         select top 9 camera_id,
         min(picture_path) as picture_path,
@@ -85,6 +96,22 @@
                            on t1.camera_id = t2.camera_ip
                                and t1.inspection = 1
         group by t2.camera_ip, t2.line_id
+    </select>
+    <select id="exceedCount" resultType="java.lang.Integer">
+        select count(t2.id) as count
+        from camera_cfg t1,
+             process_line_picture_hist_1 t2
+        where t1.camera_ip = t2.camera_id
+          and t2.exceed = 1
+          and t2.update_time >= #{st}
+          and update_time &lt;= #{et}
+          and t1.line_id = #{lineId}
+          and t2.inspection = 1
+    </select>
+    <select id="getFirstTime" resultType="java.util.Date">
+        select top 1 update_time
+        from process_line_picture_hist_1
+        order by update_time
     </select>
 
 </mapper>

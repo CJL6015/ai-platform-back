@@ -52,5 +52,12 @@ public interface ProcessLinePictureHist1Service extends IService<ProcessLinePict
      */
     TrendVO<String, Integer> getTrendDaily(TimeRange timeRange);
 
+    Integer exceedCount(Integer lineId, Date st, Date et);
+
     List<LineInspection> getLast();
+
+
+    Boolean setInspectionMinute(String cameraIp, Date st, Date et);
+
+    Date getFirstTime(String cameraIp);
 }
