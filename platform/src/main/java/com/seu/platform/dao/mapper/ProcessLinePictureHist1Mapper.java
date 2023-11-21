@@ -3,6 +3,7 @@ package com.seu.platform.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seu.platform.dao.entity.ProcessLinePictureHist1;
 import com.seu.platform.model.dto.TrendDTO;
+import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.DetectionResultVO;
 
 import java.util.Date;
@@ -59,6 +60,8 @@ public interface ProcessLinePictureHist1Mapper extends BaseMapper<ProcessLinePic
      * @return 日趋势
      */
     List<TrendDTO> getDailyTrend(Date st, Date et);
+
+    List<LineInspection> getLast();
 }
 
 

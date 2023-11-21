@@ -73,4 +73,18 @@
         group by update_time
         order by update_time
     </select>
+    <select id="getLast" resultType="com.seu.platform.model.entity.LineInspection">
+        select max(t1.update_time)                 as time,
+               t2.line_id,
+               t2.camera_ip,
+               max(t3.inspection_capture_interval) as interval,
+               max(t3.inspection_capture_mode)     as mode
+        from camera_cfg t2
+                 left join inspection_cfg t3 on t2.line_id = t3.line_id
+                 left join process_line_picture_hist_1 t1
+                           on t1.camera_id = t2.camera_ip
+                               and t1.inspection = 1
+        group by t2.camera_ip, t2.line_id
+    </select>
+
 </mapper>

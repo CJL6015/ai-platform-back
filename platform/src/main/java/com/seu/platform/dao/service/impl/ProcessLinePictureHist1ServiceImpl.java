@@ -1,11 +1,11 @@
 package com.seu.platform.dao.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.seu.platform.dao.entity.ProcessLinePictureHist;
 import com.seu.platform.dao.entity.ProcessLinePictureHist1;
-import com.seu.platform.dao.service.ProcessLinePictureHist1Service;
 import com.seu.platform.dao.mapper.ProcessLinePictureHist1Mapper;
+import com.seu.platform.dao.service.ProcessLinePictureHist1Service;
 import com.seu.platform.model.dto.TrendDTO;
+import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.DetectionResultVO;
 import com.seu.platform.model.vo.TimeRange;
 import com.seu.platform.model.vo.TrendVO;
@@ -16,13 +16,13 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
-* @author 陈小黑
-* @description 针对表【process_line_picture_hist_1】的数据库操作Service实现
-* @createDate 2023-10-30 23:54:52
-*/
+ * @author 陈小黑
+ * @description 针对表【process_line_picture_hist_1】的数据库操作Service实现
+ * @createDate 2023-10-30 23:54:52
+ */
 @Service
 public class ProcessLinePictureHist1ServiceImpl extends ServiceImpl<ProcessLinePictureHist1Mapper, ProcessLinePictureHist1>
-    implements ProcessLinePictureHist1Service{
+        implements ProcessLinePictureHist1Service {
     private static List<Double> getPredictions(List<Integer> y, double[] parameters) {
         List<Double> predictions = new ArrayList<>();
         for (int i = 0; i < y.size(); i++) {
@@ -34,7 +34,7 @@ public class ProcessLinePictureHist1ServiceImpl extends ServiceImpl<ProcessLineP
 
     @Override
     public List<ProcessLinePictureHist1> getPendingChecks(Integer count, Set<Long> ids) {
-        return getBaseMapper().getPendingChecks(count,ids);
+        return getBaseMapper().getPendingChecks(count, ids);
     }
 
     @Override
@@ -73,6 +73,11 @@ public class ProcessLinePictureHist1ServiceImpl extends ServiceImpl<ProcessLineP
         double[] doubles = MathUtil.fitting(counts, 1);
         List<Double> fitValues = getPredictions(counts, doubles);
         return new TrendVO<>(times, counts, fitValues, doubles);
+    }
+
+    @Override
+    public List<LineInspection> getLast() {
+        return getBaseMapper().getLast();
     }
 }
 

@@ -2,6 +2,7 @@ package com.seu.platform.dao.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.ProcessLinePictureHist1;
+import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.DetectionResultVO;
 import com.seu.platform.model.vo.TimeRange;
 import com.seu.platform.model.vo.TrendVO;
@@ -50,4 +51,6 @@ public interface ProcessLinePictureHist1Service extends IService<ProcessLinePict
      * @return 趋势
      */
     TrendVO<String, Integer> getTrendDaily(TimeRange timeRange);
+
+    List<LineInspection> getLast();
 }
