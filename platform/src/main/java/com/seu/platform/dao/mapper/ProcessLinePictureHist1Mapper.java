@@ -69,6 +69,9 @@ public interface ProcessLinePictureHist1Mapper extends BaseMapper<ProcessLinePic
     Boolean setInspectionMinute(String cameraIp, Date st, Date et);
 
     Date getFirstTime(String cameraIp);
+
+    Integer getCount(String cameraIp, Date st, Date et);
+
 }
 
 

@@ -14,7 +14,7 @@ import lombok.ToString;
 @Builder
 @ToString
 @AllArgsConstructor
-public class ParamAnalyzeVO {
+public class AnalyzeVO {
     private Integer month;
     private Integer quarter;
     private Integer year;

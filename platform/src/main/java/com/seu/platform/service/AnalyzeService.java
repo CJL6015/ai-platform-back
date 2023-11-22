@@ -1,6 +1,6 @@
 package com.seu.platform.service;
 
-import com.seu.platform.model.vo.ParamAnalyzeVO;
+import com.seu.platform.model.vo.AnalyzeVO;
 
 /**
  * @author chenjiale
@@ -14,5 +14,13 @@ public interface AnalyzeService {
      * @param pointId 测点id
      * @return 数据
      */
-    ParamAnalyzeVO getParamAnalyze(Integer pointId);
+    AnalyzeVO getParamAnalyze(Integer pointId);
+
+    /**
+     * 获取分析数据
+     *
+     * @param cameraIp 工序
+     * @return 数据
+     */
+    AnalyzeVO getPeopleAnalyze(String cameraIp);
 }

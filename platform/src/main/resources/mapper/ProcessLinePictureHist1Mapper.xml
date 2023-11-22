@@ -104,7 +104,7 @@
         where t1.camera_ip = t2.camera_id
           and t2.exceed = 1
           and t2.update_time >= #{st}
-          and update_time &lt;= #{et}
+          and t2.update_time &lt;= #{et}
           and t1.line_id = #{lineId}
           and t2.inspection = 1
     </select>
@@ -112,6 +112,16 @@
         select top 1 update_time
         from process_line_picture_hist_1
         order by update_time
+    </select>
+    <select id="getCount" resultType="java.lang.Integer">
+        select count(*) as count
+        from process_line_picture_hist_1
+        where camera_id = #{cameraIp}
+          and exceed = 1
+          and update_time >= #{st}
+          and update_time &lt;= #{et}
+          and inspection = 1
+
     </select>
 
 </mapper>

@@ -1,7 +1,7 @@
 package com.seu.platform.controller;
 
 import com.seu.platform.model.entity.Result;
-import com.seu.platform.model.vo.ParamAnalyzeVO;
+import com.seu.platform.model.vo.AnalyzeVO;
 import com.seu.platform.service.AnalyzeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +21,14 @@ public class AnalyzeController {
     private final AnalyzeService analyzeService;
 
     @GetMapping("/param/{pointId}")
-    public Result<ParamAnalyzeVO> getParamAnalyze(@PathVariable Integer pointId) {
-        ParamAnalyzeVO paramAnalyze = analyzeService.getParamAnalyze(pointId);
+    public Result<AnalyzeVO> getParamAnalyze(@PathVariable Integer pointId) {
+        AnalyzeVO paramAnalyze = analyzeService.getParamAnalyze(pointId);
         return Result.success(paramAnalyze);
+    }
+
+    @GetMapping("/inspection/{cameraIp}")
+    public Result<AnalyzeVO> getPeopleAnalyze(@PathVariable String cameraIp) {
+        AnalyzeVO peopleAnalyze = analyzeService.getPeopleAnalyze(cameraIp);
+        return Result.success(peopleAnalyze);
     }
 }
