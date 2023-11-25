@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seu.platform.dao.entity.PointStatistic;
 import com.seu.platform.dao.entity.PointStatisticHour;
 import com.seu.platform.model.dto.BenchmarkDTO;
+import com.seu.platform.model.dto.CountStatisticDTO;
 import com.seu.platform.model.dto.HourTrendDTO;
 import com.seu.platform.model.dto.TrendDTO;
 import com.seu.platform.model.vo.ScoreDailyVO;
@@ -94,6 +95,8 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
      */
     List<HourTrendDTO> getTimeOverrun(Integer lineId, Date st, Date et);
 
+    List<CountStatisticDTO> getTopTime(Integer lineId, Date st, Date et);
+
     /**
      * 获取日同比
      *
@@ -117,6 +120,15 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
     List<ScoreDailyVO> getScoreDaily(Integer lineId, Date st, Date et);
 
     Integer getCount(Integer pointId, Date st, Date et);
+
+    Integer getCountAvg(Integer lineId, Date st, Date et);
+
+    Double getLineScore(Integer lineId, Date st, Date et);
+
+
+    List<CountStatisticDTO> getTopPoint(Integer lineId, Date st, Date et);
+
+    List<CountStatisticDTO> getTopEquipment(Integer lineId, Date st, Date et);
 }
 
 

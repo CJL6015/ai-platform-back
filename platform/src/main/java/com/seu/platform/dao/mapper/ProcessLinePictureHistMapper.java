@@ -2,11 +2,11 @@ package com.seu.platform.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seu.platform.dao.entity.ProcessLinePictureHist;
+import com.seu.platform.model.dto.CountStatisticDTO;
 import com.seu.platform.model.dto.DetectionTrendDTO;
 import com.seu.platform.model.dto.HourTrendDTO;
 import com.seu.platform.model.dto.TrendDTO;
 import com.seu.platform.model.vo.DetectionResultVO;
-import com.seu.platform.model.vo.ScoreDailyVO;
 
 import java.util.Date;
 import java.util.List;
@@ -86,13 +86,21 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      * 获取总趋势
      *
      * @param lineId 生产线id
-     * @param st 开始时间
-     * @param et 结束时间
+     * @param st     开始时间
+     * @param et     结束时间
      * @return 趋势
      */
     List<HourTrendDTO> getTimeOverrun(Integer lineId, Date st, Date et);
 
+    List<CountStatisticDTO> getTopTime(Integer lineId, Date st, Date et);
+
+    List<CountStatisticDTO> getTopProcess(Integer lineId, Date st, Date et);
+
     List<TrendDTO> getScoreDaily(Integer lineId, Date st, Date et);
+
+    Integer getExceedCount(Integer lineId, Date st, Date et);
+
+    Integer exceedCount(Integer lineId, Date st, Date et);
 }
 
 

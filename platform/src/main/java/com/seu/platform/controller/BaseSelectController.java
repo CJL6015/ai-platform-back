@@ -1,7 +1,9 @@
 package com.seu.platform.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.seu.platform.dao.entity.CameraCfg;
 import com.seu.platform.dao.entity.PointCfg;
+import com.seu.platform.dao.service.CameraCfgService;
 import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.OptionItemVO;
@@ -28,6 +30,8 @@ public class BaseSelectController {
     private final SelectService selectService;
 
     private final PointCfgService pointCfgService;
+
+    private final CameraCfgService cameraCfgService;
 
 
     @GetMapping("/list")
@@ -62,5 +66,18 @@ public class BaseSelectController {
         List<PointCfg> list = pointCfgService.list(queryWrapper);
         List<String> names = list.stream().map(t -> t.getDescription().trim()).collect(Collectors.toList());
         return Result.success(names);
+    }
+
+    @GetMapping("/camera/line/{lineId}")
+    public Result<List<OptionItemVO>> getCameras(@PathVariable Integer lineId) {
+        LambdaQueryWrapper<CameraCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CameraCfg::getLineId, lineId);
+        List<CameraCfg> list = cameraCfgService.list(queryWrapper);
+        List<OptionItemVO> itemVOList = list.stream().map(c -> OptionItemVO.builder()
+                .id(c.getId())
+                .name(c.getCameraDescription().trim())
+                .build()).collect(Collectors.toList());
+        itemVOList.add(0, new OptionItemVO(-1, "所有工序"));
+        return Result.success(itemVOList);
     }
 }

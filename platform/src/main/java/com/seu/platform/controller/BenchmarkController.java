@@ -2,16 +2,17 @@ package com.seu.platform.controller;
 
 import com.seu.platform.dao.service.ProcessLinePictureHistService;
 import com.seu.platform.model.entity.Result;
+import com.seu.platform.model.param.BenchmarkQuery;
 import com.seu.platform.model.vo.BenchmarkTrendVO;
 import com.seu.platform.model.vo.DetectionTrendVO;
 import com.seu.platform.model.vo.EquipmentTrendVO;
 import com.seu.platform.model.vo.TimeRange;
 import com.seu.platform.service.BenchmarkService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author chenjiale
@@ -49,5 +50,12 @@ public class BenchmarkController {
     public Result<BenchmarkTrendVO> getTotalBenchmark(@PathVariable Integer lineId, TimeRange timeRange) {
         BenchmarkTrendVO benchmarkTrend = benchmarkService.getBenchmarkTrend(lineId, timeRange.getSt(), timeRange.getEt());
         return Result.success(benchmarkTrend);
+    }
+
+
+    @PostMapping("/report")
+    public Result<List<Map<String, Object>>> getReport(@RequestBody BenchmarkQuery query) {
+        List<Map<String, Object>> report = benchmarkService.getReport(query);
+        return Result.success(report);
     }
 }

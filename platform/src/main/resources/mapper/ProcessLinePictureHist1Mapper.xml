@@ -5,19 +5,19 @@
 <mapper namespace="com.seu.platform.dao.mapper.ProcessLinePictureHist1Mapper">
 
     <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.ProcessLinePictureHist1">
-            <result property="id" column="id" jdbcType="BIGINT"/>
-            <result property="cameraId" column="camera_id" jdbcType="VARCHAR"/>
-            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-            <result property="picturePath" column="picture_path" jdbcType="VARCHAR"/>
-            <result property="peopleHasChecked" column="people_has_checked" jdbcType="TINYINT"/>
-            <result property="detectionPicturePath" column="detection_picture_path" jdbcType="VARCHAR"/>
-            <result property="peopleCount" column="people_count" jdbcType="INTEGER"/>
+        <result property="id" column="id" jdbcType="BIGINT"/>
+        <result property="cameraId" column="camera_id" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="picturePath" column="picture_path" jdbcType="VARCHAR"/>
+        <result property="peopleHasChecked" column="people_has_checked" jdbcType="TINYINT"/>
+        <result property="detectionPicturePath" column="detection_picture_path" jdbcType="VARCHAR"/>
+        <result property="peopleCount" column="people_count" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,camera_id,update_time,
-        picture_path,people_has_checked,detection_picture_path,
-        people_count
+                id, camera_id, update_time,
+                picture_path, people_has_checked, detection_picture_path,
+                people_count
     </sql>
 
     <update id="setInspectionMinute">
@@ -33,8 +33,8 @@
 
     <select id="getPendingChecks" resultType="com.seu.platform.dao.entity.ProcessLinePictureHist1">
         select top 9 camera_id,
-        min(picture_path) as picture_path,
-        min(id) as id
+                     min(picture_path) as picture_path,
+                     min(id)           as id
         from process_line_picture_hist_1
         where people_has_checked = 0
         GROUP BY camera_id
@@ -116,12 +116,13 @@
     <select id="getCount" resultType="java.lang.Integer">
         select count(*) as count
         from process_line_picture_hist_1
-        where camera_id = #{cameraIp}
-          and exceed = 1
-          and update_time >= #{st}
-          and update_time &lt;= #{et}
-          and inspection = 1
-
+        where exceed = 1
+        and update_time >= #{st}
+        and update_time &lt;= #{et}
+        and inspection = 1
+        <if test="cameraIp != null and cameraIp !='-1'">
+            and camera_id = #{cameraIp}
+        </if>
     </select>
 
 </mapper>

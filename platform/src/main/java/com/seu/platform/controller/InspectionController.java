@@ -34,15 +34,8 @@ public class InspectionController {
 
     private final ProcessLinePictureHist1Service processLinePictureHist1Service;
 
-    private final CameraCfgService cameraCfgService;
 
-    @GetMapping("/camera/{lineId}")
-    public Result<List<CameraCfg>> getCameras(@PathVariable Integer lineId) {
-        LambdaQueryWrapper<CameraCfg> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(CameraCfg::getLineId, lineId);
-        List<CameraCfg> list = cameraCfgService.list(queryWrapper);
-        return Result.success(list);
-    }
+
 
     @GetMapping("/line/{id}")
     public Result<InspectionConfigVO> getInspectionConfig(@PathVariable Integer id) {

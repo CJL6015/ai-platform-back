@@ -126,4 +126,49 @@
         group by cast(t1.update_time as date)
         order by time
     </select>
+    <select id="getExceedCount" resultType="java.lang.Integer">
+        select sum(iif(t1.exceed = 1, 1, 0)) as count
+        from process_line_picture_hist_1 t1,
+             camera_cfg t2
+        where t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+          and t1.inspection = 1
+    </select>
+    <select id="getTopTime" resultType="com.seu.platform.model.dto.CountStatisticDTO">
+        select sum(iif(t1.exceed = 1, 1, 0))  as count,
+               DATEPART(HOUR, t1.update_time) as name
+        from process_line_picture_hist_1 t1,
+             camera_cfg t2
+        where t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+        group by DATEPART(HOUR, t1.update_time)
+        order by count desc
+    </select>
+    <select id="exceedCount" resultType="java.lang.Integer">
+        select count(t2.id) as count
+        from camera_cfg t1,
+             process_line_picture_hist_1 t2
+        where t1.camera_ip = t2.camera_id
+          and t2.exceed = 1
+          and t2.update_time >= #{st}
+          and t2.update_time &lt;= #{et}
+          and t1.line_id = #{lineId}
+          and t2.inspection = 1
+    </select>
+    <select id="getTopProcess" resultType="com.seu.platform.model.dto.CountStatisticDTO">
+        select sum(iif(t1.exceed = 1, 1, 0)) as count,
+               t2.camera_description         as name
+        from process_line_picture_hist_1 t1,
+             camera_cfg t2
+        where t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+        group by t2.camera_description
+        order by count desc
+    </select>
 </mapper>

@@ -23,4 +23,12 @@ public class AnalyzeVO {
     private Integer lastYearMonth;
     private Integer lastYearQuarter;
     private Integer lastYear;
+    private Double monthOnMonth;
+    private Double quarterOnQuarter;
+    private Double yearOnTear;
+    private Double monthOverMonth;
+    private Double quarterOverQuarter;
+    private Double yearOverYear;
+
+
 }

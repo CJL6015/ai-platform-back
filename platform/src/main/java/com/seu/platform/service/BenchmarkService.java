@@ -1,9 +1,13 @@
 package com.seu.platform.service;
 
+import com.seu.platform.model.param.BenchmarkQuery;
+import com.seu.platform.model.vo.BenchmarkReportDataVO;
 import com.seu.platform.model.vo.BenchmarkTrendVO;
 import com.seu.platform.model.vo.EquipmentTrendVO;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author chenjiale
@@ -31,5 +35,7 @@ public interface BenchmarkService {
      * @return 趋势
      */
     BenchmarkTrendVO getBenchmarkTrend(Integer lineId, Date st, Date et);
+
+    List<Map<String, Object>> getReport(BenchmarkQuery query);
 
 }

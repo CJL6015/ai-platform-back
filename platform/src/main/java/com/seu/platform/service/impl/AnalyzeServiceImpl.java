@@ -9,6 +9,8 @@ import com.seu.platform.service.AnalyzeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 /**
  * @author chenjiale
  * @version 1.0
@@ -66,7 +68,20 @@ public class AnalyzeServiceImpl implements AnalyzeService {
                 .lastYearMonth(lastYearMonth)
                 .lastYearQuarter(lastYearQuarter)
                 .lastYear(lastYear)
+                .monthOnMonth(getRate(month, lastYearMonth))
+                .monthOverMonth(getRate(month, lastMonth))
+                .quarterOnQuarter(getRate(quarter, lastYearQuarter))
+                .quarterOverQuarter(getRate(quarter, lastQuarter))
+                .yearOverYear(getRate(year, lastYear))
                 .build();
+    }
+
+    public Double getRate(Integer n1, Integer n2) {
+        Double res = 100D;
+        if (Objects.nonNull(n1) && Objects.nonNull(n2) && n2 != 0) {
+            return res * n1 / n2;
+        }
+        return res;
     }
 
     @Override
@@ -112,6 +127,11 @@ public class AnalyzeServiceImpl implements AnalyzeService {
                 .lastYearMonth(lastYearMonth)
                 .lastYearQuarter(lastYearQuarter)
                 .lastYear(lastYear)
+                .monthOnMonth(getRate(month, lastYearMonth))
+                .monthOverMonth(getRate(month, lastMonth))
+                .quarterOnQuarter(getRate(quarter, lastYearQuarter))
+                .quarterOverQuarter(getRate(quarter, lastQuarter))
+                .yearOverYear(getRate(year, lastYear))
                 .build();
     }
 }
