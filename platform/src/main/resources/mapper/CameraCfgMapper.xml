@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.CameraCfgMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.CameraCfg">
+            <result property="id" column="id" jdbcType="INTEGER"/>
+            <result property="cameraDescription" column="camera_description" jdbcType="VARCHAR"/>
+            <result property="processId" column="process_id" jdbcType="INTEGER"/>
+            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+            <result property="cameraIp" column="camera_ip" jdbcType="VARCHAR"/>
+            <result property="cameraPort" column="camera_port" jdbcType="VARCHAR"/>
+            <result property="cameraAccount" column="camera_account" jdbcType="VARCHAR"/>
+            <result property="cameraPassword" column="camera_password" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,camera_description,process_id,
+        line_id,camera_ip,camera_port,
+        camera_account,camera_password
+    </sql>
+</mapper>
