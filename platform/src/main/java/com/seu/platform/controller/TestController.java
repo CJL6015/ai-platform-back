@@ -30,7 +30,7 @@ public class TestController {
                 "      desc: 'manager',\n" +
                 "      password: '123456',\n" +
                 "      token: 'fakeToken1',\n" +
-                "      homePath: '/warn/history',\n" +
+                "      homePath: '/main',\n" +
                 "      roles: [\n" +
                 "        {\n" +
                 "          roleName: 'Super Admin',\n" +

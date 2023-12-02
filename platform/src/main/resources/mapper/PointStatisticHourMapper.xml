@@ -146,18 +146,25 @@
         order by time
     </select>
     <select id="getStatistic" resultType="com.seu.platform.dao.entity.PointStatistic">
-        select count(distinct case when t1.up_low_exceeded_count > 0 then t1.point_id end) as threshold_exceeded,
-               count(distinct case when t1.up_low_exceeded_count = 0 then t1.point_id end) as threshold_within,
-               count(distinct t1.point_id)                                                 as normal_refresh,
-               count(distinct case when t1.exception_refresh >= 0.1 then t1.point_id end)  as exception_refresh,
-               sum(t1.run_time)                                                            as run_time,
-               sum(t1.stop_time)                                                           as stop_time
-        from point_statistic_hour t1,
-             point_cfg t2
-        where t1.point_id = t2.point_id
-          and t1.statiatic_start_time >= #{st}
-          and t1.statiatic_start_time &lt;= #{et}
-          and t1.line_id = #{lineId}
+        select sum(IIF(t2.exception_refresh > 0.1, 1, 0))   as exception_refresh,
+               sum(IIF(t2.up_low_exceeded_count > 0, 1, 0)) as threshold_exceeded,
+               sum(IIF(t2.up_low_exceeded_count = 0, 1, 0)) as threshold_within,
+               count(t1.point_id)                           as normal_refresh,
+               sum(t2.run_time)                             as run_time,
+               sum(t2.stop_time)                            as stop_time
+
+        from point_cfg t1
+                 left join (select point_id,
+                                   max(exception_refresh)     as exception_refresh,
+                                   max(up_low_exceeded_count) as up_low_exceeded_count,
+                                   sum(run_time)              as run_time,
+                                   sum(stop_time)             as stop_time
+                            from point_statistic_hour
+                            where statiatic_start_time >= #{st}
+                              and statiatic_start_time &lt;= #{et}
+                              and line_id = #{lineId}
+                            group by point_id) t2 on t1.point_id = t2.point_id
+        where t1.line_id = #{lineId}
     </select>
     <select id="getScore" resultType="com.seu.platform.model.vo.ScoreVO">
         select t2.equipment_id                                                                                as id,
