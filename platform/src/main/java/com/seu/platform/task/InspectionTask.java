@@ -5,7 +5,7 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
 import com.seu.platform.dao.service.InspectionCfgService;
-import com.seu.platform.dao.service.ProcessLinePictureHist1Service;
+import com.seu.platform.dao.service.ProcessLinePictureHistService;
 import com.seu.platform.model.entity.LineInspection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.Random;
 @Component
 @RequiredArgsConstructor
 public class InspectionTask {
-    private final ProcessLinePictureHist1Service processLinePictureHist1Service;
+    private final ProcessLinePictureHistService processLinePictureHistService;
 
     private final InspectionCfgService inspectionCfgService;
 
@@ -30,31 +30,40 @@ public class InspectionTask {
     @Transactional(rollbackFor = Exception.class)
     @Scheduled(cron = "0 0/5 * * * *")
     public void doTask() {
-        List<LineInspection> last = processLinePictureHist1Service.getLast();
+        List<LineInspection> last = processLinePictureHistService.getLast();
         if (CollUtil.isEmpty(last)) {
             log.info("本次巡检暂无配置");
             return;
         }
         DateTime now = DateUtil.beginOfHour(new Date());
+        Integer lineId = null;
+        DateTime inspectionTime = null;
         for (LineInspection inspection : last) {
             Date time = inspection.getTime();
             String cameraIp = inspection.getCameraIp().trim();
             Integer interval = inspection.getInterval();
             if (Objects.isNull(time)) {
-                time = processLinePictureHist1Service.getFirstTime(cameraIp);
+                time = processLinePictureHistService.getFirstTime(cameraIp);
                 time = DateUtil.offsetHour(time, -interval);
             }
             DateTime lasTime = DateUtil.beginOfHour(time);
             long diff = DateUtil.between(lasTime, now, DateUnit.HOUR);
             if (diff > interval) {
-                DateTime st = DateUtil.offsetHour(lasTime, interval);
-                if (0 == inspection.getMode()) {
-                    Random random = new Random();
-                    int minutes = random.nextInt(60);
-                    st = DateUtil.offsetMinute(st, minutes);
+                DateTime st;
+                if (Objects.equals(inspection.getLineId(), lineId) && Objects.nonNull(inspectionTime)) {
+                    st = inspectionTime;
+                } else {
+                    st = DateUtil.offsetHour(lasTime, interval);
+                    if (0 == inspection.getMode()) {
+                        Random random = new Random();
+                        int minutes = random.nextInt(60);
+                        st = DateUtil.offsetMinute(st, minutes);
+                    }
+                    inspectionTime = st;
+                    lineId = inspection.getLineId();
                 }
                 DateTime et = DateUtil.offsetMinute(st, 1);
-                Boolean result = processLinePictureHist1Service.setInspectionMinute(cameraIp, st, et);
+                Boolean result = processLinePictureHistService.setInspectionMinute(cameraIp, st, et);
                 log.info("{}巡检时间为{},结果:{}", cameraIp, st, result);
             }
         }

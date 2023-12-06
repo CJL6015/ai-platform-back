@@ -2,6 +2,7 @@ package com.seu.platform.dao.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.ProcessLinePictureHist;
+import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.*;
 
 import java.util.Date;
@@ -66,4 +67,11 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
      * @return 趋势
      */
     BenchmarkTrendVO getBenchmarkTrend(Integer lineId, Date st, Date et);
+
+    List<LineInspection> getLast();
+
+
+    Boolean setInspectionMinute(String cameraIp, Date st, Date et);
+
+    Date getFirstTime(String cameraIp);
 }

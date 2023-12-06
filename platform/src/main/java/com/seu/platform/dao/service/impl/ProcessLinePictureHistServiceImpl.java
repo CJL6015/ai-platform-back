@@ -8,6 +8,7 @@ import com.seu.platform.dao.service.ProcessLinePictureHistService;
 import com.seu.platform.model.dto.DetectionTrendDTO;
 import com.seu.platform.model.dto.HourTrendDTO;
 import com.seu.platform.model.dto.TrendDTO;
+import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.*;
 import com.seu.platform.util.MathUtil;
 import org.springframework.stereotype.Service;
@@ -162,6 +163,22 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
                 .trend(trend)
                 .hours(hours)
                 .build();
+    }
+
+    @Override
+    public List<LineInspection> getLast() {
+        return getBaseMapper().getLast();
+    }
+
+
+    @Override
+    public Boolean setInspectionMinute(String cameraIp, Date st, Date et) {
+        return getBaseMapper().setInspectionMinute(cameraIp, st, et);
+    }
+
+    @Override
+    public Date getFirstTime(String cameraIp) {
+        return getBaseMapper().getFirstTime(cameraIp);
     }
 }
 

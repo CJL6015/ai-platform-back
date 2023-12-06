@@ -17,6 +17,16 @@
                 id, camera_id, update_time,
                 picture_path, people_has_checked, detection_picture_path
     </sql>
+    <update id="setInspectionMinute">
+        update process_line_picture_hist
+        set inspection =1
+        where id = (select top 1 id
+                    from process_line_picture_hist
+                    where update_time >= #{st}
+                      and update_time &lt;= #{et}
+                      and camera_id = #{cameraIp}
+                    ORDER BY NEWID())
+    </update>
     <select id="getPendingChecks" resultType="com.seu.platform.dao.entity.ProcessLinePictureHist">
         select top #{count} camera_id,
                             min(picture_path) as picture_path,
@@ -170,5 +180,23 @@
           and t1.update_time &lt;= #{et}
         group by t2.camera_description
         order by count desc
+    </select>
+    <select id="getLast" resultType="com.seu.platform.model.entity.LineInspection">
+        select max(t1.update_time)                 as time,
+               t2.line_id,
+               t2.camera_ip,
+               max(t3.inspection_capture_interval) as interval,
+               max(t3.inspection_capture_mode)     as mode
+        from camera_cfg t2
+                 left join inspection_cfg t3 on t2.line_id = t3.line_id
+                 left join process_line_picture_hist t1
+                           on t1.camera_id = t2.camera_ip
+                               and t1.inspection = 1
+        group by t2.camera_ip, t2.line_id
+    </select>
+    <select id="getFirstTime" resultType="java.util.Date">
+        select top 1 update_time
+        from process_line_picture_hist
+        order by update_time desc
     </select>
 </mapper>

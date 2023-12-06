@@ -6,6 +6,7 @@ import com.seu.platform.model.dto.CountStatisticDTO;
 import com.seu.platform.model.dto.DetectionTrendDTO;
 import com.seu.platform.model.dto.HourTrendDTO;
 import com.seu.platform.model.dto.TrendDTO;
+import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.DetectionResultVO;
 
 import java.util.Date;
@@ -101,6 +102,12 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
     Integer getExceedCount(Integer lineId, Date st, Date et);
 
     Integer exceedCount(Integer lineId, Date st, Date et);
+
+    List<LineInspection> getLast();
+
+    Boolean setInspectionMinute(String cameraIp, Date st, Date et);
+
+    Date getFirstTime(String cameraIp);
 }
 
 
