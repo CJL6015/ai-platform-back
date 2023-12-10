@@ -26,6 +26,11 @@ public class DetectionController {
 
     private final ProcessLinePictureHistService processLinePictureHistService;
 
+    @GetMapping("/times")
+    public Result<List<String>> getDetectionTimes() {
+        List<String> times = processLinePictureHistService.getTimes();
+        return Result.success(times);
+    }
 
     @GetMapping("/result")
     public Result<List<DetectionResultVO>> getDetectionResult(String ips, Date time) {

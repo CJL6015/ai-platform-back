@@ -35,3 +35,4 @@ model:
   input-dir: D:\images_test\
 static:
   root: D:\deploy\images\
+  detection-prefix: http://114.55.245.123:8088/api/static/images/

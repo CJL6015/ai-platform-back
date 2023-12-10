@@ -39,6 +39,8 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      */
     List<DetectionResultVO> getDetectionResult(List<String> ips, Date time);
 
+    List<Date> getDetectionTime(Date st, Date et);
+
     /**
      * 获取最近一次检测时间
      *
@@ -110,6 +112,8 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
     Boolean setInspectionMinute(String cameraIp, Date st, Date et);
 
     Date getFirstTime(String cameraIp);
+
+    Date getNextTime(String cameraIp, Date st);
 
     Integer getCount(String cameraIp, Date st, Date et);
 }

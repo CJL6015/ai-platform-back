@@ -34,6 +34,8 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
      */
     List<DetectionResultVO> getDetectionResult(List<String> ips, Date time);
 
+    List<String> getTimes();
+
     /**
      * 获取月趋势
      *
@@ -78,4 +80,6 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
     Boolean setInspectionMinute(String cameraIp, Date st, Date et);
 
     Date getFirstTime(String cameraIp);
+
+    Date getNextTime(String cameraIp, Date st);
 }

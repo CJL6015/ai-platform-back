@@ -1,6 +1,8 @@
 package com.seu.platform.dao.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seu.platform.dao.entity.ProcessLinePictureHist;
 import com.seu.platform.dao.mapper.ProcessLinePictureHistMapper;
@@ -11,10 +13,13 @@ import com.seu.platform.model.dto.TrendDTO;
 import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.*;
 import com.seu.platform.util.MathUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author 陈小黑
@@ -24,6 +29,9 @@ import java.util.*;
 @Service
 public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePictureHistMapper, ProcessLinePictureHist>
         implements ProcessLinePictureHistService {
+
+    @Value("${static.detection-prefix}")
+    private String picturePrefix;
 
     private static List<Double> getPredictions(List<Integer> y, double[] parameters) {
         List<Double> predictions = new ArrayList<>();
@@ -44,7 +52,25 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
         if (Objects.isNull(time)) {
             time = getBaseMapper().lastTime();
         }
-        return getBaseMapper().getDetectionResult(ips, time);
+        List<DetectionResultVO> detectionResult = getBaseMapper().getDetectionResult(ips, time);
+        detectionResult.forEach(d -> {
+            String detectionPicturePath = d.getDetectionPicturePath();
+            if (StringUtils.hasText(detectionPicturePath)) {
+                d.setDetectionPicturePath(picturePrefix + detectionPicturePath);
+            }
+        });
+        return detectionResult;
+    }
+
+    @Override
+    public List<String> getTimes() {
+        Date et = new Date();
+        DateTime st = DateUtil.offsetDay(et, -1);
+
+        List<Date> detectionTime = getBaseMapper().getDetectionTime(st, et);
+        return detectionTime.stream()
+                .map(t -> DateUtil.format(t, "yyyy-MM-dd HH:mm:ss"))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -180,6 +206,11 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     @Override
     public Date getFirstTime(String cameraIp) {
         return getBaseMapper().getFirstTime(cameraIp);
+    }
+
+    @Override
+    public Date getNextTime(String cameraIp, Date st) {
+        return getBaseMapper().getNextTime(cameraIp, st);
     }
 }
 
