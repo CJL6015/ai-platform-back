@@ -1,0 +1,37 @@
+server:
+  port: 8088
+spring:
+  datasource:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://10.10.11.15;databaseName=Kailong_Safe
+    username: KaiLong_Safe
+    password: powerSIS#123
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*.xml
+  global-config:
+    db-config:
+      # 全局默认主键类型
+      id-type: auto
+      table-underline: true
+      logic-not-delete-value: 0
+      logic-delete-value: 1
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+logging:
+  level:
+    com.baomidou.mybatisplus: debug
+exa:
+  host: 10.10.11.15:9000
+  get-value: ${exa.host}/data/SelectValueFloat
+  get-values: ${exa.host}/data/SelectValuesFloat
+  get-history: ${exa.host}/data/SelectDownsamplingRecordsFloat
+  get-points: ${exa.host}/meta/SelectVariables
+model:
+  model-path: C:\work\model\yolov8m2.onnx
+  out-dir: D:\deploy\images\
+  input-dir: D:\images_test\
+static:
+  root: D:\deploy\images\

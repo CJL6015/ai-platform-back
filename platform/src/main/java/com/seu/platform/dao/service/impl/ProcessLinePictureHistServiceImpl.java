@@ -14,10 +14,7 @@ import com.seu.platform.util.MathUtil;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author 陈小黑
@@ -38,8 +35,8 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     }
 
     @Override
-    public List<ProcessLinePictureHist> getPendingChecks(int count) {
-        return getBaseMapper().getPendingChecks(count);
+    public List<ProcessLinePictureHist> getPendingChecks(Integer count, Set<Long> ids) {
+        return getBaseMapper().getPendingChecks(count, ids);
     }
 
     @Override
@@ -170,6 +167,10 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
         return getBaseMapper().getLast();
     }
 
+    @Override
+    public Integer exceedCount(Integer lineId, Date st, Date et) {
+        return getBaseMapper().exceedCount(lineId, st, et);
+    }
 
     @Override
     public Boolean setInspectionMinute(String cameraIp, Date st, Date et) {

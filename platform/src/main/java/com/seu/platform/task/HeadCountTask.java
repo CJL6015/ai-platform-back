@@ -5,8 +5,8 @@ import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtSession;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.thread.ThreadFactoryBuilder;
-import com.seu.platform.dao.entity.ProcessLinePictureHist1;
-import com.seu.platform.dao.service.ProcessLinePictureHist1Service;
+import com.seu.platform.dao.entity.ProcessLinePictureHist;
+import com.seu.platform.dao.service.ProcessLinePictureHistService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opencv.core.*;
@@ -50,7 +50,7 @@ public class HeadCountTask {
     private static final double[] COLOR = {0, 0, 255};
     private static final String[] LABELS = {"person", "no_man"};
 
-    private final ProcessLinePictureHist1Service processLinePictureHistService;
+    private final ProcessLinePictureHistService processLinePictureHistService;
 
     private final ThreadPoolExecutor executorService = new ThreadPoolExecutor(4, 4,
             1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(20),
@@ -148,7 +148,7 @@ public class HeadCountTask {
      * 人员检测定时任务,每秒扫描一次数据库
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
-    @Scheduled(fixedDelay = 100)
+//    @Scheduled(fixedDelay = 100)
     public void doTask() {
         lock.lock();
         try {
@@ -156,9 +156,9 @@ public class HeadCountTask {
             if (activeCount > 20) {
                 return;
             }
-            List<ProcessLinePictureHist1> pendingChecks = processLinePictureHistService.getPendingChecks(CAMERA_COUNT, concurrentSet);
+            List<ProcessLinePictureHist> pendingChecks = processLinePictureHistService.getPendingChecks(CAMERA_COUNT, concurrentSet);
             if (CollUtil.isNotEmpty(pendingChecks)) {
-                for (ProcessLinePictureHist1 pendingCheck : pendingChecks) {
+                for (ProcessLinePictureHist pendingCheck : pendingChecks) {
                     Long id = pendingCheck.getId();
                     if (!concurrentSet.contains(id) && concurrentSet.size() < 20) {
                         concurrentSet.add(id);
@@ -174,7 +174,7 @@ public class HeadCountTask {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void detection(ProcessLinePictureHist1 pendingCheck) {
+    public void detection(ProcessLinePictureHist pendingCheck) {
         log.info("{}开始检测", pendingCheck.getId());
         String picturePath = pendingCheck.getPicturePath();
         String fileName = pendingCheck.getPicturePath().substring(picturePath.lastIndexOf("\\") + 1);
@@ -298,19 +298,25 @@ public class HeadCountTask {
             for (float[] bbox : outputData) {
 
                 float score = bbox[4];
-                if (score < CONF_THRESHOLD) continue;
+                if (score < CONF_THRESHOLD) {
+                    continue;
+                }
                 int label = 0;
                 xywh2xyxy(bbox);
 
                 //跳过无效图片
-                if (bbox[0] >= bbox[2] || bbox[1] >= bbox[3]) continue;
+                if (bbox[0] >= bbox[2] || bbox[1] >= bbox[3]) {
+                    continue;
+                }
 
 
                 class2Bbox.putIfAbsent(label, new ArrayList<>());
                 class2Bbox.get(label).add(bbox);
 
 
-                if (class2Bbox.containsKey(label)) continue;
+                if (class2Bbox.containsKey(label)) {
+                    continue;
+                }
 
                 class2Bbox.putIfAbsent(label, new ArrayList<>());
                 class2Bbox.get(label).add(bbox);
@@ -323,7 +329,7 @@ public class HeadCountTask {
                     bboxes = nonMaxSuppression(bboxes, NMS_THRESHOLD);
                     for (float[] bbox : bboxes) {
                         String labelString = LABELS[0];
-                        detections.add(new Detection(labelString,16, Arrays.copyOfRange(bbox, 0, 4), bbox[4]));
+                        detections.add(new Detection(labelString, 16, Arrays.copyOfRange(bbox, 0, 4), bbox[4]));
                     }
                 }
                 int minDwDh = Math.min(image.width(), image.height());
@@ -339,10 +345,10 @@ public class HeadCountTask {
                     Point bottomRight = new Point(bbox[2] * scale, bbox[3] * scale);
                     Imgproc.rectangle(outImage, topLeft, bottomRight, color, thickness);
                     // 框上写文字
-                    Point boxNameLoc = new Point(bbox[0] * scale, bbox[1] * scale-3+20);
-                    Point boxNameLoc1 = new Point(bbox[0] * scale, bbox[1] * scale-3+35);
+                    Point boxNameLoc = new Point(bbox[0] * scale, bbox[1] * scale - 3 + 20);
+                    Point boxNameLoc1 = new Point(bbox[0] * scale, bbox[1] * scale - 3 + 35);
                     Imgproc.putText(outImage, detection.getLabel(), boxNameLoc, Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness);
-                    Imgproc.putText(outImage, "confi:"+detection.confidence, boxNameLoc1, Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness);
+                    Imgproc.putText(outImage, "confi:" + detection.confidence, boxNameLoc1, Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness);
                 }
             }
             int peopleCount = detections.size();

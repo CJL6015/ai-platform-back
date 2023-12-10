@@ -129,6 +129,10 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
     List<CountStatisticDTO> getTopPoint(Integer lineId, Date st, Date et);
 
     List<CountStatisticDTO> getTopEquipment(Integer lineId, Date st, Date et);
+
+    List<String> getRelationEquipment(Integer lineId, Date st, Date et);
+
+    List<String> getRelationPoint(Integer lineId, Date st, Date et);
 }
 
 

@@ -251,4 +251,22 @@
         group by DATEPART(HOUR, statiatic_start_time)
         order by count desc
     </select>
+    <select id="getRelationEquipment" resultType="java.lang.String">
+        select STRING_AGG(equipment_id, ',') AS ids
+        from point_statistic_hour
+        where line_id = #{lineId}
+          and statiatic_start_time >= #{st}
+          and statiatic_start_time &lt;= #{et}
+          and up_low_exceeded_count > 0
+        group by DATEADD(HOUR, DATEDIFF(HOUR, 0, statiatic_start_time), 0)
+    </select>
+    <select id="getRelationPoint" resultType="java.lang.String">
+        select STRING_AGG(point_id, ',') AS ids
+        from point_statistic_hour
+        where line_id = #{lineId}
+          and statiatic_start_time >= #{st}
+          and statiatic_start_time &lt;= #{et}
+          and up_low_exceeded_count > 0
+        group by DATEADD(HOUR, DATEDIFF(HOUR, 0, statiatic_start_time), 0)
+    </select>
 </mapper>

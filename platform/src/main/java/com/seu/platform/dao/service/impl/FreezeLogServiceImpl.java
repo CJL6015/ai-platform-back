@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seu.platform.dao.entity.FreezeLog;
 import com.seu.platform.dao.mapper.FreezeLogMapper;
 import com.seu.platform.dao.service.FreezeLogService;
-import com.seu.platform.dao.service.ProcessLinePictureHist1Service;
 import com.seu.platform.model.dto.InspectionHistoryDTO;
 import com.seu.platform.model.vo.InspectionHistoryDataVO;
 import com.seu.platform.model.vo.InspectionHistoryVO;
@@ -32,8 +31,6 @@ public class FreezeLogServiceImpl extends ServiceImpl<FreezeLogMapper, FreezeLog
     private static final int STEP = 60 * 60 * 1000;
 
     private static final double HOUR = 60 * 60 * 1000.0;
-
-    private final ProcessLinePictureHist1Service processLinePictureHist1Service;
 
 
     @Override

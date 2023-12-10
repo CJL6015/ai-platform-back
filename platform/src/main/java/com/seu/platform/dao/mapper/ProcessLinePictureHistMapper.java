@@ -11,6 +11,7 @@ import com.seu.platform.model.vo.DetectionResultVO;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author 陈小黑
@@ -24,9 +25,10 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      * 获取等待检测的图片
      *
      * @param count 个数
+     * @param ids   ids
      * @return 等待检测的图片
      */
-    List<ProcessLinePictureHist> getPendingChecks(int count);
+    List<ProcessLinePictureHist> getPendingChecks(Integer count, Set<Long> ids);
 
     /**
      * 获取检测结果
@@ -108,6 +110,8 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
     Boolean setInspectionMinute(String cameraIp, Date st, Date et);
 
     Date getFirstTime(String cameraIp);
+
+    Integer getCount(String cameraIp, Date st, Date et);
 }
 
 

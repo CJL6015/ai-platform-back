@@ -1,9 +1,11 @@
 package com.seu.platform.controller;
 
+import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.dao.service.PointStatisticHourService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.*;
+import com.seu.platform.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -78,6 +80,13 @@ public class PointController {
     public Result<Map<String, Double[]>> getPointLimit(@RequestParam String names) {
         Map<String, Double[]> pointLimits = pointCfgService.getPointLimits(names);
         return Result.success(pointLimits);
+    }
+
+    @PatchMapping("/")
+    public Result<Boolean> updatePoint(@RequestBody PointConfigVO vo) {
+        PointCfg pointCfg = BeanUtil.convertBean(vo, PointCfg.class);
+        boolean b = pointCfgService.updateById(pointCfg);
+        return Result.success(b);
     }
 
 //    @GetMapping("/compare/{id}")

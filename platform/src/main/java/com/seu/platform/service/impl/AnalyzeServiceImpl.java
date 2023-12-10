@@ -3,7 +3,7 @@ package com.seu.platform.service.impl;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.seu.platform.dao.mapper.PointStatisticHourMapper;
-import com.seu.platform.dao.mapper.ProcessLinePictureHist1Mapper;
+import com.seu.platform.dao.mapper.ProcessLinePictureHistMapper;
 import com.seu.platform.model.vo.AnalyzeVO;
 import com.seu.platform.service.AnalyzeService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.Objects;
 public class AnalyzeServiceImpl implements AnalyzeService {
     private final PointStatisticHourMapper pointStatisticHourMapper;
 
-    private final ProcessLinePictureHist1Mapper processLinePictureHist1Mapper;
+    private final ProcessLinePictureHistMapper processLinePictureHistMapper;
 
     @Override
     public AnalyzeVO getParamAnalyze(Integer pointId) {
@@ -93,19 +93,19 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         DateTime quarterBegin = DateUtil.beginOfQuarter(date);
         DateTime yearBegin = DateUtil.beginOfYear(date);
 
-        Integer month = processLinePictureHist1Mapper.getCount(cameraIp, monthBegin, date);
-        Integer quarter = processLinePictureHist1Mapper.getCount(cameraIp, quarterBegin, date);
-        Integer year = processLinePictureHist1Mapper.getCount(cameraIp, yearBegin, date);
+        Integer month = processLinePictureHistMapper.getCount(cameraIp, monthBegin, date);
+        Integer quarter = processLinePictureHistMapper.getCount(cameraIp, quarterBegin, date);
+        Integer year = processLinePictureHistMapper.getCount(cameraIp, yearBegin, date);
 
         //上个月
         DateTime lastMonthBegin = DateUtil.beginOfMonth(DateUtil.offsetMonth(DateUtil.date(), -1));
         DateTime lastMonthEnd = DateUtil.endOfMonth(DateUtil.offsetMonth(DateUtil.date(), -1));
-        Integer lastMonth = processLinePictureHist1Mapper.getCount(cameraIp, lastMonthBegin, lastMonthEnd);
+        Integer lastMonth = processLinePictureHistMapper.getCount(cameraIp, lastMonthBegin, lastMonthEnd);
 
         //上个季度
         DateTime lastQuarterBegin = DateUtil.beginOfQuarter(DateUtil.offsetMonth(DateUtil.date(), -3));
         DateTime lastQuarterEnd = DateUtil.endOfQuarter(DateUtil.offsetMonth(DateUtil.date(), -3));
-        Integer lastQuarter = processLinePictureHist1Mapper.getCount(cameraIp, lastQuarterBegin, lastQuarterEnd);
+        Integer lastQuarter = processLinePictureHistMapper.getCount(cameraIp, lastQuarterBegin, lastQuarterEnd);
         //去年
         DateTime lastYearToday = DateUtil.offsetMonth(DateUtil.date(), -12);
         DateTime lastYearMonthBegin = DateUtil.beginOfMonth(lastYearToday);
@@ -115,9 +115,9 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         DateTime lastYearBegin = DateUtil.beginOfYear(lastYearToday);
         DateTime lastYearEnd = DateUtil.endOfYear(lastYearToday);
 
-        Integer lastYearMonth = processLinePictureHist1Mapper.getCount(cameraIp, lastYearMonthBegin, lastYearMonthEnd);
-        Integer lastYearQuarter = processLinePictureHist1Mapper.getCount(cameraIp, lastYearQuarterBegin, lastYearQuarterEnd);
-        Integer lastYear = processLinePictureHist1Mapper.getCount(cameraIp, lastYearBegin, lastYearEnd);
+        Integer lastYearMonth = processLinePictureHistMapper.getCount(cameraIp, lastYearMonthBegin, lastYearMonthEnd);
+        Integer lastYearQuarter = processLinePictureHistMapper.getCount(cameraIp, lastYearQuarterBegin, lastYearQuarterEnd);
+        Integer lastYear = processLinePictureHistMapper.getCount(cameraIp, lastYearBegin, lastYearEnd);
         return AnalyzeVO.builder()
                 .month(month)
                 .quarter(quarter)

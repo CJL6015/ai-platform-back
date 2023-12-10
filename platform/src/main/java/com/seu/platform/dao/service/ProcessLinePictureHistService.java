@@ -7,6 +7,7 @@ import com.seu.platform.model.vo.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author 陈小黑
@@ -18,9 +19,10 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
      * 获取等待检测的图片
      *
      * @param count 个数
+     * @param ids   ids
      * @return 等待检测的图片
      */
-    List<ProcessLinePictureHist> getPendingChecks(int count);
+    List<ProcessLinePictureHist> getPendingChecks(Integer count, Set<Long> ids);
 
 
     /**
@@ -69,6 +71,8 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
     BenchmarkTrendVO getBenchmarkTrend(Integer lineId, Date st, Date et);
 
     List<LineInspection> getLast();
+
+    Integer exceedCount(Integer lineId, Date st, Date et);
 
 
     Boolean setInspectionMinute(String cameraIp, Date st, Date et);

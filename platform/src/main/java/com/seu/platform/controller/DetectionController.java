@@ -1,6 +1,6 @@
 package com.seu.platform.controller;
 
-import com.seu.platform.dao.service.ProcessLinePictureHist1Service;
+import com.seu.platform.dao.service.ProcessLinePictureHistService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.DetectionResultVO;
 import com.seu.platform.model.vo.TimeRange;
@@ -24,7 +24,7 @@ import java.util.List;
 @RequestMapping("/api/detection")
 public class DetectionController {
 
-    private final ProcessLinePictureHist1Service processLinePictureHistService;
+    private final ProcessLinePictureHistService processLinePictureHistService;
 
 
     @GetMapping("/result")

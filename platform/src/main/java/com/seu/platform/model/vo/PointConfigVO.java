@@ -15,6 +15,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PointConfigVO {
+    private Integer id;
     /**
      * 点号名称
      */

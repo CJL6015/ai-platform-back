@@ -2,7 +2,6 @@ package com.seu.platform.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.seu.platform.dao.entity.FreezeLog;
-import com.seu.platform.dao.mapper.ProcessLinePictureHist1Mapper;
 import com.seu.platform.dao.service.FreezeLogService;
 import com.seu.platform.dao.service.PointStatisticHourService;
 import com.seu.platform.model.vo.InspectionHistoryDataVO;
@@ -28,7 +27,6 @@ public class InspectionTrendServiceImpl implements InspectionTrendService {
 
     private final PointStatisticHourService pointStatisticHourService;
 
-    private final ProcessLinePictureHist1Mapper processLinePictureHist1Mapper;
 
     private final FreezeLogService freezeLogService;
 

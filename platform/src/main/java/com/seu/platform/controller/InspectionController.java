@@ -1,21 +1,20 @@
 package com.seu.platform.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.seu.platform.dao.entity.CameraCfg;
 import com.seu.platform.dao.entity.FreezeLog;
 import com.seu.platform.dao.entity.InspectionCfg;
-import com.seu.platform.dao.entity.ProcessLinePictureHist1;
-import com.seu.platform.dao.service.*;
+import com.seu.platform.dao.entity.ProcessLinePictureHist;
+import com.seu.platform.dao.service.FreezeLogService;
+import com.seu.platform.dao.service.InspectionCfgService;
+import com.seu.platform.dao.service.InspectionHistoryService;
+import com.seu.platform.dao.service.ProcessLinePictureHistService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.InspectionConfigVO;
 import com.seu.platform.model.vo.InspectionHistoryDataVO;
 import com.seu.platform.model.vo.TimeRange;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * @author chenjiale
@@ -32,9 +31,7 @@ public class InspectionController {
 
     private final FreezeLogService freezeLogService;
 
-    private final ProcessLinePictureHist1Service processLinePictureHist1Service;
-
-
+    private final ProcessLinePictureHistService processLinePictureHistService;
 
 
     @GetMapping("/line/{id}")
@@ -62,7 +59,7 @@ public class InspectionController {
                                                                 TimeRange timeRange) {
         InspectionHistoryDataVO inspectionHistoryValue = freezeLogService.getInspectionHistoryFreeze(id,
                 timeRange.getSt(), timeRange.getEt());
-        Integer allCount = processLinePictureHist1Service.exceedCount(id,
+        Integer allCount = processLinePictureHistService.exceedCount(id,
                 timeRange.getSt(), timeRange.getEt());
         inspectionHistoryValue.setUnfreezeCount(allCount - inspectionHistoryValue.getFreezeCount());
         return Result.success(inspectionHistoryValue);
@@ -75,20 +72,20 @@ public class InspectionController {
         freezeLog.setStartTime(time.getSt());
         freezeLog.setEndTime(time.getEt());
         boolean save = freezeLogService.save(freezeLog);
-        LambdaUpdateWrapper<ProcessLinePictureHist1> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.ge(ProcessLinePictureHist1::getUpdateTime, time.getSt())
-                .le(ProcessLinePictureHist1::getUpdateTime, time.getEt());
-        updateWrapper.set(ProcessLinePictureHist1::getFreeze, 1);
-        processLinePictureHist1Service.update(updateWrapper);
+        LambdaUpdateWrapper<ProcessLinePictureHist> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.ge(ProcessLinePictureHist::getUpdateTime, time.getSt())
+                .le(ProcessLinePictureHist::getUpdateTime, time.getEt());
+        updateWrapper.set(ProcessLinePictureHist::getFreeze, 1);
+        processLinePictureHistService.update(updateWrapper);
         return Result.success(save);
     }
 
     @GetMapping("/unfreeze")
     public Result<Boolean> unfreeze(String img) {
-        LambdaUpdateWrapper<ProcessLinePictureHist1> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(ProcessLinePictureHist1::getDetectionPicturePath, img);
-        updateWrapper.set(ProcessLinePictureHist1::getFreeze, 0);
-        boolean b = processLinePictureHist1Service.update(updateWrapper);
+        LambdaUpdateWrapper<ProcessLinePictureHist> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(ProcessLinePictureHist::getDetectionPicturePath, img);
+        updateWrapper.set(ProcessLinePictureHist::getFreeze, 0);
+        boolean b = processLinePictureHistService.update(updateWrapper);
         return Result.success(b);
     }
 }
