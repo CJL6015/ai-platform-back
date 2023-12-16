@@ -121,6 +121,8 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
 
     Integer getCount(Integer pointId, Date st, Date et);
 
+    List<Integer> getCounts(Integer lineId, Date st, Date et);
+
     Integer getCountAvg(Integer lineId, Date st, Date et);
 
     Double getLineScore(Integer lineId, Date st, Date et);

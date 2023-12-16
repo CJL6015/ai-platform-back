@@ -20,11 +20,11 @@
         select t1.id                                      as id,
                t1.start_time                              as st,
                t1.end_time                                as et,
-               count(t2.detection_picture_path)           as exceeded_num,
+               count(t2.people_count - 1)                 as exceeded_num,
                string_agg(t2.detection_picture_path, ',') as image_url
         from freeze_log t1
                  left join dbo.camera_cfg cc on t1.line_id = cc.line_id
-                 left join process_line_picture_hist_1 t2
+                 left join process_line_picture_hist t2
                            on t2.camera_id = cc.camera_ip
                                and t2.update_time >= t1.start_time
                                and t2.update_time &lt;= t1.end_time

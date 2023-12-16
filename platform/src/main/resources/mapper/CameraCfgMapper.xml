@@ -20,4 +20,10 @@
         line_id,camera_ip,camera_port,
         camera_account,camera_password
     </sql>
+    <select id="getNames" resultType="java.lang.String">
+        select camera_description
+        from camera_cfg
+        where line_id = #{lineId}
+        order by id
+    </select>
 </mapper>

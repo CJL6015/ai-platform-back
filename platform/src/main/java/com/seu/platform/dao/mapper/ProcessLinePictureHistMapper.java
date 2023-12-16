@@ -116,6 +116,8 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
     Date getNextTime(String cameraIp, Date st);
 
     Integer getCount(String cameraIp, Date st, Date et);
+
+    List<Integer> getCounts(Integer lineId, Date st, Date et);
 }
 
 

@@ -41,6 +41,11 @@ public class InspectionHistoryVO {
     private Integer exceededPeople;
 
     /**
+     * 超员次数
+     */
+    private Integer exceededNum;
+
+    /**
      * 是否冻结:0-是;1-否
      */
     private Integer freeze;

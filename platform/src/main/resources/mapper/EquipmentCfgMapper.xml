@@ -32,4 +32,10 @@
         group by t1.id, t1.equipment_description, t2.time
         order by id, time
     </select>
+    <select id="getNames" resultType="java.lang.String">
+        select equipment_description
+        from equipment_cfg
+        where line_id = #{lineId}
+        order by id
+    </select>
 </mapper>

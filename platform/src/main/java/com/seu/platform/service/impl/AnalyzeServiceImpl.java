@@ -2,14 +2,21 @@ package com.seu.platform.service.impl;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import com.seu.platform.dao.mapper.CameraCfgMapper;
+import com.seu.platform.dao.mapper.EquipmentCfgMapper;
 import com.seu.platform.dao.mapper.PointStatisticHourMapper;
 import com.seu.platform.dao.mapper.ProcessLinePictureHistMapper;
 import com.seu.platform.model.vo.AnalyzeVO;
+import com.seu.platform.model.vo.BenchmarkChartVO;
 import com.seu.platform.service.AnalyzeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author chenjiale
@@ -22,6 +29,10 @@ public class AnalyzeServiceImpl implements AnalyzeService {
     private final PointStatisticHourMapper pointStatisticHourMapper;
 
     private final ProcessLinePictureHistMapper processLinePictureHistMapper;
+
+    private final CameraCfgMapper cameraCfgMapper;
+
+    private final EquipmentCfgMapper equipmentCfgMapper;
 
     @Override
     public AnalyzeVO getParamAnalyze(Integer pointId) {
@@ -59,21 +70,7 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         Integer lastYear = pointStatisticHourMapper.getCount(pointId, lastYearBegin, lastYearEnd);
 
 
-        return AnalyzeVO.builder()
-                .month(month)
-                .quarter(quarter)
-                .year(year)
-                .lastMonth(lastMonth)
-                .lastQuarter(lastQuarter)
-                .lastYearMonth(lastYearMonth)
-                .lastYearQuarter(lastYearQuarter)
-                .lastYear(lastYear)
-                .monthOnMonth(getRate(month, lastYearMonth))
-                .monthOverMonth(getRate(month, lastMonth))
-                .quarterOnQuarter(getRate(quarter, lastYearQuarter))
-                .quarterOverQuarter(getRate(quarter, lastQuarter))
-                .yearOverYear(getRate(year, lastYear))
-                .build();
+        return AnalyzeVO.builder().month(month).quarter(quarter).year(year).lastMonth(lastMonth).lastQuarter(lastQuarter).lastYearMonth(lastYearMonth).lastYearQuarter(lastYearQuarter).lastYear(lastYear).monthOnMonth(getRate(month, lastYearMonth)).monthOverMonth(getRate(month, lastMonth)).quarterOnQuarter(getRate(quarter, lastYearQuarter)).quarterOverQuarter(getRate(quarter, lastQuarter)).yearOverYear(getRate(year, lastYear)).build();
     }
 
     public Double getRate(Integer n1, Integer n2) {
@@ -118,20 +115,136 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         Integer lastYearMonth = processLinePictureHistMapper.getCount(cameraIp, lastYearMonthBegin, lastYearMonthEnd);
         Integer lastYearQuarter = processLinePictureHistMapper.getCount(cameraIp, lastYearQuarterBegin, lastYearQuarterEnd);
         Integer lastYear = processLinePictureHistMapper.getCount(cameraIp, lastYearBegin, lastYearEnd);
-        return AnalyzeVO.builder()
-                .month(month)
-                .quarter(quarter)
-                .year(year)
-                .lastMonth(lastMonth)
-                .lastQuarter(lastQuarter)
-                .lastYearMonth(lastYearMonth)
-                .lastYearQuarter(lastYearQuarter)
-                .lastYear(lastYear)
-                .monthOnMonth(getRate(month, lastYearMonth))
-                .monthOverMonth(getRate(month, lastMonth))
-                .quarterOnQuarter(getRate(quarter, lastYearQuarter))
-                .quarterOverQuarter(getRate(quarter, lastQuarter))
-                .yearOverYear(getRate(year, lastYear))
-                .build();
+        return AnalyzeVO.builder().month(month).quarter(quarter).year(year).lastMonth(lastMonth).lastQuarter(lastQuarter).lastYearMonth(lastYearMonth).lastYearQuarter(lastYearQuarter).lastYear(lastYear).monthOnMonth(getRate(month, lastYearMonth)).monthOverMonth(getRate(month, lastMonth)).quarterOnQuarter(getRate(quarter, lastYearQuarter)).quarterOverQuarter(getRate(quarter, lastQuarter)).yearOverYear(getRate(year, lastYear)).build();
+    }
+
+    @Override
+    public BenchmarkChartVO getPeopleBenchmarkDaily(Integer lineId, Integer num) {
+        List<String> names = cameraCfgMapper.getNames(lineId);
+        List<List<Integer>> values = new ArrayList<>();
+        int max = 1;
+        for (int i = 0; i < num; i++) {
+            Date et = DateUtil.offsetDay(new Date(), -i);
+            DateTime st = DateUtil.beginOfDay(et);
+            List<Integer> counts = processLinePictureHistMapper.getCounts(lineId, st, et);
+
+            max = Math.max(max, counts.stream().mapToInt(t -> t != null ? t : 0).max().getAsInt());
+            values.add(counts);
+        }
+        int count = values.get(0).stream().mapToInt(t -> t != null ? t : 0).sum();
+        int sum = 0;
+        for (int i = 1; i < values.size(); i++) {
+            sum += values.get(1).stream().mapToInt(t -> t != null ? t : 0).sum();
+        }
+        Double rate = getRate(count, sum);
+        return BenchmarkChartVO.builder().names(names).values(values).rate(rate).max(max).build();
+    }
+
+    @Override
+    public BenchmarkChartVO getPeopleBenchmarkMonth(Integer lineId, Integer num) {
+        List<String> names = cameraCfgMapper.getNames(lineId);
+        List<List<Integer>> values = new ArrayList<>();
+        int max = 1;
+        for (int i = 0; i < num; i++) {
+            Date et = DateUtil.offsetMonth(new Date(), -i);
+            DateTime st = DateUtil.beginOfMonth(et);
+            List<Integer> counts = processLinePictureHistMapper.getCounts(lineId, st, DateUtil.endOfMonth(et));
+            max = Math.max(max, counts.stream().mapToInt(t -> t != null ? t : 0).max().getAsInt());
+            values.add(counts);
+        }
+        int count = values.get(0).stream().mapToInt(t -> t != null ? t : 0).sum();
+        int sum = 0;
+        for (int i = 1; i < values.size(); i++) {
+            sum += values.get(1).stream().mapToInt(t -> t != null ? t : 0).sum();
+        }
+        Double rate = getRate(count, sum);
+        return BenchmarkChartVO.builder().names(names).values(values).max(max).rate(rate).build();
+    }
+
+    @Override
+    public BenchmarkChartVO getPeopleBenchmarkQuarter(Integer lineId, Integer num) {
+        List<String> names = cameraCfgMapper.getNames(lineId);
+        List<List<Integer>> values = new ArrayList<>();
+        int max = 1;
+        for (int i = 0; i < num; i++) {
+            Date et = DateUtil.offsetMonth(new Date(), -3 * i);
+            DateTime st = DateUtil.beginOfQuarter(et);
+            List<Integer> counts = processLinePictureHistMapper.getCounts(lineId, st, DateUtil.endOfQuarter(et));
+            max = Math.max(max, counts.stream().mapToInt(t -> t != null ? t : 0).max().getAsInt());
+            values.add(counts);
+        }
+        int count = values.get(0).stream().mapToInt(t -> t != null ? t : 0).sum();
+        int sum = 0;
+        for (int i = 1; i < values.size(); i++) {
+            sum += values.get(1).stream().mapToInt(t -> t != null ? t : 0).sum();
+        }
+        Double rate = getRate(count, sum);
+        return BenchmarkChartVO.builder().names(names).values(values).max(max).rate(rate).build();
+    }
+
+    @Override
+    public BenchmarkChartVO getPointBenchmarkDaily(Integer lineId, Integer num) {
+        List<String> names = equipmentCfgMapper.getNames(lineId);
+        names = names.stream().map(String::trim).collect(Collectors.toList());
+        List<List<Integer>> values = new ArrayList<>();
+        int max = 1;
+        for (int i = 0; i < num; i++) {
+            Date et = DateUtil.offsetDay(new Date(), -i);
+            DateTime st = DateUtil.beginOfDay(et);
+            List<Integer> counts = pointStatisticHourMapper.getCounts(lineId, st, et);
+            max = Math.max(max, counts.stream().mapToInt(t -> t != null ? t : 0).max().getAsInt());
+            values.add(counts);
+        }
+        int count = values.get(0).stream().mapToInt(t -> t != null ? t : 0).sum();
+        int sum = 0;
+        for (int i = 1; i < values.size(); i++) {
+            sum += values.get(1).stream().mapToInt(t -> t != null ? t : 0).sum();
+        }
+        Double rate = getRate(count, sum);
+        return BenchmarkChartVO.builder().names(names).values(values).max(max).rate(rate).build();
+    }
+
+    @Override
+    public BenchmarkChartVO getPointBenchmarkMonth(Integer lineId, Integer num) {
+        List<String> names = equipmentCfgMapper.getNames(lineId);
+        names = names.stream().map(String::trim).collect(Collectors.toList());
+        List<List<Integer>> values = new ArrayList<>();
+        int max = 1;
+        for (int i = 0; i < num; i++) {
+            Date et = DateUtil.offsetMonth(new Date(), -i);
+            DateTime st = DateUtil.beginOfMonth(et);
+            List<Integer> counts = pointStatisticHourMapper.getCounts(lineId, st, DateUtil.endOfMonth(et));
+            max = Math.max(max, counts.stream().mapToInt(t -> t != null ? t : 0).max().getAsInt());
+            values.add(counts);
+        }
+        int count = values.get(0).stream().mapToInt(t -> t != null ? t : 0).sum();
+        int sum = 0;
+        for (int i = 1; i < values.size(); i++) {
+            sum += values.get(1).stream().mapToInt(t -> t != null ? t : 0).sum();
+        }
+        Double rate = getRate(count, sum);
+        return BenchmarkChartVO.builder().names(names).values(values).rate(rate).max(max).build();
+    }
+
+    @Override
+    public BenchmarkChartVO getPointBenchmarkQuarter(Integer lineId, Integer num) {
+        List<String> names = equipmentCfgMapper.getNames(lineId);
+        names = names.stream().map(String::trim).collect(Collectors.toList());
+        List<List<Integer>> values = new ArrayList<>();
+        int max = 1;
+        for (int i = 0; i < num; i++) {
+            Date et = DateUtil.offsetMonth(new Date(), -3 * i);
+            DateTime st = DateUtil.beginOfQuarter(et);
+            List<Integer> counts = pointStatisticHourMapper.getCounts(lineId, st, DateUtil.endOfQuarter(et));
+            max = Math.max(max, counts.stream().mapToInt(t -> t != null ? t : 0).max().getAsInt());
+            values.add(counts);
+        }
+        int count = values.get(0).stream().mapToInt(t -> t != null ? t : 0).sum();
+        int sum = 0;
+        for (int i = 1; i < values.size(); i++) {
+            sum += values.get(1).stream().mapToInt(t -> t != null ? t : 0).sum();
+        }
+        Double rate = getRate(count, sum);
+        return BenchmarkChartVO.builder().names(names).values(values).rate(rate).max(max).build();
     }
 }

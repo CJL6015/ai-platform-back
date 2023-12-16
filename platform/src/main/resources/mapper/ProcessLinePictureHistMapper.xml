@@ -221,13 +221,28 @@
         order by update_time
     </select>
     <select id="getDetectionTime" resultType="java.util.Date">
-        select DATEPART(HOUR, update_time) as time
+        select DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0) as time
         from process_line_picture_hist
         where inspection = 1
           and people_has_checked = 1
           and update_time >= #{st}
           and update_time &lt;= #{et}
-        group by DATEPART(HOUR, update_time)
+        group by DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0)
         order by time
+    </select>
+    <select id="getCounts" resultType="java.lang.Integer">
+        select sum(COALESCE(t2.count, 0)) as count
+        from camera_cfg t1
+                 left join(select 1 as count,
+                                  camera_id
+                           from process_line_picture_hist
+                           where inspection = 1
+                             and people_has_checked = 1
+                             and update_time >= #{st}
+                             and update_time &lt;= #{et}) t2
+                          on t1.camera_ip = t2.camera_id
+        where line_id = #{lineId}
+        group by t1.id
+        order by t1.id
     </select>
 </mapper>

@@ -49,7 +49,7 @@ public class RuleServiceImpl implements RuleService {
         List<Set<String>> data = relationEquipment.stream()
                 .map(t -> CollUtil.newHashSet(t.split(",")))
                 .collect(Collectors.toList());
-        Apriori apriori = new Apriori(data, limit, limit);
+        Apriori apriori = new Apriori(data, 0.1, limit);
         List<List<Object>> lists = apriori.associationRules();
         List<Object[]> group = apriori.getGroup();
         List<List<String>> groupData = new ArrayList<>();
@@ -97,7 +97,7 @@ public class RuleServiceImpl implements RuleService {
         List<Set<String>> data = relationEquipment.stream()
                 .map(t -> CollUtil.newHashSet(t.split(",")))
                 .collect(Collectors.toList());
-        Apriori apriori = new Apriori(data, limit, limit);
+        Apriori apriori = new Apriori(data, 0.1, limit);
         List<List<Object>> lists = apriori.associationRules();
         List<Object[]> group = apriori.getGroup();
         List<List<String>> groupData = new ArrayList<>();

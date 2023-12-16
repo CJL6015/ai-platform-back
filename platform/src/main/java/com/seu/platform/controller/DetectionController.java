@@ -6,6 +6,7 @@ import com.seu.platform.model.vo.DetectionResultVO;
 import com.seu.platform.model.vo.TimeRange;
 import com.seu.platform.model.vo.TrendVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,7 +34,9 @@ public class DetectionController {
     }
 
     @GetMapping("/result")
-    public Result<List<DetectionResultVO>> getDetectionResult(String ips, Date time) {
+    public Result<List<DetectionResultVO>> getDetectionResult(String ips,
+                                                              @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+                                                              Date time) {
         String[] split = ips.split(",");
         List<DetectionResultVO> detectionResult = processLinePictureHistService.getDetectionResult(Arrays.asList(split), time);
         return Result.success(detectionResult);

@@ -59,7 +59,7 @@ public class FreezeLogServiceImpl extends ServiceImpl<FreezeLogMapper, FreezeLog
                 String[] imgs = history.getImageUrl().split(",");
                 for (int i = 0; i < imgs.length; i++) {
                     InspectionHistoryVO vo = BeanUtil.convertBean(history, InspectionHistoryVO.class);
-                    vo.setFreezeTime((end - start) / HOUR);
+                    vo.setFreezeTime(Math.round((end - start) / HOUR * 10.0) / 10.0);
                     vo.setImageUrl(new String[]{imgs[i]});
                     vo.setExceededPeople(i + 1);
                     tableData.add(vo);

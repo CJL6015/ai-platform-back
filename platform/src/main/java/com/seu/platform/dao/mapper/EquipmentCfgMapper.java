@@ -23,6 +23,8 @@ public interface EquipmentCfgMapper extends BaseMapper<EquipmentCfg> {
      * @return 趋势
      */
     List<EquipmentTrendDTO> getEquipmentTrend(Integer lineId, Date st, Date et);
+
+    List<String> getNames(Integer lineId);
 }
 
 
