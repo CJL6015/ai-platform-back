@@ -70,7 +70,15 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         Integer lastYear = pointStatisticHourMapper.getCount(pointId, lastYearBegin, lastYearEnd);
 
 
-        return AnalyzeVO.builder().month(month).quarter(quarter).year(year).lastMonth(lastMonth).lastQuarter(lastQuarter).lastYearMonth(lastYearMonth).lastYearQuarter(lastYearQuarter).lastYear(lastYear).monthOnMonth(getRate(month, lastYearMonth)).monthOverMonth(getRate(month, lastMonth)).quarterOnQuarter(getRate(quarter, lastYearQuarter)).quarterOverQuarter(getRate(quarter, lastQuarter)).yearOverYear(getRate(year, lastYear)).build();
+        return AnalyzeVO.builder().month(month)
+                .quarter(quarter).year(year)
+                .lastMonth(lastMonth).lastQuarter(lastQuarter)
+                .lastYearMonth(lastYearMonth).lastYearQuarter(lastYearQuarter)
+                .lastYear(lastYear).monthOnMonth(getRate(month, lastYearMonth))
+                .monthOverMonth(getRate(month, lastMonth))
+                .quarterOnQuarter(getRate(quarter, lastYearQuarter))
+                .quarterOverQuarter(getRate(quarter, lastQuarter))
+                .yearOverYear(getRate(year, lastYear)).build();
     }
 
     public Double getRate(Integer n1, Integer n2) {
@@ -78,7 +86,7 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         if (Objects.nonNull(n1) && Objects.nonNull(n2) && n2 != 0) {
             return res * n1 / n2;
         }
-        return res;
+        return null;
     }
 
     @Override

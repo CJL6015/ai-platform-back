@@ -93,6 +93,36 @@ public class ExaClient {
     }
 
     /**
+     * 批量获取点号时实值
+     *
+     * @param points 点号
+     * @return 时实值
+     */
+    public Boolean[] getValuesBoolean(List<String> points) {
+        Boolean[] res = new Boolean[points.size()];
+        Map<String, Object> body = new HashMap<>(Numbers.FOUR);
+        body.put("Names", points);
+        try (HttpResponse response = HttpUtil.createPost(getValuesUrl)
+                .body(JSON.toJSONString(body))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .execute()) {
+            String post = response.body();
+            JSONObject jsonObject = JSON.parseObject(post);
+            JSONArray values = jsonObject.getJSONArray("Values");
+            if (values.size() != points.size()) {
+                log.error("exa返回结果异常,points:{},返回结果:{}", points, post);
+                return res;
+            }
+            for (int i = 0; i < values.size(); i++) {
+                res[i] = values.getBoolean(i);
+            }
+        } catch (Exception e) {
+            log.error("获取exa点号时实值异常,points:{}", points, e);
+        }
+        return res;
+    }
+
+    /**
      * 获取测点历史值
      *
      * @param point 测点

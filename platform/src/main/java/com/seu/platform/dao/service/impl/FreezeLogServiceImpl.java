@@ -10,6 +10,7 @@ import com.seu.platform.model.vo.InspectionHistoryVO;
 import com.seu.platform.model.vo.TimeValueChartVO;
 import com.seu.platform.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -31,6 +32,9 @@ public class FreezeLogServiceImpl extends ServiceImpl<FreezeLogMapper, FreezeLog
     private static final int STEP = 60 * 60 * 1000;
 
     private static final double HOUR = 60 * 60 * 1000.0;
+
+    @Value("${static.detection-prefix}")
+    private String picturePrefix;
 
 
     @Override
@@ -60,7 +64,7 @@ public class FreezeLogServiceImpl extends ServiceImpl<FreezeLogMapper, FreezeLog
                 for (int i = 0; i < imgs.length; i++) {
                     InspectionHistoryVO vo = BeanUtil.convertBean(history, InspectionHistoryVO.class);
                     vo.setFreezeTime(Math.round((end - start) / HOUR * 10.0) / 10.0);
-                    vo.setImageUrl(new String[]{imgs[i]});
+                    vo.setImageUrl(new String[]{picturePrefix + imgs[i]});
                     vo.setExceededPeople(i + 1);
                     tableData.add(vo);
                 }

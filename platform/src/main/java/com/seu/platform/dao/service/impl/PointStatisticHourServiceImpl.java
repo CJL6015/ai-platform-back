@@ -2,6 +2,8 @@ package com.seu.platform.dao.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seu.platform.dao.entity.PointStatistic;
@@ -18,10 +20,7 @@ import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -199,8 +198,6 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
         PointStatistic statistic = getBaseMapper().getStatistic(lineId,
                 timeRange.getSt(),
                 timeRange.getEt());
-        statistic.setThresholdWithin(statistic.getNormalRefresh() - statistic.getThresholdExceeded());
-        statistic.setNormalRefresh(statistic.getNormalRefresh() - statistic.getExceptionRefresh());
         return com.seu.platform.util.BeanUtil.convertBean(statistic, StatisticVO.class);
     }
 
@@ -217,6 +214,32 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
     }
 
 
+    @Override
+    public List<List<ScoreVO>> getSummary(Integer lineId) {
+        DateTime date = DateUtil.date();
+        DateTime month = DateUtil.beginOfMonth(date);
+        DateTime lastMonth = DateUtil.offsetMonth(month, -1);
+        List<ScoreVO> scores1 = getScores(lineId, new TimeRange(month, date));
+        List<ScoreVO> scores2 = getScores(lineId, new TimeRange(lastMonth, month));
+        List<ScoreVO> top3 = scores1.stream().sorted(Comparator.comparingDouble(ScoreVO::getScore))
+                .limit(3)
+                .collect(Collectors.toList());
+        Map<String, Double> scoreMap = scores1.stream().collect(Collectors.toMap(ScoreVO::getName, ScoreVO::getScore));
+        scores2.forEach(vo -> {
+            if (scoreMap.containsKey(vo.getName())) {
+                double newScore = vo.getScore() - scoreMap.get(vo.getName());
+                vo.setScore(newScore);
+            }
+        });
+        List<ScoreVO> top = scores2.stream().sorted(Comparator.comparingDouble(ScoreVO::getScore))
+                .limit(3)
+                .collect(Collectors.toList());
+        List<List<ScoreVO>> res = new ArrayList<>();
+        res.add(top3);
+        res.add(top);
+
+        return res;
+    }
 }
 
 

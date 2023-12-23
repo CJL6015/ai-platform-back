@@ -135,6 +135,8 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
     List<String> getRelationEquipment(Integer lineId, Date st, Date et);
 
     List<String> getRelationPoint(Integer lineId, Date st, Date et);
+
+    Double getPlantScore(Integer plantId, Date st, Date et);
 }
 
 

@@ -12,4 +12,7 @@ import java.util.List;
 public interface ScoreService {
 
     List<List<Object>> getScoreTrend(Integer lineId, TimeRange timeRange);
+
+
+
 }

@@ -1,16 +1,20 @@
 package com.seu.platform.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.dao.service.PointStatisticHourService;
+import com.seu.platform.exa.ExaClient;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.*;
 import com.seu.platform.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author chenjiale
@@ -25,6 +29,8 @@ public class PointController {
     private final PointCfgService pointCfgService;
 
     private final PointStatisticHourService pointStatisticHourService;
+
+    private final ExaClient exaClient;
 
     @GetMapping("/line/{lineId}")
     public Result<List<PointConfigVO>> getPointList(@PathVariable Integer lineId) {
@@ -89,9 +95,25 @@ public class PointController {
         return Result.success(b);
     }
 
-//    @GetMapping("/compare/{id}")
-//    public Result<CompareVO> getCompare(@PathVariable Integer id) {
-//
-//    }
+    @GetMapping("/status/{lineId}")
+    public Result<List<StatusVO>> getPointsStatus(@PathVariable Integer lineId) {
+        LambdaQueryWrapper<PointCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PointCfg::getLineId, lineId);
+        List<PointCfg> points = pointCfgService.list(queryWrapper);
+        List<String> names = points.stream().map(t -> t.getName().trim()).collect(Collectors.toList());
+        Boolean[] status = exaClient.getValuesBoolean(names);
+        List<StatusVO> res = new ArrayList<>();
+        for (int i = 0; i < points.size(); i++) {
+            res.add(StatusVO.builder()
+                    .name(points.get(i).getDescription().trim()
+                            .replace("运行", "")
+                            .replace("雷管线A.", "")
+                            .replace("雷管线B.", ""))
+                    .status(status[i])
+                    .warn(status[i])
+                    .build());
+        }
+        return Result.success(res);
+    }
 
 }

@@ -37,4 +37,10 @@ public class ScoreController {
         List<List<Object>> scoreTrend = scoreService.getScoreTrend(lineId, timeRange);
         return Result.success(scoreTrend);
     }
+
+    @GetMapping("/summary/{lineId}")
+    public Result<List<List<ScoreVO>>> getSummary(@PathVariable Integer lineId) {
+        List<List<ScoreVO>> summary = pointStatisticHourService.getSummary(lineId);
+        return Result.success(summary);
+    }
 }

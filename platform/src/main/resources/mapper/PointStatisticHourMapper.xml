@@ -146,19 +146,21 @@
         order by time
     </select>
     <select id="getStatistic" resultType="com.seu.platform.dao.entity.PointStatistic">
-        select sum(IIF(t2.exception_refresh > 0.1, 1, 0))   as exception_refresh,
-               sum(IIF(t2.up_low_exceeded_count > 0, 1, 0)) as threshold_exceeded,
-               sum(IIF(t2.up_low_exceeded_count = 0, 1, 0)) as threshold_within,
-               count(t1.point_id)                           as normal_refresh,
-               sum(t2.run_time)                             as run_time,
-               sum(t2.stop_time)                            as stop_time
+        select sum(t2.exception_refresh)      as exception_refresh,
+               sum(t2.normal_refresh)         as normal_refresh,
+               sum(threshold_up_low_exceeded) as threshold_exceeded,
+               sum(threshold_within)          as threshold_within,
+               sum(t2.run_time)               as run_time,
+               sum(t2.stop_time)              as stop_time
 
         from point_cfg t1
                  left join (select point_id,
-                                   max(exception_refresh)     as exception_refresh,
-                                   max(up_low_exceeded_count) as up_low_exceeded_count,
-                                   sum(run_time)              as run_time,
-                                   sum(stop_time)             as stop_time
+                                   sum(exception_refresh)             as exception_refresh,
+                                   sum(normal_refresh)                as normal_refresh,
+                                   sum(threshold_up_low_exceeded)     as threshold_up_low_exceeded,
+                                   sum(1 - threshold_up_low_exceeded) as threshold_within,
+                                   sum(run_time)                      as run_time,
+                                   sum(stop_time)                     as stop_time
                             from point_statistic_hour
                             where statiatic_start_time >= #{st}
                               and statiatic_start_time &lt;= #{et}
@@ -204,11 +206,13 @@
     <select id="getLineScore" resultType="java.lang.Double">
         select sum(t1.up_low_exceeded_count * t2.score + t1.upup_lowlow_exceeded_count * t2.high_score) as score
         from point_statistic_hour t1
-                 left join
-             point_cfg t2 on t1.point_id = t2.point_id
-        where t1.line_id = #{lineId}
-          and t1.statiatic_start_time >= #{st}
-          and t1.statiatic_start_time &lt;= #{et}
+        left join
+        point_cfg t2 on t1.point_id = t2.point_id
+        where t1.statiatic_start_time >= #{st}
+        and t1.statiatic_start_time &lt;= #{et}
+        <if test="lineId !=null">
+            and t1.line_id = #{lineId}
+        </if>
     </select>
     <select id="getCountAvg" resultType="java.lang.Integer">
         select sum(up_low_exceeded_count) as count
@@ -283,5 +287,18 @@
         where t1.line_id = #{lineId}
         group by t1.id
         order by t1.id
+    </select>
+    <select id="getPlantScore" resultType="java.lang.Double">
+        select sum(t1.up_low_exceeded_count * t2.score + t1.upup_lowlow_exceeded_count * t2.high_score) as score
+        from point_statistic_hour t1
+        left join
+        point_cfg t2 on t1.point_id = t2.point_id
+        ,production_line t3
+        where t1.line_id=t3.id
+        and t1.statiatic_start_time >= #{st}
+        and t1.statiatic_start_time &lt;= #{et}
+        <if test="plantId !=null">
+            and t3.plant_id = #{plantId}
+        </if>
     </select>
 </mapper>

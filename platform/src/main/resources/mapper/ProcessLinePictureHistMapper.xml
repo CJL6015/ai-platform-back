@@ -57,6 +57,7 @@
         and inspection=1
         ) ranked
         where rtn =1
+        order by time desc
     </select>
     <select id="lastTime" resultType="java.util.Date">
         select DATEADD(HOUR, DATEDIFF(HOUR, 0, max(update_time)), 0) as time

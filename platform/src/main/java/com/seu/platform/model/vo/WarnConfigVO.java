@@ -35,4 +35,6 @@ public class WarnConfigVO {
      * 生产线总限值
      */
     private Integer totalLimit;
+
+    private Double score;
 }

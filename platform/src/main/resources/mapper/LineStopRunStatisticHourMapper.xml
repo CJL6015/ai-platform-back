@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.LineStopRunStatisticHourMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.LineStopRunStatisticHour">
+            <result property="id" column="id" jdbcType="BIGINT"/>
+            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="startTime" column="start_time" jdbcType="TIMESTAMP"/>
+            <result property="endTime" column="end_time" jdbcType="TIMESTAMP"/>
+            <result property="stopHour" column="stop_hour" jdbcType="FLOAT"/>
+            <result property="runHour" column="run_hour" jdbcType="FLOAT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,line_id,create_time,
+        start_time,end_time,stop_hour,
+        run_hour
+    </sql>
+    <select id="getRunTime" resultType="com.seu.platform.model.dto.RunTimeDTO">
+        select sum(run_hour)  as run,
+               sum(stop_hour) as stop
+        from line_stop_run_statistic_hour
+        where start_time >= #{st}
+          and start_time &lt;= #{et}
+    </select>
+</mapper>

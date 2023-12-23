@@ -68,8 +68,8 @@
             <option name="tableUIInfoList">
               <list>
                 <TableUIInfo>
-                  <option name="className" value="CameraCfg" />
-                  <option name="tableName" value="camera_cfg" />
+                  <option name="className" value="LineStopRunStatisticHour" />
+                  <option name="tableName" value="line_stop_run_statistic_hour" />
                 </TableUIInfo>
               </list>
             </option>

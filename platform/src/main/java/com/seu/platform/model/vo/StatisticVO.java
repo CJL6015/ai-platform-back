@@ -16,12 +16,12 @@ public class StatisticVO {
     /**
      * 超限点数
      */
-    private Integer thresholdExceeded;
+    private Double thresholdExceeded;
 
     /**
      * 未超限点数
      */
-    private Integer thresholdWithin;
+    private Double thresholdWithin;
 
     /**
      * 停机时间
@@ -36,10 +36,10 @@ public class StatisticVO {
     /**
      * 刷新正常
      */
-    private Integer normalRefresh;
+    private Double normalRefresh;
 
     /**
      * 刷新异常
      */
-    private Integer exceptionRefresh;
+    private Double exceptionRefresh;
 }

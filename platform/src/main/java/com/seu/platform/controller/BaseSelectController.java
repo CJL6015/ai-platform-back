@@ -2,18 +2,17 @@ package com.seu.platform.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.seu.platform.dao.entity.CameraCfg;
+import com.seu.platform.dao.entity.Plant;
 import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.service.CameraCfgService;
+import com.seu.platform.dao.service.PlantService;
 import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.OptionItemVO;
 import com.seu.platform.model.vo.SelectAllOptionVO;
 import com.seu.platform.service.SelectService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +32,8 @@ public class BaseSelectController {
 
     private final CameraCfgService cameraCfgService;
 
+    private final PlantService plantService;
+
 
     @GetMapping("/list")
     public Result<SelectAllOptionVO> getAllOptions() {
@@ -41,7 +42,15 @@ public class BaseSelectController {
     }
 
     @GetMapping("/line/list/{platId}")
-    public Result<List<OptionItemVO>> getLinesOptions(@PathVariable Integer platId) {
+    public Result<List<OptionItemVO>> getLinesOptions(@RequestHeader("Authorization") String token,
+                                                      @PathVariable Integer platId) {
+        LambdaQueryWrapper<Plant> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Plant::getId, platId);
+        Plant plant = plantService.getOne(queryWrapper);
+        if ((token.contains("jingmen") && plant.getName().contains("辽宁"))
+                || (token.contains("liaoning") && plant.getName().contains("荆门"))) {
+            return Result.fail("无权限,请联系管理员");
+        }
         List<OptionItemVO> linesOptions = selectService.getLinesOptions(platId);
         return Result.success(linesOptions);
     }
