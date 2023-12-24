@@ -32,5 +32,11 @@ public class DetectionResultVO {
      */
     private Integer peopleCount;
 
+    private Integer limit;
+
+    private Integer exceeded;
+
     private String cameraId;
+
+    private String description;
 }

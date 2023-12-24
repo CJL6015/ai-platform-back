@@ -8,6 +8,7 @@ import com.seu.platform.model.vo.TrendVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,18 +28,17 @@ public class DetectionController {
 
     private final ProcessLinePictureHistService processLinePictureHistService;
 
-    @GetMapping("/times")
-    public Result<List<String>> getDetectionTimes() {
-        List<String> times = processLinePictureHistService.getTimes();
+    @GetMapping("/times/{lineId}")
+    public Result<List<String>> getDetectionTimes(@PathVariable Integer lineId) {
+        List<String> times = processLinePictureHistService.getTimes(lineId);
         return Result.success(times);
     }
 
-    @GetMapping("/result")
-    public Result<List<DetectionResultVO>> getDetectionResult(String ips,
+    @GetMapping("/result/{lineId}")
+    public Result<List<DetectionResultVO>> getDetectionResult(@PathVariable Integer lineId,
                                                               @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                                                               Date time) {
-        String[] split = ips.split(",");
-        List<DetectionResultVO> detectionResult = processLinePictureHistService.getDetectionResult(Arrays.asList(split), time);
+        List<DetectionResultVO> detectionResult = processLinePictureHistService.getDetectionResult(lineId, time);
         return Result.success(detectionResult);
     }
 

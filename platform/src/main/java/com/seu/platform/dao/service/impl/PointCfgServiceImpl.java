@@ -10,10 +10,7 @@ import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.exa.ExaClient;
 import com.seu.platform.exa.model.RecordsFloat;
 import com.seu.platform.model.dto.PointStatisticDTO;
-import com.seu.platform.model.vo.PointConfigVO;
-import com.seu.platform.model.vo.PointStatisticVO;
-import com.seu.platform.model.vo.PointTrendVO;
-import com.seu.platform.model.vo.TimeRange;
+import com.seu.platform.model.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -72,6 +69,30 @@ public class PointCfgServiceImpl extends ServiceImpl<PointCfgMapper, PointCfg>
             } else {
                 vo.setIsExceeded(Boolean.TRUE);
             }
+            vos.add(vo);
+        }
+        return vos;
+    }
+
+    @Override
+    public List<PointStatusVO> getPointStatisticStatus(Integer lineId, TimeRange timeRange) {
+        List<PointStatisticDTO> pointStatistic = getBaseMapper().getPointStatistic(lineId,
+                timeRange.getSt(), timeRange.getEt());
+        List<String> points = pointStatistic.stream()
+                .map(PointStatisticDTO::getName)
+                .collect(Collectors.toList());
+        List<String> units = pointStatistic.stream()
+                .map(PointStatisticDTO::getUnit)
+                .collect(Collectors.toList());
+        Boolean[] values = exaClient.getValuesBoolean(points);
+        Boolean[] values1 = exaClient.getValuesBoolean(units);
+        List<PointStatusVO> vos = new ArrayList<>();
+        for (int i = 0; i < pointStatistic.size(); i++) {
+            PointStatisticDTO dto = pointStatistic.get(i);
+            PointStatusVO vo = new PointStatusVO();
+            BeanUtil.copyProperties(dto, vo);
+            vo.setStatus(values[i]);
+            vo.setIsExceeded(values1[i]);
             vos.add(vo);
         }
         return vos;

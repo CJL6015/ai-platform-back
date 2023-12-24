@@ -1,21 +1,27 @@
 package com.seu.platform.dao.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.seu.platform.dao.entity.CameraCfg;
 import com.seu.platform.dao.entity.ProcessLinePictureHist;
+import com.seu.platform.dao.entity.WarnCfg;
 import com.seu.platform.dao.mapper.ProcessLinePictureHistMapper;
+import com.seu.platform.dao.service.CameraCfgService;
 import com.seu.platform.dao.service.ProcessLinePictureHistService;
+import com.seu.platform.dao.service.WarnCfgService;
 import com.seu.platform.model.dto.DetectionTrendDTO;
 import com.seu.platform.model.dto.HourTrendDTO;
 import com.seu.platform.model.dto.TrendDTO;
 import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.*;
 import com.seu.platform.util.MathUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -27,8 +33,13 @@ import java.util.stream.Collectors;
  * @createDate 2023-10-28 10:48:15
  */
 @Service
+@RequiredArgsConstructor
 public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePictureHistMapper, ProcessLinePictureHist>
         implements ProcessLinePictureHistService {
+
+    private final CameraCfgService cameraCfgService;
+
+    private final WarnCfgService warnCfgService;
 
     @Value("${static.detection-prefix}")
     private String picturePrefix;
@@ -48,26 +59,50 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     }
 
     @Override
-    public List<DetectionResultVO> getDetectionResult(List<String> ips, Date time) {
+    public List<DetectionResultVO> getDetectionResult(Integer lineId, Date time) {
         if (Objects.isNull(time)) {
             time = getBaseMapper().lastTime();
         }
-        List<DetectionResultVO> detectionResult = getBaseMapper().getDetectionResult(ips, time);
-        detectionResult.forEach(d -> {
-            String detectionPicturePath = d.getDetectionPicturePath();
-            if (StringUtils.hasText(detectionPicturePath)) {
-                d.setDetectionPicturePath(picturePrefix + detectionPicturePath);
+        LambdaQueryWrapper<WarnCfg> queryWrapper1 = new LambdaQueryWrapper<>();
+        queryWrapper1.eq(WarnCfg::getLineId, lineId);
+        WarnCfg one = warnCfgService.getOne(queryWrapper1);
+        Integer limit = one.getFillingProcessLimit();
+        limit = limit == null ? 1 : limit;
+        LambdaQueryWrapper<CameraCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CameraCfg::getLineId, lineId);
+        List<CameraCfg> list = cameraCfgService.list(queryWrapper);
+        List<String> ips = list.stream().map(t -> t.getCameraIp().trim()).collect(Collectors.toList());
+        List<DetectionResultVO> detectionResult = new ArrayList<>();
+        if (time != null) {
+            detectionResult = getBaseMapper().getDetectionResult(ips, time);
+        }
+        List<DetectionResultVO> res = new ArrayList<>();
+        for (CameraCfg cameraCfg : list) {
+            DetectionResultVO vo = new DetectionResultVO();
+            for (DetectionResultVO detectionResultVO : detectionResult) {
+                if (cameraCfg.getCameraIp().equals(detectionResultVO.getCameraId())) {
+                    BeanUtil.copyProperties(detectionResultVO, vo);
+                    vo.setDetectionPicturePath(picturePrefix + detectionResultVO.getDetectionPicturePath());
+                }
             }
-        });
-        return detectionResult;
+            if (vo.getPeopleCount() == null) {
+                vo.setPeopleCount(0);
+            }
+            vo.setLimit(limit);
+            vo.setExceeded(Math.max(0, vo.getPeopleCount() - limit));
+            vo.setDescription(cameraCfg.getCameraDescription().trim());
+            vo.setCameraId(cameraCfg.getCameraIp().trim());
+            res.add(vo);
+        }
+        return res;
     }
 
     @Override
-    public List<String> getTimes() {
+    public List<String> getTimes(Integer lineId) {
         Date et = new Date();
         DateTime st = DateUtil.offsetDay(et, -1);
 
-        List<Date> detectionTime = getBaseMapper().getDetectionTime(st, et);
+        List<Date> detectionTime = getBaseMapper().getDetectionTime(lineId, st, et);
         return detectionTime.stream()
                 .map(t -> DateUtil.format(t, "yyyy-MM-dd HH:mm:ss"))
                 .collect(Collectors.toList());

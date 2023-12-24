@@ -3,10 +3,7 @@ package com.seu.platform.dao.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.seu.platform.dao.entity.PointCfg;
-import com.seu.platform.model.vo.PointConfigVO;
-import com.seu.platform.model.vo.PointStatisticVO;
-import com.seu.platform.model.vo.PointTrendVO;
-import com.seu.platform.model.vo.TimeRange;
+import com.seu.platform.model.vo.*;
 
 import java.util.List;
 import java.util.Map;
@@ -35,6 +32,15 @@ public interface PointCfgService extends IService<PointCfg> {
      * @return 数据
      */
     List<PointStatisticVO> getPointStatistic(Integer lineId, TimeRange timeRange);
+
+    /**
+     * 查询测点统计结果
+     *
+     * @param lineId    生产线id
+     * @param timeRange 时间
+     * @return 数据
+     */
+    List<PointStatusVO> getPointStatisticStatus(Integer lineId, TimeRange timeRange);
 
     /**
      * 获取测点数据

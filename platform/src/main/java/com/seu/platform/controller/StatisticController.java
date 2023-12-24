@@ -7,6 +7,7 @@ import com.seu.platform.dao.service.PointStatisticHourService;
 import com.seu.platform.dao.service.PointStatisticService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.PointStatisticVO;
+import com.seu.platform.model.vo.PointStatusVO;
 import com.seu.platform.model.vo.StatisticVO;
 import com.seu.platform.model.vo.TimeRange;
 import com.seu.platform.util.BeanUtil;
@@ -48,6 +49,12 @@ public class StatisticController {
     @GetMapping("/point/{id}")
     public Result<List<PointStatisticVO>> getPoint(@PathVariable Integer id, TimeRange timeRange) {
         List<PointStatisticVO> pointStatistic = pointCfgService.getPointStatistic(id, timeRange);
+        return Result.success(pointStatistic);
+    }
+
+    @GetMapping("/point/status/{id}")
+    public Result<List<PointStatusVO>> getPointStatus(@PathVariable Integer id, TimeRange timeRange) {
+        List<PointStatusVO> pointStatistic = pointCfgService.getPointStatisticStatus(id, timeRange);
         return Result.success(pointStatistic);
     }
 

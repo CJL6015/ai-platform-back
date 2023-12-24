@@ -28,13 +28,13 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
     /**
      * 获取检测结果
      *
-     * @param ips  摄像机ip
-     * @param time 时间
+     * @param lineId 生产线id
+     * @param time   时间
      * @return 检测结果
      */
-    List<DetectionResultVO> getDetectionResult(List<String> ips, Date time);
+    List<DetectionResultVO> getDetectionResult(Integer lineId, Date time);
 
-    List<String> getTimes();
+    List<String> getTimes(Integer lineId);
 
     /**
      * 获取月趋势
