@@ -105,7 +105,9 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
 
     @Override
     public TrendDetailVO getTrendDetailMonth(Integer lineId) {
-        List<BenchmarkDTO> trendDetailMonth = getBaseMapper().getTrendDetailMonth(lineId);
+        DateTime date = DateUtil.date();
+        DateTime dateTime = DateUtil.offsetMonth(date, -1);
+        List<BenchmarkDTO> trendDetailMonth = getBaseMapper().getTrendDetailMonth(lineId, dateTime);
         List<String> equipments = new ArrayList<>();
         List<String> times = new ArrayList<>();
         List<List<Integer>> data = new ArrayList<>();
@@ -137,7 +139,9 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
 
     @Override
     public TrendDetailVO getTrendDetailDaily(Integer lineId) {
-        List<BenchmarkDTO> trendDetailMonth = getBaseMapper().getTrendDetailDaily(lineId);
+        DateTime date = DateUtil.date();
+        DateTime dateTime = DateUtil.offsetDay(date, -1);
+        List<BenchmarkDTO> trendDetailMonth = getBaseMapper().getTrendDetailDaily(lineId,dateTime);
         List<String> equipments = new ArrayList<>();
         List<String> times = new ArrayList<>();
         List<List<Integer>> data = new ArrayList<>();

@@ -101,16 +101,16 @@ public class PointController {
         queryWrapper.eq(PointCfg::getLineId, lineId);
         List<PointCfg> points = pointCfgService.list(queryWrapper);
         List<String> names = points.stream().map(t -> t.getName().trim()).collect(Collectors.toList());
+        List<String> units = points.stream().map(t -> t.getUnit().trim()).collect(Collectors.toList());
         Boolean[] status = exaClient.getValuesBoolean(names);
+        Boolean[] status1 = exaClient.getValuesBoolean(units);
         List<StatusVO> res = new ArrayList<>();
         for (int i = 0; i < points.size(); i++) {
             res.add(StatusVO.builder()
-                    .name(points.get(i).getDescription().trim()
-                            .replace("运行", "")
-                            .replace("雷管线A.", "")
-                            .replace("雷管线B.", ""))
+                    .name(points.get(i).getDescription().trim())
                     .status(status[i])
-                    .warn(status[i])
+                    .warn(status1[i])
+                    .point(names.get(i))
                     .build());
         }
         return Result.success(res);

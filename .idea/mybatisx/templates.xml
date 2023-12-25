@@ -68,8 +68,8 @@
             <option name="tableUIInfoList">
               <list>
                 <TableUIInfo>
-                  <option name="className" value="LineStopRunStatisticHour" />
-                  <option name="tableName" value="line_stop_run_statistic_hour" />
+                  <option name="className" value="StorehouseHist" />
+                  <option name="tableName" value="storehouse_hist" />
                 </TableUIInfo>
               </list>
             </option>

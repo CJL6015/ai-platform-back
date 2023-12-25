@@ -1,16 +1,13 @@
 package com.seu.platform.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.seu.platform.dao.entity.InspectionCfg;
-import com.seu.platform.dao.entity.WarnCfg;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.seu.platform.dao.entity.PointCfg;
+import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.dao.service.WarnCfgService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.WarnConfigVO;
-import com.seu.platform.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Date;
 
 /**
  * @author 陈小黑
@@ -21,6 +18,8 @@ import java.util.Date;
 public class WarnController {
     private final WarnCfgService warnCfgService;
 
+    private final PointCfgService pointCfgService;
+
     @GetMapping("/line/{id}")
     public Result<WarnConfigVO> getWarnConfig(@PathVariable Integer id) {
         WarnConfigVO warnConfigVO = warnCfgService.getWarnConfigVO(id);
@@ -30,6 +29,15 @@ public class WarnController {
     @PatchMapping("/line/{id}")
     public Result<Boolean> updateWarnConfig(@PathVariable Integer id, @RequestBody WarnConfigVO warnConfigVO) {
         boolean b = warnCfgService.updateConfig(id, warnConfigVO);
+        if (id != 3 && id != 4) {
+            LambdaUpdateWrapper<PointCfg> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(PointCfg::getScore, warnConfigVO.getScore())
+                    .set(PointCfg::getHighScore, warnConfigVO.getHighScore())
+                    .eq(PointCfg::getLineId, id);
+            boolean b1 = pointCfgService.update(updateWrapper);
+            return Result.success(b && b1);
+        }
         return Result.success(b);
+
     }
 }

@@ -20,7 +20,9 @@ import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.*;
 import com.seu.platform.util.MathUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -32,15 +34,15 @@ import java.util.stream.Collectors;
  * @description 针对表【process_line_picture_hist】的数据库操作Service实现
  * @createDate 2023-10-28 10:48:15
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePictureHistMapper, ProcessLinePictureHist>
         implements ProcessLinePictureHistService {
 
+    private static Map<String, List<Date>> cache = new HashMap<>(16);
     private final CameraCfgService cameraCfgService;
-
     private final WarnCfgService warnCfgService;
-
     @Value("${static.detection-prefix}")
     private String picturePrefix;
 
@@ -101,11 +103,17 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     public List<String> getTimes(Integer lineId) {
         Date et = new Date();
         DateTime st = DateUtil.offsetDay(et, -1);
-
-        List<Date> detectionTime = getBaseMapper().getDetectionTime(lineId, st, et);
+        String key = DateUtil.format(st, "yyyy-MM-dd HH:mm:ss");
+        List<Date> detectionTime = cache.getOrDefault(key, getBaseMapper().getDetectionTime(lineId, st, et));
+        cache.put(key, detectionTime);
         return detectionTime.stream()
                 .map(t -> DateUtil.format(t, "yyyy-MM-dd HH:mm:ss"))
                 .collect(Collectors.toList());
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void clearCache() {
+        cache = new HashMap<>(16);
     }
 
     @Override

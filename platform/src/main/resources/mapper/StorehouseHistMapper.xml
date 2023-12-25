@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.StorehouseHistMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.StorehouseHist">
+            <result property="id" column="id" jdbcType="BIGINT"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="storehouseId" column="storehouse_id" jdbcType="INTEGER"/>
+            <result property="storeCount" column="store_count" jdbcType="FLOAT"/>
+            <result property="unit" column="unit" jdbcType="VARCHAR"/>
+            <result property="storeRecordTime" column="store_record_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,create_time,storehouse_id,
+        store_count,unit,store_record_time
+    </sql>
+</mapper>

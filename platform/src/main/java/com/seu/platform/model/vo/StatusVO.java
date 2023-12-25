@@ -15,6 +15,8 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 public class StatusVO {
+    private String point;
+
     private String name;
 
     private Boolean status;

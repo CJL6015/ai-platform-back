@@ -36,5 +36,15 @@ public class WarnConfigVO {
      */
     private Integer totalLimit;
 
+    /**
+     * 超限/停机扣分
+     */
     private Double score;
+
+    /**
+     * 超高高限/低低限扣分
+     */
+    private Double highScore;
+
+    private Double peopleScore;
 }

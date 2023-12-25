@@ -64,7 +64,7 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
      * @param lineId 生产线id
      * @return 数据
      */
-    List<BenchmarkDTO> getTrendDetailMonth(Integer lineId);
+    List<BenchmarkDTO> getTrendDetailMonth(Integer lineId, Date time);
 
 
     /**
@@ -73,7 +73,7 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
      * @param lineId 生产线id
      * @return 数据
      */
-    List<BenchmarkDTO> getTrendDetailDaily(Integer lineId);
+    List<BenchmarkDTO> getTrendDetailDaily(Integer lineId, Date time);
 
     /**
      * 获取总趋势

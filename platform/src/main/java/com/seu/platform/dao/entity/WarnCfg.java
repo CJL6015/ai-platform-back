@@ -52,4 +52,8 @@ public class WarnCfg implements Serializable {
      * 修改时间
      */
     private Date modifyTime;
+
+    private Double highScore;
+
+    private Double peopleScore;
 }
