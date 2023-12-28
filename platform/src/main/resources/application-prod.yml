@@ -27,6 +27,7 @@ exa:
   host: 10.10.11.15:9000
   get-value: ${exa.host}/data/SelectValueFloat
   get-values: ${exa.host}/data/SelectValuesFloat
+  get-values-boolean: ${exa.host}/data/SelectValuesBool
   get-history: ${exa.host}/data/SelectDownsamplingRecordsFloat
   get-points: ${exa.host}/meta/SelectVariables
 model:
@@ -36,3 +37,5 @@ model:
 static:
   root: D:\deploy\images\
   detection-prefix: http://10.10.11.16:8088/api/static/images/
+  detection-prefix1: http://10.10.11.15:8088/api/static/images/
+  storehouse-prefix: http://10.10.11.15:8088/api/static/storehouse/images/

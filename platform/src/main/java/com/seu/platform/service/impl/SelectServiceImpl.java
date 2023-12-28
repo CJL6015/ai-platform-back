@@ -91,8 +91,10 @@ public class SelectServiceImpl implements SelectService {
 
 
     @Override
-    public List<OptionItemVO> getPoints() {
-        List<PointCfg> list = pointCfgService.list();
+    public List<OptionItemVO> getPoints(Integer lineId) {
+        LambdaQueryWrapper<PointCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PointCfg::getLineId, lineId);
+        List<PointCfg> list = pointCfgService.list(queryWrapper);
         List<OptionItemVO> collect = list.stream().map(point -> OptionItemVO.builder()
                         .id(point.getPointId())
                         .name(point.getDescription().trim())

@@ -3,6 +3,7 @@ package com.seu.platform.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.seu.platform.dao.entity.CameraCfg;
 import com.seu.platform.dao.entity.EquipmentCfg;
@@ -124,10 +125,12 @@ public class BenchmarkServiceImpl implements BenchmarkService {
             Integer time = dto.getTime();
             hours[time] = dto.getCount();
         }
-
+        List<Integer> nums = totalTrend.stream().map(TrendDTO::getCount).collect(Collectors.toList());
+        double a = MathUtil.fitting(nums, 1)[1];
         return BenchmarkTrendVO.builder()
                 .trend(trend)
                 .hours(hours)
+                .summary(a > 0 ? "上升趋势" : "下降趋势")
                 .build();
     }
 
@@ -192,8 +195,8 @@ public class BenchmarkServiceImpl implements BenchmarkService {
     }
 
     public void addTrendIndicator(BenchmarkQuery query, List<Integer> lines, List<Map<String, Object>> data, Date st, Date et) {
-        AnalyzeVO peopleAnalyze = analyzeService.getPeopleAnalyze("-1");
-        AnalyzeVO paramAnalyze = analyzeService.getParamAnalyze(-1);
+        AnalyzeVO peopleAnalyze = analyzeService.getPeopleAnalyze(null, "-1");
+        AnalyzeVO paramAnalyze = analyzeService.getParamAnalyze(null, -1);
         List<Integer> trend = query.getTrend();
         if (CollUtil.isNotEmpty(trend)) {
             for (Integer indicator : trend) {
@@ -204,6 +207,8 @@ public class BenchmarkServiceImpl implements BenchmarkService {
                         for (Integer line : lines) {
                             Double monthOverMonth = peopleAnalyze.getMonthOverMonth();
                             Double monthOnMonth = peopleAnalyze.getMonthOnMonth();
+                            monthOverMonth = monthOverMonth == null ? 0 : monthOverMonth;
+                            monthOnMonth = monthOnMonth == null ? 0 : monthOnMonth;
                             String analyse = monthOverMonth + "%," + monthOnMonth + "%";
                             putValue(d, line, analyse);
                         }
@@ -213,6 +218,8 @@ public class BenchmarkServiceImpl implements BenchmarkService {
                         for (Integer line : lines) {
                             Double monthOverMonth = paramAnalyze.getMonthOverMonth();
                             Double monthOnMonth = paramAnalyze.getMonthOnMonth();
+                            monthOverMonth = monthOverMonth == null ? 0 : monthOverMonth;
+                            monthOnMonth = monthOnMonth == null ? 0 : monthOnMonth;
                             String analyse = monthOverMonth + "%," + monthOnMonth + "%";
                             putValue(d, line, analyse);
                         }
@@ -221,6 +228,7 @@ public class BenchmarkServiceImpl implements BenchmarkService {
                         d.put("name", "超员次数变化趋势(升/降)");
                         for (Integer line : lines) {
                             Double monthOverMonth = peopleAnalyze.getMonthOverMonth();
+                            monthOverMonth = monthOverMonth == null ? 0 : monthOverMonth;
                             String res = monthOverMonth > 0 ? "上升" : "下降";
                             putValue(d, line, res);
                         }
@@ -229,6 +237,7 @@ public class BenchmarkServiceImpl implements BenchmarkService {
                         d.put("name", "参数超限次数变化趋势(升/降)");
                         for (Integer line : lines) {
                             Double monthOverMonth = paramAnalyze.getMonthOverMonth();
+                            monthOverMonth = monthOverMonth == null ? 0 : monthOverMonth;
                             String res = monthOverMonth > 0 ? "上升" : "下降";
                             putValue(d, line, res);
                         }
@@ -340,28 +349,32 @@ public class BenchmarkServiceImpl implements BenchmarkService {
                     case 0:
                         d.put("name", "生产线平均超限次数");
                         for (Integer line : lines) {
-                            Integer score = getParamExceedCount(line, st, et);
+                            Double score = 1.0 * getParamExceedCount(line, st, et);
+                            score = Double.valueOf(NumberUtil.decimalFormat("0.00", score));
                             putValue(d, line, score);
                         }
                         break;
                     case 1:
                         d.put("name", "生产线各工序平均超员次数");
                         for (Integer line : lines) {
-                            Integer score = getInspectionExceedCount(line, st, et) / getCameraCount(line);
+                            Double score = 1.0 * getInspectionExceedCount(line, st, et) / getCameraCount(line);
+                            score = Double.valueOf(NumberUtil.decimalFormat("0.00", score));
                             putValue(d, line, score);
                         }
                         break;
                     case 2:
                         d.put("name", "生产线平均参数超限次数");
                         for (Integer line : lines) {
-                            Integer score = getParamExceedCount(line, st, et) / getPointCount(line);
+                            Double score = 1.0 * getParamExceedCount(line, st, et) / getPointCount(line);
+                            score = Double.valueOf(NumberUtil.decimalFormat("0.00", score));
                             putValue(d, line, score);
                         }
                         break;
                     default:
                         d.put("name", "生产线各设备超限次数");
                         for (Integer line : lines) {
-                            Integer score = getParamExceedCount(line, st, et) / getEquipmentCount(line);
+                            Double score = 1.0 * getParamExceedCount(line, st, et) / getEquipmentCount(line);
+                            score = Double.valueOf(NumberUtil.decimalFormat("0.00", score));
                             putValue(d, line, score);
                         }
                         break;
@@ -400,6 +413,7 @@ public class BenchmarkServiceImpl implements BenchmarkService {
                             Double score1 = getParamExceedScore(line, st, et);
                             Double score2 = getInspectionExceedScore(line, st, et);
                             Double score = 100 - score1 - score2;
+                            score = Double.valueOf(NumberUtil.decimalFormat("0.000", score));
                             putValue(d, line, score);
                         }
                         break;
@@ -407,6 +421,7 @@ public class BenchmarkServiceImpl implements BenchmarkService {
                         d.put("name", "超员平均扣分");
                         for (Integer line : lines) {
                             Double score = getInspectionExceedScore(line, st, et);
+                            score = Double.valueOf(NumberUtil.decimalFormat("0.000", score));
                             putValue(d, line, score);
                         }
                         break;
@@ -414,6 +429,7 @@ public class BenchmarkServiceImpl implements BenchmarkService {
                         d.put("name", "设备超限平均扣分");
                         for (Integer line : lines) {
                             Double score = getParamExceedScore(line, st, et);
+                            score = Double.valueOf(NumberUtil.decimalFormat("0.000", score));
                             putValue(d, line, score);
                         }
                         break;
@@ -446,6 +462,6 @@ public class BenchmarkServiceImpl implements BenchmarkService {
     public Double getInspectionExceedScore(Integer lineId, Date st, Date et) {
         long day = DateUtil.betweenDay(st, et, false);
         Integer i = processLinePictureHistMapper.exceedCount(lineId, st, et);
-        return (double) (1 * i) / day;
+        return (1.0 * i) / day;
     }
 }

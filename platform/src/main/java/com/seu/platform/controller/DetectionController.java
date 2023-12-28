@@ -42,15 +42,15 @@ public class DetectionController {
         return Result.success(detectionResult);
     }
 
-    @GetMapping("/trend/month")
-    public Result<TrendVO<String, Integer>> getTrendMonth(TimeRange timeRange) {
-        TrendVO<String, Integer> trendMonth = processLinePictureHistService.getTrendMonth(timeRange);
+    @GetMapping("/trend/month/{lineId}")
+    public Result<TrendVO<String, Integer>> getTrendMonth(@PathVariable Integer lineId,TimeRange timeRange) {
+        TrendVO<String, Integer> trendMonth = processLinePictureHistService.getTrendMonth(lineId,timeRange);
         return Result.success(trendMonth);
     }
 
-    @GetMapping("/trend/daily")
-    public Result<TrendVO<String, Integer>> getTrendDaily(TimeRange timeRange) {
-        TrendVO<String, Integer> trendMonth = processLinePictureHistService.getTrendDaily(timeRange);
+    @GetMapping("/trend/daily/{lineId}")
+    public Result<TrendVO<String, Integer>> getTrendDaily(@PathVariable Integer lineId,TimeRange timeRange) {
+        TrendVO<String, Integer> trendMonth = processLinePictureHistService.getTrendDaily(lineId,timeRange);
         return Result.success(trendMonth);
     }
 }

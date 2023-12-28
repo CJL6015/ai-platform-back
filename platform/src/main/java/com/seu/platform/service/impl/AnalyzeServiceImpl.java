@@ -35,7 +35,7 @@ public class AnalyzeServiceImpl implements AnalyzeService {
     private final EquipmentCfgMapper equipmentCfgMapper;
 
     @Override
-    public AnalyzeVO getParamAnalyze(Integer pointId) {
+    public AnalyzeVO getParamAnalyze(Integer lineId, Integer pointId) {
         //当前时间
         DateTime date = DateUtil.date();
         //当前
@@ -43,19 +43,19 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         DateTime quarterBegin = DateUtil.beginOfQuarter(date);
         DateTime yearBegin = DateUtil.beginOfYear(date);
 
-        Integer month = pointStatisticHourMapper.getCount(pointId, monthBegin, date);
-        Integer quarter = pointStatisticHourMapper.getCount(pointId, quarterBegin, date);
-        Integer year = pointStatisticHourMapper.getCount(pointId, yearBegin, date);
+        Integer month = pointStatisticHourMapper.getCount(lineId, pointId, monthBegin, date);
+        Integer quarter = pointStatisticHourMapper.getCount(lineId, pointId, quarterBegin, date);
+        Integer year = pointStatisticHourMapper.getCount(lineId, pointId, yearBegin, date);
 
         //上个月
         DateTime lastMonthBegin = DateUtil.beginOfMonth(DateUtil.offsetMonth(DateUtil.date(), -1));
         DateTime lastMonthEnd = DateUtil.endOfMonth(DateUtil.offsetMonth(DateUtil.date(), -1));
-        Integer lastMonth = pointStatisticHourMapper.getCount(pointId, lastMonthBegin, lastMonthEnd);
+        Integer lastMonth = pointStatisticHourMapper.getCount(lineId, pointId, lastMonthBegin, lastMonthEnd);
 
         //上个季度
         DateTime lastQuarterBegin = DateUtil.beginOfQuarter(DateUtil.offsetMonth(DateUtil.date(), -3));
         DateTime lastQuarterEnd = DateUtil.endOfQuarter(DateUtil.offsetMonth(DateUtil.date(), -3));
-        Integer lastQuarter = pointStatisticHourMapper.getCount(pointId, lastQuarterBegin, lastQuarterEnd);
+        Integer lastQuarter = pointStatisticHourMapper.getCount(lineId, pointId, lastQuarterBegin, lastQuarterEnd);
         //去年
         DateTime lastYearToday = DateUtil.offsetMonth(DateUtil.date(), -12);
         DateTime lastYearMonthBegin = DateUtil.beginOfMonth(lastYearToday);
@@ -65,9 +65,9 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         DateTime lastYearBegin = DateUtil.beginOfYear(lastYearToday);
         DateTime lastYearEnd = DateUtil.endOfYear(lastYearToday);
 
-        Integer lastYearMonth = pointStatisticHourMapper.getCount(pointId, lastYearMonthBegin, lastYearMonthEnd);
-        Integer lastYearQuarter = pointStatisticHourMapper.getCount(pointId, lastYearQuarterBegin, lastYearQuarterEnd);
-        Integer lastYear = pointStatisticHourMapper.getCount(pointId, lastYearBegin, lastYearEnd);
+        Integer lastYearMonth = pointStatisticHourMapper.getCount(lineId, pointId, lastYearMonthBegin, lastYearMonthEnd);
+        Integer lastYearQuarter = pointStatisticHourMapper.getCount(lineId, pointId, lastYearQuarterBegin, lastYearQuarterEnd);
+        Integer lastYear = pointStatisticHourMapper.getCount(lineId, pointId, lastYearBegin, lastYearEnd);
 
 
         return AnalyzeVO.builder().month(month)
@@ -86,11 +86,11 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         if (Objects.nonNull(n1) && Objects.nonNull(n2) && n2 != 0) {
             return res * n1 / n2;
         }
-        return null;
+        return 0D;
     }
 
     @Override
-    public AnalyzeVO getPeopleAnalyze(String cameraIp) {
+    public AnalyzeVO getPeopleAnalyze(Integer lineId, String cameraIp) {
         //当前时间
         DateTime date = DateUtil.date();
         //当前
@@ -98,19 +98,19 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         DateTime quarterBegin = DateUtil.beginOfQuarter(date);
         DateTime yearBegin = DateUtil.beginOfYear(date);
 
-        Integer month = processLinePictureHistMapper.getCount(cameraIp, monthBegin, date);
-        Integer quarter = processLinePictureHistMapper.getCount(cameraIp, quarterBegin, date);
-        Integer year = processLinePictureHistMapper.getCount(cameraIp, yearBegin, date);
+        Integer month = processLinePictureHistMapper.getCount(lineId, cameraIp, monthBegin, date);
+        Integer quarter = processLinePictureHistMapper.getCount(lineId, cameraIp, quarterBegin, date);
+        Integer year = processLinePictureHistMapper.getCount(lineId, cameraIp, yearBegin, date);
 
         //上个月
         DateTime lastMonthBegin = DateUtil.beginOfMonth(DateUtil.offsetMonth(DateUtil.date(), -1));
         DateTime lastMonthEnd = DateUtil.endOfMonth(DateUtil.offsetMonth(DateUtil.date(), -1));
-        Integer lastMonth = processLinePictureHistMapper.getCount(cameraIp, lastMonthBegin, lastMonthEnd);
+        Integer lastMonth = processLinePictureHistMapper.getCount(lineId, cameraIp, lastMonthBegin, lastMonthEnd);
 
         //上个季度
         DateTime lastQuarterBegin = DateUtil.beginOfQuarter(DateUtil.offsetMonth(DateUtil.date(), -3));
         DateTime lastQuarterEnd = DateUtil.endOfQuarter(DateUtil.offsetMonth(DateUtil.date(), -3));
-        Integer lastQuarter = processLinePictureHistMapper.getCount(cameraIp, lastQuarterBegin, lastQuarterEnd);
+        Integer lastQuarter = processLinePictureHistMapper.getCount(lineId, cameraIp, lastQuarterBegin, lastQuarterEnd);
         //去年
         DateTime lastYearToday = DateUtil.offsetMonth(DateUtil.date(), -12);
         DateTime lastYearMonthBegin = DateUtil.beginOfMonth(lastYearToday);
@@ -120,9 +120,9 @@ public class AnalyzeServiceImpl implements AnalyzeService {
         DateTime lastYearBegin = DateUtil.beginOfYear(lastYearToday);
         DateTime lastYearEnd = DateUtil.endOfYear(lastYearToday);
 
-        Integer lastYearMonth = processLinePictureHistMapper.getCount(cameraIp, lastYearMonthBegin, lastYearMonthEnd);
-        Integer lastYearQuarter = processLinePictureHistMapper.getCount(cameraIp, lastYearQuarterBegin, lastYearQuarterEnd);
-        Integer lastYear = processLinePictureHistMapper.getCount(cameraIp, lastYearBegin, lastYearEnd);
+        Integer lastYearMonth = processLinePictureHistMapper.getCount(lineId, cameraIp, lastYearMonthBegin, lastYearMonthEnd);
+        Integer lastYearQuarter = processLinePictureHistMapper.getCount(lineId, cameraIp, lastYearQuarterBegin, lastYearQuarterEnd);
+        Integer lastYear = processLinePictureHistMapper.getCount(lineId, cameraIp, lastYearBegin, lastYearEnd);
         return AnalyzeVO.builder().month(month).quarter(quarter).year(year).lastMonth(lastMonth).lastQuarter(lastQuarter).lastYearMonth(lastYearMonth).lastYearQuarter(lastYearQuarter).lastYear(lastYear).monthOnMonth(getRate(month, lastYearMonth)).monthOverMonth(getRate(month, lastMonth)).quarterOnQuarter(getRate(quarter, lastYearQuarter)).quarterOverQuarter(getRate(quarter, lastQuarter)).yearOverYear(getRate(year, lastYear)).build();
     }
 

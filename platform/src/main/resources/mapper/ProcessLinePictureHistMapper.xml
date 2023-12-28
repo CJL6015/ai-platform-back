@@ -27,6 +27,18 @@
                       and camera_id = #{cameraIp}
                     ORDER BY NEWID())
     </update>
+
+    <update id="setInspectionMinute1">
+        update process_line_picture_hist
+        set inspection =2
+        where id = (select top 1 id
+                    from process_line_picture_hist
+                    where update_time >= #{st}
+                      and update_time &lt;= #{et}
+                      and camera_id = #{cameraIp}
+                      and inspection is null
+                    ORDER BY NEWID())
+    </update>
     <select id="getPendingChecks" resultType="com.seu.platform.dao.entity.ProcessLinePictureHist">
         select top 9 camera_id,
                      min(picture_path) as picture_path,
@@ -48,6 +60,7 @@
         row_number() over (partition by camera_id order
         by update_time) as rtn
         from process_line_picture_hist
+        with (nolock)
         where people_has_checked=1
         and camera_id in
         <foreach collection="ips" separator="," item="ip" open="(" close=")">
@@ -62,26 +75,35 @@
     <select id="lastTime" resultType="java.util.Date">
         select DATEADD(HOUR, DATEDIFF(HOUR, 0, max(update_time)), 0) as time
         from process_line_picture_hist
+                 with (nolock)
         where people_has_checked = 1
           and inspection = 1
     </select>
     <select id="getMonthTrend" resultType="com.seu.platform.model.dto.TrendDTO">
-        select sum(IIF(people_count > 1, 1, 0)) as count,
-               cast(update_time as date)        as time
-        from process_line_picture_hist
-        where update_time >= #{st}
-          and update_time &lt;= #{et}
-        group by cast(update_time as date)
+        select sum(IIF(t1.exceed = 1, 1, 0)) as count,
+               cast(t1.update_time as date)  as time
+        from process_line_picture_hist t1 with (nolock) ,
+             camera_cfg t2  with (nolock)
+        where t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+          and t1.inspection = 1
+          and t1.people_has_checked = 1
+        group by cast(t1.update_time as date)
         order by time
     </select>
     <select id="getDailyTrend" resultType="com.seu.platform.model.dto.TrendDTO">
         select sum(IIF(people_count > 1, 1, 0)) as count,
-               update_time                      as time
-        from process_line_picture_hist
-        where update_time >= dateadd(DAY, -1, (select max(update_time)
-                                               from process_line_picture_hist))
-        group by update_time
-        order by update_time
+               t1.update_time                   as time
+        from process_line_picture_hist t1 with (nolock),
+             camera_cfg t2 with (nolock)
+        where t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
+          and t1.update_time >= dateadd(DAY, -1, (select max(update_time)
+                                                  from process_line_picture_hist))
+        group by t1.update_time
+        order by t1.update_time
     </select>
     <select id="getPeopleTrend" resultType="com.seu.platform.model.dto.DetectionTrendDTO">
         select t1.id,
@@ -90,11 +112,13 @@
                t2.time,
                max(t2.people_count)  as max_count
         from camera_cfg t1
+                 with (nolock)
                  left join (select camera_id,
                                    IIF(process_line_picture_hist.exceed = 1, 1, 0) as count,
                                    cast(update_time as date)                       as time,
                                    people_count
                             from process_line_picture_hist
+                                     with (nolock)
                             where process_line_picture_hist.update_time >= #{st}
                               and process_line_picture_hist.update_time &lt;= #{et}) t2 on t1.camera_ip = t2.camera_id
         where t1.line_id = #{lineId}
@@ -105,8 +129,9 @@
     <select id="getTotalTrend" resultType="com.seu.platform.model.dto.TrendDTO">
         select sum(iif(t1.exceed = 1, 1, 0)) as count,
                cast(t1.update_time as date)  as time
-        from process_line_picture_hist t1,
+        from process_line_picture_hist t1 with (nolock),
              camera_cfg t2
+                 with (nolock)
         where t1.camera_id = t2.camera_ip
           and t2.line_id = #{lineId}
           and t1.update_time >= #{st}
@@ -117,8 +142,8 @@
     <select id="getTimeOverrun" resultType="com.seu.platform.model.dto.HourTrendDTO">
         select sum(iif(t1.exceed = 1, 1, 0))  as count,
                DATEPART(HOUR, t1.update_time) as time
-        from process_line_picture_hist t1,
-             camera_cfg t2
+        from process_line_picture_hist t1 with (nolock),
+             camera_cfg t2 with (nolock)
         where t1.camera_id = t2.camera_ip
           and t2.line_id = #{lineId}
           and t1.update_time >= #{st}
@@ -129,8 +154,8 @@
     <select id="getScoreDaily" resultType="com.seu.platform.model.dto.TrendDTO">
         select sum(iif(t1.exceed = 1, 1, 0)) as count,
                cast(t1.update_time as date)  as time
-        from process_line_picture_hist t1,
-             camera_cfg t2
+        from process_line_picture_hist t1 with (nolock),
+             camera_cfg t2 with (nolock)
         where t1.camera_id = t2.camera_ip
           and t2.line_id = #{lineId}
           and t1.update_time >= #{st}
@@ -141,19 +166,23 @@
     </select>
     <select id="getExceedCount" resultType="java.lang.Integer">
         select sum(iif(t1.exceed = 1, 1, 0)) as count
-        from process_line_picture_hist t1,
-             camera_cfg t2
+        from process_line_picture_hist t1 with (nolock),
+        camera_cfg t2
+        with (nolock)
         where t1.camera_id = t2.camera_ip
-          and t2.line_id = #{lineId}
-          and t1.update_time >= #{st}
-          and t1.update_time &lt;= #{et}
-          and t1.inspection = 1
+        <if test="lineId != null">
+            and t2.line_id = #{lineId}
+        </if>
+        and t1.update_time >= #{st}
+        and t1.update_time &lt;= #{et}
+        and t1.inspection = 1
     </select>
     <select id="getTopTime" resultType="com.seu.platform.model.dto.CountStatisticDTO">
         select sum(iif(t1.exceed = 1, 1, 0))  as count,
                DATEPART(HOUR, t1.update_time) as name
-        from process_line_picture_hist t1,
+        from process_line_picture_hist t1 with (nolock),
              camera_cfg t2
+                 with (nolock)
         where t1.camera_id = t2.camera_ip
           and t2.line_id = #{lineId}
           and t1.update_time >= #{st}
@@ -163,8 +192,9 @@
     </select>
     <select id="exceedCount" resultType="java.lang.Integer">
         select count(t2.id) as count
-        from camera_cfg t1,
+        from camera_cfg t1 with (nolock),
              process_line_picture_hist t2
+                 with (nolock)
         where t1.camera_ip = t2.camera_id
           and t2.exceed = 1
           and t2.update_time >= #{st}
@@ -175,8 +205,9 @@
     <select id="getTopProcess" resultType="com.seu.platform.model.dto.CountStatisticDTO">
         select sum(iif(t1.exceed = 1, 1, 0)) as count,
                t2.camera_description         as name
-        from process_line_picture_hist t1,
+        from process_line_picture_hist t1 with (nolock),
              camera_cfg t2
+                 with (nolock)
         where t1.camera_id = t2.camera_ip
           and t2.line_id = #{lineId}
           and t1.update_time >= #{st}
@@ -190,11 +221,25 @@
                t2.camera_ip,
                max(t3.inspection_capture_interval) as interval,
                max(t3.inspection_capture_mode)     as mode
-        from camera_cfg t2
-                 left join inspection_cfg t3 on t2.line_id = t3.line_id
-                 left join process_line_picture_hist t1
+        from camera_cfg t2 with (nolock)
+                 left join inspection_cfg t3 with (nolock) on t2.line_id = t3.line_id
+                 left join process_line_picture_hist t1 with (nolock)
                            on t1.camera_id = t2.camera_ip
                                and t1.inspection = 1
+        group by t2.camera_ip, t2.line_id
+    </select>
+
+    <select id="getLast1" resultType="com.seu.platform.model.entity.LineInspection">
+        select max(t1.update_time)                 as time,
+               t2.line_id,
+               t2.camera_ip,
+               max(t3.inspection_capture_interval) as interval,
+               max(t3.inspection_capture_mode)     as mode
+        from camera_cfg t2 with (nolock)
+                 left join inspection_cfg t3 with (nolock) on t2.line_id = t3.line_id
+                 left join process_line_picture_hist t1 with (nolock)
+                           on t1.camera_id = t2.camera_ip
+                               and t1.inspection = 2
         group by t2.camera_ip, t2.line_id
     </select>
     <select id="getFirstTime" resultType="java.util.Date">
@@ -205,18 +250,24 @@
 
     <select id="getCount" resultType="java.lang.Integer">
         select count(*) as count
-        from process_line_picture_hist
-        where exceed = 1
-        and update_time >= #{st}
-        and update_time &lt;= #{et}
-        and inspection = 1
+        from process_line_picture_hist t1
+        with (nolock) ,camera_cfg t2 with (nolock)
+        where t1.camera_id=t2.camera_ip
+        <if test="lineId != null and lineId != -1">
+            and t2.line_id=#{lineId}
+        </if>
+        and t1.exceed = 1
+        and t1.update_time >= #{st}
+        and t1.update_time &lt;= #{et}
+        and t1.inspection = 1
         <if test="cameraIp != null and cameraIp !='-1'">
-            and camera_id = #{cameraIp}
+            and t1.camera_id = #{cameraIp}
         </if>
     </select>
     <select id="getNextTime" resultType="java.util.Date">
         select top 1 update_time
         from process_line_picture_hist
+                 with (nolock)
         where update_time >= #{st}
           and camera_id = #{cameraIp}
         order by update_time
@@ -224,7 +275,8 @@
     <select id="getDetectionTime" resultType="java.util.Date">
         select update_time as time
         from process_line_picture_hist t1
-        where t1.camera_id = (select top 1 camera_ip from camera_cfg where line_id = #{lineId})
+                 with (nolock)
+        where t1.camera_id = (select top 1 camera_ip from camera_cfg with (nolock) where line_id = #{lineId})
           and t1.inspection = 1
           and t1.people_has_checked = 1
           and t1.update_time >= #{st}
@@ -234,9 +286,11 @@
     <select id="getCounts" resultType="java.lang.Integer">
         select sum(COALESCE(t2.count, 0)) as count
         from camera_cfg t1
+                 with (nolock)
                  left join(select 1 as count,
                                   camera_id
                            from process_line_picture_hist
+                                    with (nolock)
                            where inspection = 1
                              and people_has_checked = 1
                              and people_count > 1
@@ -247,4 +301,11 @@
         group by t1.id
         order by t1.id
     </select>
+    <select id="getPicturePathString" resultType="java.lang.String">
+        select top 1 picture_path
+        from process_line_picture_hist
+        where camera_id = #{cameraIp}
+        order by update_time desc
+    </select>
+
 </mapper>

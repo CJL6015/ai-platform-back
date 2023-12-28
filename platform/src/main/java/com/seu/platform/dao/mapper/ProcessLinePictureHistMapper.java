@@ -55,7 +55,7 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      * @param et 结束时间
      * @return 趋势
      */
-    List<TrendDTO> getMonthTrend(Date st, Date et);
+    List<TrendDTO> getMonthTrend(Integer lineId, Date st, Date et);
 
 
     /**
@@ -65,7 +65,7 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      * @param et 结束时间
      * @return 日趋势
      */
-    List<TrendDTO> getDailyTrend(Date st, Date et);
+    List<TrendDTO> getDailyTrend(Integer lineId, Date st, Date et);
 
     /**
      * 获取设备超限趋势
@@ -109,15 +109,22 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
 
     List<LineInspection> getLast();
 
+    List<LineInspection> getLast1();
+
     Boolean setInspectionMinute(String cameraIp, Date st, Date et);
+
+    Boolean setInspectionMinute1(String cameraIp, Date st, Date et);
 
     Date getFirstTime(String cameraIp);
 
     Date getNextTime(String cameraIp, Date st);
 
-    Integer getCount(String cameraIp, Date st, Date et);
+    Integer getCount(Integer lineId, String cameraIp, Date st, Date et);
 
     List<Integer> getCounts(Integer lineId, Date st, Date et);
+
+    String getPicturePathString(String cameraIp);
+
 }
 
 

@@ -141,7 +141,7 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
     public TrendDetailVO getTrendDetailDaily(Integer lineId) {
         DateTime date = DateUtil.date();
         DateTime dateTime = DateUtil.offsetDay(date, -1);
-        List<BenchmarkDTO> trendDetailMonth = getBaseMapper().getTrendDetailDaily(lineId,dateTime);
+        List<BenchmarkDTO> trendDetailMonth = getBaseMapper().getTrendDetailDaily(lineId, dateTime);
         List<String> equipments = new ArrayList<>();
         List<String> times = new ArrayList<>();
         List<List<Integer>> data = new ArrayList<>();
@@ -207,12 +207,16 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
 
     @Override
     public List<ScoreVO> getScores(Integer lineId, TimeRange timeRange) {
-        List<ScoreVO> score = getBaseMapper().getScore(lineId, timeRange.getSt(), timeRange.getEt());
+        Date st = timeRange.getSt();
+        Date et = timeRange.getEt();
+        int day = Math.max(1, (int) DateUtil.betweenDay(st, et, false));
+        List<ScoreVO> score = getBaseMapper().getScore(lineId, st, et);
         score = score.stream().filter(Objects::nonNull).peek(t -> {
             String name = t.getName();
             if (StringUtils.hasText(name)) {
                 t.setName(name.trim());
             }
+            t.setScore(100 - t.getScore() / day);
         }).collect(Collectors.toList());
         return score;
     }

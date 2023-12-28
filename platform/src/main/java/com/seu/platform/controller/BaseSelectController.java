@@ -62,9 +62,9 @@ public class BaseSelectController {
         return Result.success(equipments);
     }
 
-    @GetMapping("/point/list")
-    public Result<List<OptionItemVO>> getPoints() {
-        List<OptionItemVO> points = selectService.getPoints();
+    @GetMapping("/point/list/{lineId}")
+    public Result<List<OptionItemVO>> getPoints(@PathVariable Integer lineId) {
+        List<OptionItemVO> points = selectService.getPoints(lineId);
         return Result.success(points);
     }
 

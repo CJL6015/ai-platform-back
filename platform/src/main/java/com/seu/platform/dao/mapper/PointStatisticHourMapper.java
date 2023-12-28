@@ -119,7 +119,7 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
 
     List<ScoreDailyVO> getScoreDaily(Integer lineId, Date st, Date et);
 
-    Integer getCount(Integer pointId, Date st, Date et);
+    Integer getCount(Integer lineId, Integer pointId, Date st, Date et);
 
     List<Integer> getCounts(Integer lineId, Date st, Date et);
 

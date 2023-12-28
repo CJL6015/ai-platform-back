@@ -1,7 +1,10 @@
 package com.seu.platform.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.seu.platform.dao.entity.WarnCfg;
 import com.seu.platform.dao.mapper.PointStatisticHourMapper;
 import com.seu.platform.dao.mapper.ProcessLinePictureHistMapper;
+import com.seu.platform.dao.service.WarnCfgService;
 import com.seu.platform.model.dto.TrendDTO;
 import com.seu.platform.model.vo.ScoreDailyVO;
 import com.seu.platform.model.vo.TimeRange;
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ScoreServiceImpl implements ScoreService {
+    private final WarnCfgService warnCfgService;
     private final PointStatisticHourMapper pointStatisticHourMapper;
 
     private final ProcessLinePictureHistMapper processLinePictureHistMapper;
@@ -51,6 +55,10 @@ public class ScoreServiceImpl implements ScoreService {
 
     @Override
     public List<List<Object>> getScoreTrend(Integer lineId, TimeRange timeRange) {
+        LambdaQueryWrapper<WarnCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(WarnCfg::getLineId, lineId);
+        WarnCfg one = warnCfgService.getOne(queryWrapper);
+        Double peopleScore = one.getPeopleScore();
         List<ScoreDailyVO> scoreDaily = pointStatisticHourMapper.getScoreDaily(lineId,
                 timeRange.getSt(), timeRange.getEt());
         List<TrendDTO> scoreDaily1 = processLinePictureHistMapper.getScoreDaily(lineId,
@@ -70,7 +78,7 @@ public class ScoreServiceImpl implements ScoreService {
             Optional<TrendDTO> first1 = scoreDaily1.stream().filter(t -> date.equals(dateFormat.format(t.getTime()))).findFirst();
             double s2 = 0D;
             if (first1.isPresent()) {
-                s2 = (double) (first1.get().getCount());
+                s2 = peopleScore * (first1.get().getCount());
             }
             score2.add(s2);
             total.add(100 - s - s2);

@@ -21,15 +21,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class AnalyzeController {
     private final AnalyzeService analyzeService;
 
-    @GetMapping("/param/{pointId}")
-    public Result<AnalyzeVO> getParamAnalyze(@PathVariable Integer pointId) {
-        AnalyzeVO paramAnalyze = analyzeService.getParamAnalyze(pointId);
+    @GetMapping("/param/{lineId}")
+    public Result<AnalyzeVO> getParamAnalyze(@PathVariable Integer lineId, Integer pointId) {
+        AnalyzeVO paramAnalyze = analyzeService.getParamAnalyze(lineId,pointId);
         return Result.success(paramAnalyze);
     }
 
-    @GetMapping("/inspection/{cameraIp}")
-    public Result<AnalyzeVO> getPeopleAnalyze(@PathVariable String cameraIp) {
-        AnalyzeVO peopleAnalyze = analyzeService.getPeopleAnalyze(cameraIp);
+    @GetMapping("/inspection/{lineId}")
+    public Result<AnalyzeVO> getPeopleAnalyze(@PathVariable Integer lineId, String cameraIp) {
+        AnalyzeVO peopleAnalyze = analyzeService.getPeopleAnalyze(lineId, cameraIp);
         return Result.success(peopleAnalyze);
     }
 

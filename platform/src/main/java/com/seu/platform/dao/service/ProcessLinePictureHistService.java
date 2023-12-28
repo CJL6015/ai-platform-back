@@ -42,7 +42,7 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
      * @param timeRange 时间范围
      * @return 趋势
      */
-    TrendVO<String, Integer> getTrendMonth(TimeRange timeRange);
+    TrendVO<String, Integer> getTrendMonth(Integer lineId, TimeRange timeRange);
 
     /**
      * 获取日趋势
@@ -50,7 +50,7 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
      * @param timeRange 时间范围
      * @return 趋势
      */
-    TrendVO<String, Integer> getTrendDaily(TimeRange timeRange);
+    TrendVO<String, Integer> getTrendDaily(Integer lineId, TimeRange timeRange);
 
     /**
      * 查询设备超限趋势
@@ -74,10 +74,15 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
 
     List<LineInspection> getLast();
 
+    List<LineInspection> getLast1();
+
+
     Integer exceedCount(Integer lineId, Date st, Date et);
 
 
     Boolean setInspectionMinute(String cameraIp, Date st, Date et);
+
+    Boolean setInspectionMinute1(String cameraIp, Date st, Date et);
 
     Date getFirstTime(String cameraIp);
 

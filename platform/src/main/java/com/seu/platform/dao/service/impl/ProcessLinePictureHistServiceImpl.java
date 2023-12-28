@@ -46,6 +46,9 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     @Value("${static.detection-prefix}")
     private String picturePrefix;
 
+    @Value("${static.detection-prefix1}")
+    private String picturePrefix1;
+
     private static List<Double> getPredictions(List<Integer> y, double[] parameters) {
         List<Double> predictions = new ArrayList<>();
         for (int i = 0; i < y.size(); i++) {
@@ -79,12 +82,13 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
             detectionResult = getBaseMapper().getDetectionResult(ips, time);
         }
         List<DetectionResultVO> res = new ArrayList<>();
+        String prefix = (lineId == 3 || lineId == 4 || lineId == 5) ? picturePrefix1 : picturePrefix;
         for (CameraCfg cameraCfg : list) {
             DetectionResultVO vo = new DetectionResultVO();
             for (DetectionResultVO detectionResultVO : detectionResult) {
                 if (cameraCfg.getCameraIp().equals(detectionResultVO.getCameraId())) {
                     BeanUtil.copyProperties(detectionResultVO, vo);
-                    vo.setDetectionPicturePath(picturePrefix + detectionResultVO.getDetectionPicturePath());
+                    vo.setDetectionPicturePath(prefix + detectionResultVO.getDetectionPicturePath());
                 }
             }
             if (vo.getPeopleCount() == null) {
@@ -103,11 +107,11 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     public List<String> getTimes(Integer lineId) {
         Date et = new Date();
         DateTime st = DateUtil.offsetDay(et, -1);
-        String key = DateUtil.format(st, "yyyy-MM-dd HH:mm:ss");
+        String key = DateUtil.format(st, "yyyy-MM-dd HH") + lineId;
         List<Date> detectionTime = cache.getOrDefault(key, getBaseMapper().getDetectionTime(lineId, st, et));
         cache.put(key, detectionTime);
         return detectionTime.stream()
-                .map(t -> DateUtil.format(t, "yyyy-MM-dd HH:mm:ss"))
+                .map(t -> DateUtil.format(t, "yyyy-MM-dd HH") + ":00:00")
                 .collect(Collectors.toList());
     }
 
@@ -117,8 +121,8 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     }
 
     @Override
-    public TrendVO<String, Integer> getTrendMonth(TimeRange timeRange) {
-        List<TrendDTO> monthTrend = getBaseMapper().getMonthTrend(timeRange.getSt(), timeRange.getEt());
+    public TrendVO<String, Integer> getTrendMonth(Integer lineId, TimeRange timeRange) {
+        List<TrendDTO> monthTrend = getBaseMapper().getMonthTrend(lineId, timeRange.getSt(), timeRange.getEt());
         List<String> times = new ArrayList<>();
         List<Integer> counts = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -132,8 +136,8 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     }
 
     @Override
-    public TrendVO<String, Integer> getTrendDaily(TimeRange timeRange) {
-        List<TrendDTO> dailyTrend = getBaseMapper().getDailyTrend(timeRange.getSt(), timeRange.getEt());
+    public TrendVO<String, Integer> getTrendDaily(Integer lineId, TimeRange timeRange) {
+        List<TrendDTO> dailyTrend = getBaseMapper().getDailyTrend(lineId, timeRange.getSt(), timeRange.getEt());
         List<String> times = new ArrayList<>();
         List<Integer> counts = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM月dd日HH时");
@@ -224,16 +228,23 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
             Integer time = dto.getTime();
             hours[time] = dto.getCount();
         }
-
+        List<Integer> nums = totalTrend.stream().map(TrendDTO::getCount).collect(Collectors.toList());
+        double a = MathUtil.fitting(nums, 1)[1];
         return BenchmarkTrendVO.builder()
                 .trend(trend)
                 .hours(hours)
+                .summary(a > 0 ? "上升趋势" : "下降趋势")
                 .build();
     }
 
     @Override
     public List<LineInspection> getLast() {
         return getBaseMapper().getLast();
+    }
+
+    @Override
+    public List<LineInspection> getLast1() {
+        return getBaseMapper().getLast1();
     }
 
     @Override
@@ -244,6 +255,11 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     @Override
     public Boolean setInspectionMinute(String cameraIp, Date st, Date et) {
         return getBaseMapper().setInspectionMinute(cameraIp, st, et);
+    }
+
+    @Override
+    public Boolean setInspectionMinute1(String cameraIp, Date st, Date et) {
+        return getBaseMapper().setInspectionMinute1(cameraIp, st, et);
     }
 
     @Override

@@ -18,4 +18,6 @@ public class BenchmarkTrendVO {
     private List<Object[]> trend;
 
     private int[] hours;
+
+    private String summary;
 }

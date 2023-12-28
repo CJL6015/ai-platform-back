@@ -56,4 +56,6 @@ public class WarnCfg implements Serializable {
     private Double highScore;
 
     private Double peopleScore;
+
+    private Double score;
 }

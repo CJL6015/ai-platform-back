@@ -5,11 +5,14 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.seu.platform.dao.entity.StorehouseHist;
+import com.seu.platform.dao.mapper.ProcessLinePictureHistMapper;
 import com.seu.platform.dao.service.StorehouseHistService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.StorehouseHistVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +33,11 @@ public class StorehouseController {
     private static final int LIMIT = 200;
     private final StorehouseHistService service;
 
+    private final ProcessLinePictureHistMapper processLinePictureHistMapper;
+
+    @Value("${static.storehouse-prefix}")
+    private String picturePrefix;
+
     @GetMapping("/history")
     public Result<List<StorehouseHistVO>> getList(@DateTimeFormat(pattern = "yyyy-MM")
                                                   @JsonFormat(pattern = "yyyy-MM", timezone = "GMT+8")
@@ -48,6 +56,15 @@ public class StorehouseController {
                 .exceed(t.getStoreCount() > LIMIT ? "是" : "否")
                 .build()).collect(Collectors.toList());
         return Result.success(collect);
+    }
 
+    @GetMapping("/images")
+    public Result<String> getImages(String ip) {
+        String picturePathString = processLinePictureHistMapper.getPicturePathString(ip);
+        if (StringUtils.hasText(picturePathString)) {
+            String path = picturePrefix + picturePathString.substring(picturePathString.lastIndexOf("\\") + 1);
+            return Result.success(path);
+        }
+        return Result.fail("当前无图像");
     }
 }

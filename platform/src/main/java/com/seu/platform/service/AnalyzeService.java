@@ -15,7 +15,7 @@ public interface AnalyzeService {
      * @param pointId 测点id
      * @return 数据
      */
-    AnalyzeVO getParamAnalyze(Integer pointId);
+    AnalyzeVO getParamAnalyze(Integer lineId, Integer pointId);
 
     /**
      * 获取分析数据
@@ -23,14 +23,18 @@ public interface AnalyzeService {
      * @param cameraIp 工序
      * @return 数据
      */
-    AnalyzeVO getPeopleAnalyze(String cameraIp);
+    AnalyzeVO getPeopleAnalyze(Integer lineId, String cameraIp);
 
     BenchmarkChartVO getPeopleBenchmarkDaily(Integer lineId, Integer num);
+
     BenchmarkChartVO getPeopleBenchmarkMonth(Integer lineId, Integer num);
+
     BenchmarkChartVO getPeopleBenchmarkQuarter(Integer lineId, Integer num);
 
     BenchmarkChartVO getPointBenchmarkDaily(Integer lineId, Integer num);
+
     BenchmarkChartVO getPointBenchmarkMonth(Integer lineId, Integer num);
+
     BenchmarkChartVO getPointBenchmarkQuarter(Integer lineId, Integer num);
 
 }

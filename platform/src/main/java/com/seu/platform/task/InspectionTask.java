@@ -24,7 +24,6 @@ public class InspectionTask {
     private final ProcessLinePictureHistService processLinePictureHistService;
 
 
-    @Transactional(rollbackFor = Exception.class)
     @Scheduled(fixedDelay = 10000)
     public void doTask() {
         List<LineInspection> last = processLinePictureHistService.getLast();
@@ -67,6 +66,53 @@ public class InspectionTask {
                     et = DateTime.of(nextTime);
                 }
                 Boolean result = processLinePictureHistService.setInspectionMinute(cameraIp, st, et);
+                log.info("{}巡检时间为{}-{},结果:{}", cameraIp, st, et, result);
+            }
+        }
+    }
+
+    @Scheduled(fixedDelay = 10000)
+    public void doTask1() {
+        List<LineInspection> last = processLinePictureHistService.getLast1();
+        if (CollUtil.isEmpty(last)) {
+            log.info("本次巡检暂无配置");
+            return;
+        }
+        DateTime now = DateUtil.beginOfHour(new Date());
+        Integer lineId = null;
+        DateTime inspectionTime = null;
+        for (LineInspection inspection : last) {
+            Date time = inspection.getTime();
+            String cameraIp = inspection.getCameraIp().trim();
+            int interval = 10;
+            if (Objects.isNull(time)) {
+                time = processLinePictureHistService.getFirstTime(cameraIp);
+                time = DateUtil.offsetMinute(time, -interval);
+            }
+            DateTime lasTime = DateUtil.beginOfMinute(time);
+            long diff = DateUtil.between(lasTime, now, DateUnit.MINUTE);
+            if (diff > interval) {
+                DateTime st;
+                DateTime et;
+                if (Objects.equals(inspection.getLineId(), lineId) && Objects.nonNull(inspectionTime)) {
+                    st = inspectionTime;
+                    et = DateUtil.offsetMinute(st, 1);
+                } else {
+                    st = DateUtil.offsetMinute(lasTime, interval);
+                    et = DateUtil.offsetMinute(st, 1);
+                    if (0 == inspection.getMode()) {
+                        Random random = new Random();
+                        int minutes = random.nextInt(60);
+                        et = DateUtil.offsetMinute(st, minutes);
+                    }
+                    inspectionTime = st;
+                    lineId = inspection.getLineId();
+                }
+                Date nextTime = processLinePictureHistService.getNextTime(cameraIp, st);
+                if (Objects.nonNull(nextTime) && nextTime.after(et)) {
+                    et = DateTime.of(nextTime);
+                }
+                Boolean result = processLinePictureHistService.setInspectionMinute1(cameraIp, st, et);
                 log.info("{}巡检时间为{}-{},结果:{}", cameraIp, st, et, result);
             }
         }

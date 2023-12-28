@@ -167,13 +167,13 @@
         where t1.line_id = #{lineId}
     </select>
     <select id="getScore" resultType="com.seu.platform.model.vo.ScoreVO">
-        select t2.equipment_id                                                                                as id,
-               t3.equipment_description                                                                       as name,
-               100 - sum(t1.up_low_exceeded_count * t2.score + t1.upup_lowlow_exceeded_count * t2.high_score) as score
-        from point_statistic_hour t1
+        select t2.equipment_id                                                                          as id,
+               t3.equipment_description                                                                 as name,
+               sum(t1.up_low_exceeded_count * t2.score + t1.upup_lowlow_exceeded_count * t2.high_score) as score
+        from point_statistic_hour t1 with (nolock)
                  left join
-             point_cfg t2 on t1.point_id = t2.point_id
-                 left join equipment_cfg t3 on t2.equipment_id = t3.id
+             point_cfg t2 with (nolock) on t1.point_id = t2.point_id
+                 left join equipment_cfg t3 with (nolock) on t2.equipment_id = t3.id
         where t1.line_id = #{lineId}
           and t1.statiatic_start_time >= #{st}
           and t1.statiatic_start_time &lt;= #{et}
@@ -184,12 +184,13 @@
         select sum(t1.up_low_exceeded_count * t2.score + t1.upup_lowlow_exceeded_count * t2.high_score) as score,
                cast(t1.statiatic_start_time as date)                                                    as time
         from point_statistic_hour t1
+                 with (nolock)
                  left join
-             point_cfg t2 on t1.point_id = t2.point_id
+             point_cfg t2 with (nolock) on t1.point_id = t2.point_id
         where t1.line_id = #{lineId}
           and t1.statiatic_start_time >= #{st}
           and t1.statiatic_start_time &lt;= #{et}
-        group by t1.statiatic_start_time
+        group by cast(t1.statiatic_start_time as date)
         order by time
     </select>
     <select id="getCount" resultType="java.lang.Integer">
@@ -197,15 +198,16 @@
         from point_statistic_hour
         where statiatic_start_time >= #{st}
         and statiatic_start_time &lt;= #{et}
+        and line_id=#{lineId}
         <if test="pointId != null and pointId >0">
             and point_id=#{pointId}
         </if>
     </select>
     <select id="getLineScore" resultType="java.lang.Double">
         select sum(t1.up_low_exceeded_count * t2.score + t1.upup_lowlow_exceeded_count * t2.high_score) as score
-        from point_statistic_hour t1
+        from point_statistic_hour t1 with (nolock )
         left join
-        point_cfg t2 on t1.point_id = t2.point_id
+        point_cfg t2 with (nolock ) on t1.point_id = t2.point_id
         where t1.statiatic_start_time >= #{st}
         and t1.statiatic_start_time &lt;= #{et}
         <if test="lineId !=null">
@@ -213,8 +215,8 @@
         </if>
     </select>
     <select id="getCountAvg" resultType="java.lang.Integer">
-        select sum(up_low_exceeded_count) as count
-        from point_statistic_hour
+        select sum(up_low_exceeded_count + upup_lowlow_exceeded_count) as count
+        from point_statistic_hour with (nolock)
         where statiatic_start_time >= #{st}
           and statiatic_start_time &lt;= #{et}
           and line_id = #{lineId}
@@ -222,8 +224,8 @@
     <select id="getTopPoint" resultType="com.seu.platform.model.dto.CountStatisticDTO">
         select top 4 t1.description                as name,
                      sum(t2.up_low_exceeded_count) as count
-        from point_cfg t1,
-             point_statistic_hour t2
+        from point_cfg t1 with (nolock),
+             point_statistic_hour t2 with (nolock)
         where t1.line_id = #{lineId}
           and t1.point_id = t2.point_id
           and t2.statiatic_start_time >= #{st}
@@ -234,8 +236,8 @@
     <select id="getTopEquipment" resultType="com.seu.platform.model.dto.CountStatisticDTO">
         select top 4 t1.equipment_description      as name,
                      sum(t2.up_low_exceeded_count) as count
-        from equipment_cfg t1,
-             point_statistic_hour t2
+        from equipment_cfg t1 with (nolock),
+             point_statistic_hour t2 with (nolock)
         where t1.line_id = #{lineId}
           and t1.line_id = t2.line_id
           and t2.statiatic_start_time >= #{st}
@@ -246,7 +248,7 @@
     <select id="getTopTime" resultType="com.seu.platform.model.dto.CountStatisticDTO">
         select top 4 sum(up_low_exceeded_count)           as count,
                      DATEPART(HOUR, statiatic_start_time) as name
-        from point_statistic_hour
+        from point_statistic_hour with (nolock)
         where statiatic_start_time >= #{st}
           and statiatic_start_time &lt;= #{et}
           and line_id = #{lineId}
@@ -255,7 +257,7 @@
     </select>
     <select id="getRelationEquipment" resultType="java.lang.String">
         select STRING_AGG(equipment_id, ',') AS ids
-        from point_statistic_hour
+        from point_statistic_hour with (nolock)
         where line_id = #{lineId}
           and statiatic_start_time >= #{st}
           and statiatic_start_time &lt;= #{et}
@@ -264,7 +266,7 @@
     </select>
     <select id="getRelationPoint" resultType="java.lang.String">
         select STRING_AGG(point_id, ',') AS ids
-        from point_statistic_hour
+        from point_statistic_hour with (nolock)
         where line_id = #{lineId}
           and statiatic_start_time >= #{st}
           and statiatic_start_time &lt;= #{et}

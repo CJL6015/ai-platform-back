@@ -36,6 +36,9 @@ public class FreezeLogServiceImpl extends ServiceImpl<FreezeLogMapper, FreezeLog
     @Value("${static.detection-prefix}")
     private String picturePrefix;
 
+    @Value("${static.detection-prefix1}")
+    private String picturePrefix1;
+
 
     @Override
     public InspectionHistoryDataVO getInspectionHistoryFreeze(Integer lineId, Date st, Date et) {
@@ -59,12 +62,14 @@ public class FreezeLogServiceImpl extends ServiceImpl<FreezeLogMapper, FreezeLog
             } else {
                 history.setExceededNum(0);
             }
+
+            String prefix = (lineId == 3 || lineId == 4 || lineId == 5) ? picturePrefix1 : picturePrefix;
             if (StringUtils.hasText(history.getImageUrl())) {
                 String[] imgs = history.getImageUrl().split(",");
                 for (int i = 0; i < imgs.length; i++) {
                     InspectionHistoryVO vo = BeanUtil.convertBean(history, InspectionHistoryVO.class);
                     vo.setFreezeTime(Math.round((end - start) / HOUR * 10.0) / 10.0);
-                    vo.setImageUrl(new String[]{picturePrefix + imgs[i]});
+                    vo.setImageUrl(new String[]{prefix + imgs[i]});
                     vo.setExceededPeople(i + 1);
                     tableData.add(vo);
                 }

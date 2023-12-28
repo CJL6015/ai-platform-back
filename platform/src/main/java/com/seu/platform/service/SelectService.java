@@ -39,5 +39,5 @@ public interface SelectService {
      *
      * @return 所有参数
      */
-    List<OptionItemVO> getPoints();
+    List<OptionItemVO> getPoints(Integer lineId);
 }
