@@ -1,5 +1,6 @@
 package com.seu.platform.controller;
 
+import cn.hutool.core.date.DateUtil;
 import com.seu.platform.dao.service.ProcessLinePictureHistService;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.param.BenchmarkQuery;
@@ -11,6 +12,8 @@ import com.seu.platform.service.BenchmarkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +26,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping("/api/benchmark")
 public class BenchmarkController {
+    private static Map<String, BenchmarkTrendVO> cache = new HashMap<>();
     private final BenchmarkService benchmarkService;
-
     private final ProcessLinePictureHistService processLinePictureHistService;
 
     @GetMapping("/detection/{lineId}")
@@ -35,7 +38,17 @@ public class BenchmarkController {
 
     @GetMapping("/trend/detection/{lineId}")
     public Result<BenchmarkTrendVO> getPeopleTotalBenchmark(@PathVariable Integer lineId, TimeRange timeRange) {
-        BenchmarkTrendVO benchmarkTrend = processLinePictureHistService.getBenchmarkTrend(lineId, timeRange.getSt(), timeRange.getEt());
+        Date st = timeRange.getSt();
+        Date et = timeRange.getEt();
+        String st1 = DateUtil.format(st, "yyyy-MM-dd");
+        String et1 = DateUtil.format(et, "yyyy-MM-dd");
+        String key = st1 + et1 + lineId;
+        BenchmarkTrendVO benchmarkTrendVO = cache.get(key);
+        if (benchmarkTrendVO != null) {
+            return Result.success(benchmarkTrendVO);
+        }
+        BenchmarkTrendVO benchmarkTrend = processLinePictureHistService.getBenchmarkTrend(lineId, st, et);
+        cache.put(key, benchmarkTrend);
         return Result.success(benchmarkTrend);
     }
 

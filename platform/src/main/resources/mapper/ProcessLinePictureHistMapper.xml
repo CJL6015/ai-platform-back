@@ -303,7 +303,7 @@
     </select>
     <select id="getPicturePathString" resultType="java.lang.String">
         select top 1 picture_path
-        from process_line_picture_hist
+        from process_line_picture_hist with (nolock)
         where camera_id = #{cameraIp}
         order by update_time desc
     </select>
