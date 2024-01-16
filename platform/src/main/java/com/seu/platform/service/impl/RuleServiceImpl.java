@@ -10,7 +10,7 @@ import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.mapper.PointStatisticHourMapper;
 import com.seu.platform.dao.service.EquipmentCfgService;
 import com.seu.platform.dao.service.PointCfgService;
-import com.seu.platform.model.RelationTableVO;
+import com.seu.platform.model.vo.RelationTableVO;
 import com.seu.platform.model.vo.RelationVO;
 import com.seu.platform.service.RuleService;
 import lombok.RequiredArgsConstructor;

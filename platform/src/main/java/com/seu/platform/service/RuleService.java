@@ -1,9 +1,6 @@
 package com.seu.platform.service;
 
-import com.seu.platform.model.RelationTableVO;
 import com.seu.platform.model.vo.RelationVO;
-
-import java.util.List;
 
 /**
  * @author chenjiale

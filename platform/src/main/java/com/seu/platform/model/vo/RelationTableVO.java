@@ -1,4 +1,4 @@
-package com.seu.platform.model;
+package com.seu.platform.model.vo;
 
 import lombok.*;
 

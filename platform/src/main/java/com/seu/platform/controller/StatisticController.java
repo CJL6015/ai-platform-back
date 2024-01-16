@@ -64,6 +64,5 @@ public class StatisticController {
         pointCfg.setModifyTime(new Date());
         boolean b = pointCfgService.updateById(pointCfg);
         return Result.success(b);
-
     }
 }

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.PointInspectionHourMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.PointInspectionHour">
+            <result property="id" column="id" jdbcType="BIGINT"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="pointId" column="point_id" jdbcType="INTEGER"/>
+            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+            <result property="equipmentId" column="equipment_id" jdbcType="INTEGER"/>
+            <result property="refreshAbnormal" column="refresh_abnormal" jdbcType="INTEGER"/>
+            <result property="upLimitAlarm" column="up_limit_alarm" jdbcType="INTEGER"/>
+            <result property="lowLimitAlarm" column="low_limit_alarm" jdbcType="INTEGER"/>
+            <result property="upUpLimitAlarm" column="up_up_limit_alarm" jdbcType="INTEGER"/>
+            <result property="lowLowLimitAlarm" column="low_low_limit_alarm" jdbcType="INTEGER"/>
+            <result property="totalAlarm" column="total_alarm" jdbcType="INTEGER"/>
+            <result property="lineRunCondition" column="line_run_condition" jdbcType="INTEGER"/>
+            <result property="equipmentRunCondition" column="equipment_run_condition" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,create_time,point_id,
+        line_id,equipment_id,refresh_abnormal,
+        up_limit_alarm,low_limit_alarm,up_up_limit_alarm,
+        low_low_limit_alarm,total_alarm,line_run_condition,
+        equipment_run_condition
+    </sql>
+    <select id="getPointReport" resultType="com.seu.platform.model.dto.PointReportDTO">
+        select point_id as id,
+        sum(total_alarm) as exceed,
+        count(1) as count
+        from point_inspection_hour
+        where point_id in
+        <foreach collection="ids" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+        group by point_id;
+    </select>
+    <select id="getPointInspection" resultType="com.seu.platform.model.dto.PointExceedInspectionDTO">
+        select t2.description              as name,
+               sum(t1.up_up_limit_alarm)   as up_up_count,
+               sum(t1.up_limit_alarm)      as up_count,
+               sum(t1.low_limit_alarm)     as low_count,
+               sum(t1.low_low_limit_alarm) as low_low_count
+        from point_inspection_hour t1
+                 left join point_cfg t2
+                           on t1.point_id = t2.point_id
+        where t1.line_id = #{lineId}
+          and t1.create_time >= #{st}
+          and t1.create_time &lt;= #{et}
+        group by t1.point_id, t2.description
+    </select>
+</mapper>

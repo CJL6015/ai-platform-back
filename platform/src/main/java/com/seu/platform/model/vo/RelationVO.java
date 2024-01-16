@@ -1,6 +1,5 @@
 package com.seu.platform.model.vo;
 
-import com.seu.platform.model.RelationTableVO;
 import lombok.*;
 
 import java.util.List;

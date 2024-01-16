@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * @author chenjiale
  * @version 1.0
@@ -26,4 +28,7 @@ public class MaterialController {
         String filePath = root + path;
         return FileUtil.readBytes(filePath);
     }
+
+
+
 }
