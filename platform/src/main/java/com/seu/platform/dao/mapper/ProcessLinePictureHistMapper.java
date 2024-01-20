@@ -2,10 +2,7 @@ package com.seu.platform.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seu.platform.dao.entity.ProcessLinePictureHist;
-import com.seu.platform.model.dto.CountStatisticDTO;
-import com.seu.platform.model.dto.DetectionTrendDTO;
-import com.seu.platform.model.dto.HourTrendDTO;
-import com.seu.platform.model.dto.TrendDTO;
+import com.seu.platform.model.dto.*;
 import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.DetectionResultVO;
 
@@ -123,7 +120,13 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
 
     List<Integer> getCounts(Integer lineId, Date st, Date et);
 
+    List<PeopleCounts> getPeopleCounts(Integer lineId, Date st, Date et);
+
     String getPicturePathString(String cameraIp);
+
+    String getTopCamera(Integer lineId, Date st, Date et, String cameraIp);
+
+    ExceedDTO getExceed(Integer lineId, Date st, Date et, String cameraIp);
 
 }
 

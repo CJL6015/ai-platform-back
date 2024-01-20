@@ -68,8 +68,8 @@
             <option name="tableUIInfoList">
               <list>
                 <TableUIInfo>
-                  <option name="className" value="PointInspectionHour" />
-                  <option name="tableName" value="point_inspection_hour" />
+                  <option name="className" value="ReportHistory" />
+                  <option name="tableName" value="report_history" />
                 </TableUIInfo>
               </list>
             </option>

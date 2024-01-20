@@ -3,10 +3,7 @@ package com.seu.platform.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seu.platform.dao.entity.PointStatistic;
 import com.seu.platform.dao.entity.PointStatisticHour;
-import com.seu.platform.model.dto.BenchmarkDTO;
-import com.seu.platform.model.dto.CountStatisticDTO;
-import com.seu.platform.model.dto.HourTrendDTO;
-import com.seu.platform.model.dto.TrendDTO;
+import com.seu.platform.model.dto.*;
 import com.seu.platform.model.vo.ScoreDailyVO;
 import com.seu.platform.model.vo.ScoreVO;
 
@@ -127,6 +124,8 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
 
     Double getLineScore(Integer lineId, Date st, Date et);
 
+    List<String> getTopExceed(Integer lineId, Date st, Date et);
+
 
     List<CountStatisticDTO> getTopPoint(Integer lineId, Date st, Date et);
 
@@ -137,6 +136,9 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
     List<String> getRelationPoint(Integer lineId, Date st, Date et);
 
     Double getPlantScore(Integer plantId, Date st, Date et);
+
+
+
 }
 
 

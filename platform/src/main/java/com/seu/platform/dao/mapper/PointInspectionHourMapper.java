@@ -2,6 +2,7 @@ package com.seu.platform.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seu.platform.dao.entity.PointInspectionHour;
+import com.seu.platform.model.dto.ExceedDTO;
 import com.seu.platform.model.dto.PointExceedInspectionDTO;
 import com.seu.platform.model.dto.PointReportDTO;
 
@@ -24,6 +25,8 @@ public interface PointInspectionHourMapper extends BaseMapper<PointInspectionHou
     List<PointReportDTO> getPointReport(Integer[] ids);
 
     List<PointExceedInspectionDTO> getPointInspection(Integer lineId, Date st, Date et);
+
+    ExceedDTO getExceed(Integer lineId, Date st, Date et);
 }
 
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.ReportHistoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.ReportHistory">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="time" column="time" jdbcType="DATE"/>
+            <result property="type" column="type" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,time,type
+    </sql>
+    <select id="getLastTime" resultType="java.util.Date">
+        select top 1 time
+        from report_history
+        where type = #{type}
+        order by time desc
+    </select>
+</mapper>

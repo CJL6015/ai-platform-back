@@ -82,8 +82,8 @@
     <select id="getMonthTrend" resultType="com.seu.platform.model.dto.TrendDTO">
         select sum(IIF(t1.exceed = 1, 1, 0)) as count,
                cast(t1.update_time as date)  as time
-        from process_line_picture_hist t1 with (nolock) ,
-             camera_cfg t2  with (nolock)
+        from process_line_picture_hist t1 with (nolock),
+             camera_cfg t2 with (nolock)
         where t1.camera_id = t2.camera_ip
           and t2.line_id = #{lineId}
           and t1.update_time >= #{st}
@@ -306,6 +306,64 @@
         from process_line_picture_hist with (nolock)
         where camera_id = #{cameraIp}
         order by update_time desc
+    </select>
+    <select id="getPeopleCounts" resultType="com.seu.platform.model.dto.PeopleCounts">
+        select count(1) as count,
+        t2.camera_description as name
+        from process_line_picture_hist t1
+        with (nolock) ,camera_cfg t2 with (nolock)
+        where t1.camera_id=t2.camera_ip
+        <if test="lineId != null and lineId != -1">
+            and t2.line_id=#{lineId}
+        </if>
+        and t1.exceed = 1
+        and t1.update_time >= #{st}
+        and t1.update_time &lt;= #{et}
+        and t1.inspection = 1
+        <if test="cameraIp != null and cameraIp !='-1'">
+            and t1.camera_id = #{cameraIp}
+        </if>
+        group by t2.camera_description
+        order by count desc
+    </select>
+    <select id="getTopCamera" resultType="java.lang.String">
+        select top 1 count(1) as count,
+        t2.camera_description as name
+        from process_line_picture_hist t1
+        with (nolock) ,camera_cfg t2 with (nolock)
+        where t1.camera_id=t2.camera_ip
+        <if test="lineId != null and lineId != -1">
+            and t2.line_id=#{lineId}
+        </if>
+        and t1.exceed = 1
+        and t1.update_time >= #{st}
+        and t1.update_time &lt;= #{et}
+        and t1.inspection = 1
+        <if test="cameraIp != null and cameraIp !='-1'">
+            and t1.camera_id = #{cameraIp}
+        </if>
+        group by t2.camera_description
+        order by count desc
+    </select>
+    <select id="getExceed" resultType="com.seu.platform.model.dto.ExceedDTO">
+        select count(1) as total,
+        sum(iif(t1.exceed=1,1,0)) as exceed
+        from process_line_picture_hist t1
+        with (nolock) ,camera_cfg t2 with (nolock)
+        where t1.camera_id=t2.camera_ip
+        <if test="lineId != null and lineId != -1">
+            and t2.line_id=#{lineId}
+        </if>
+        and t1.exceed = 1
+        and t1.update_time >= #{st}
+        and t1.update_time &lt;= #{et}
+        and t1.inspection = 1
+        <if test="cameraIp != null and cameraIp !='-1'">
+            and t1.camera_id = #{cameraIp}
+        </if>
+    </select>
+    <select id="getExceedCamera" resultType="com.seu.platform.model.dto.ExceedDTO">
+
     </select>
 
 </mapper>

@@ -1,5 +1,7 @@
 package com.seu.platform.service;
 
+import java.util.Date;
+
 /**
  * @author chenjiale
  * @version 1.0
@@ -8,5 +10,9 @@ package com.seu.platform.service;
 public interface ReportService {
     String createReportMonth();
 
-    void createLineReport(Integer lineId);
+    void createLineReport(Integer lineId, Date st, Date et, String path);
+
+    void createPlantReport(Date st, Date et, String path);
+
+    void createInspectionReport(Date st, Date et, String path);
 }

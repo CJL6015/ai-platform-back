@@ -35,6 +35,7 @@ model:
   out-dir: D:\deploy\images\
   input-dir: D:\images_test\
 static:
+  report-dir: C:\work\demo\
   root: D:\deploy\images\
   detection-prefix: http://114.55.245.123:8088/api/static/images/
   detection-prefix1: http://114.55.245.123:8088/api/static/images/

@@ -26,4 +26,12 @@
         where start_time >= #{st}
           and start_time &lt;= #{et}
     </select>
+    <select id="getRunTimeByLineId" resultType="com.seu.platform.model.dto.RunTimeDTO">
+        select sum(run_hour)  as run,
+               sum(stop_hour) as stop
+        from line_stop_run_statistic_hour
+        where start_time >= #{st}
+          and start_time &lt;= #{et}
+          and line_id = #{lineId}
+    </select>
 </mapper>

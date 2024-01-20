@@ -222,36 +222,42 @@
           and line_id = #{lineId}
     </select>
     <select id="getTopPoint" resultType="com.seu.platform.model.dto.CountStatisticDTO">
-        select top 4 t1.description                as name,
-                     sum(t2.up_low_exceeded_count) as count
+        select top 4 t1.description as name,
+        sum(t2.up_low_exceeded_count) as count
         from point_cfg t1 with (nolock),
-             point_statistic_hour t2 with (nolock)
-        where t1.line_id = #{lineId}
-          and t1.point_id = t2.point_id
-          and t2.statiatic_start_time >= #{st}
-          and t2.statiatic_start_time &lt;= #{et}
+        point_statistic_hour t2 with (nolock)
+        where t1.point_id = t2.point_id
+        and t2.statiatic_start_time >= #{st}
+        and t2.statiatic_start_time &lt;= #{et}
+        <if test="lineId != null">
+            and t1.line_id = #{lineId}
+        </if>
         group by t1.description
         order by count desc
     </select>
     <select id="getTopEquipment" resultType="com.seu.platform.model.dto.CountStatisticDTO">
-        select top 4 t1.equipment_description      as name,
-                     sum(t2.up_low_exceeded_count) as count
+        select top 4 t1.equipment_description as name,
+        sum(t2.up_low_exceeded_count) as count
         from equipment_cfg t1 with (nolock),
-             point_statistic_hour t2 with (nolock)
-        where t1.line_id = #{lineId}
-          and t1.line_id = t2.line_id
-          and t2.statiatic_start_time >= #{st}
-          and t2.statiatic_start_time &lt;= #{et}
+        point_statistic_hour t2 with (nolock)
+        where t1.line_id = t2.line_id
+        and t2.statiatic_start_time >= #{st}
+        and t2.statiatic_start_time &lt;= #{et}
+        <if test="lineId != null">
+            and t1.line_id = #{lineId}
+        </if>
         group by t1.equipment_description
         order by count desc
     </select>
     <select id="getTopTime" resultType="com.seu.platform.model.dto.CountStatisticDTO">
-        select top 4 sum(up_low_exceeded_count)           as count,
-                     DATEPART(HOUR, statiatic_start_time) as name
+        select top 4 sum(up_low_exceeded_count) as count,
+        DATEPART(HOUR, statiatic_start_time) as name
         from point_statistic_hour with (nolock)
         where statiatic_start_time >= #{st}
-          and statiatic_start_time &lt;= #{et}
-          and line_id = #{lineId}
+        and statiatic_start_time &lt;= #{et}
+        <if test="lineId != null">
+            and line_id = #{lineId}
+        </if>
         group by DATEPART(HOUR, statiatic_start_time)
         order by count desc
     </select>
@@ -300,5 +306,16 @@
         <if test="plantId !=null">
             and t3.plant_id = #{plantId}
         </if>
+    </select>
+    <select id="getTopExceed" resultType="java.lang.String">
+        select top 3 t2.description
+        from point_statistic_hour t1
+                 left join point_cfg t2 on t1.point_id = t2.point_id
+           , production_line t3
+        where t1.line_id = t3.id
+          and t1.statiatic_start_time >= #{st}
+          and t1.statiatic_start_time &lt;= #{et}
+        group by t2.description
+        order by sum(t1.upup_lowlow_exceeded_count + t1.up_low_exceeded_count) desc
     </select>
 </mapper>

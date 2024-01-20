@@ -1,17 +1,20 @@
 package com.seu.platform.task;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import com.seu.platform.dao.entity.ReportHistory;
+import com.seu.platform.dao.mapper.ReportHistoryMapper;
+import com.seu.platform.dao.service.ReportHistoryService;
 import com.seu.platform.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.springframework.core.io.Resource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.File;
+import java.util.Date;
 
 /**
  * @author chenjiale
@@ -24,35 +27,90 @@ import java.io.InputStream;
 public class ReportTask {
 
     private final ResourceLoader resourceLoader;
-
     private final ReportService reportService;
+    private final ReportHistoryService reportHistoryService;
+    private final ReportHistoryMapper reportHistoryMapper;
+    @Value("${static.report-dir}")
+    private String reportDir;
 
 
-    @Scheduled(fixedRate = 100)
-    public void generatePlantReport() {
-        try {
-//            Resource resource = resourceLoader.getResource("classpath:word/plant.docx");
-//            InputStream inputStream = resource.getInputStream();
-//            XWPFDocument doc = new XWPFDocument(inputStream);
-//            XWPFTable table = doc.getTables().get(0);
-            reportService.createLineReport(1);
-            System.out.println(1);
-
-        } catch (Exception e) {
-            log.error("生成word异常", e);
+    //    @Scheduled(cron = "0 0 * * * *")
+//    @Scheduled(fixedRate = 1000)
+    public void generateLineReport() {
+        Date lastTime = reportHistoryMapper.getLastTime(0);
+        DateTime lastMonth = DateUtil.beginOfMonth(DateUtil.lastMonth());
+        if (lastTime == null) {
+            lastTime = DateUtil.offsetMonth(lastMonth, -1);
+        }
+        if (lastTime.before(lastMonth)) {
+            log.info("开始生成生产线报表,时间:{}", lastTime);
+            DateTime time = DateUtil.offsetMonth(lastTime, 1);
+            DateTime st = DateUtil.beginOfMonth(time);
+            DateTime et = DateUtil.endOfMonth(time);
+            for (int i = 1; i <= 4; i++) {
+                String path = reportDir + "line_" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+                reportService.createLineReport(i, st, et, path);
+            }
+            ReportHistory reportHistory = new ReportHistory();
+            reportHistory.setType(0);
+            reportHistory.setTime(st);
+            reportHistoryService.save(reportHistory);
+        } else {
+            log.info("不需要生成报表");
         }
     }
 
-    public void generateInspectionReport() {
-        try {
-            Resource resource = resourceLoader.getResource("classpath:word/inspection.docx");
-            InputStream inputStream = resource.getInputStream();
-            XWPFDocument doc = new XWPFDocument(inputStream);
-            XWPFTable table = doc.getTables().get(0);
-            System.out.println(1);
+    //    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(fixedRate = 100)
+    public void generatePlantReport() {
+        Date lastTime = reportHistoryMapper.getLastTime(1);
+        DateTime lastMonth = DateUtil.beginOfMonth(DateUtil.lastMonth());
+        if (lastTime == null) {
+            lastTime = DateUtil.offsetMonth(lastMonth, -1);
+        }
+        if (lastTime.before(lastMonth)) {
+            log.info("开始生成公司报表,时间:{}", lastTime);
+            DateTime time = DateUtil.offsetMonth(lastTime, 1);
+            DateTime st = DateUtil.beginOfMonth(time);
+            DateTime et = DateUtil.endOfMonth(time);
+            String path = reportDir + "plant" + DateUtil.format(st, "yyyyMM") + ".docx";
+            reportService.createPlantReport(st, et, path);
 
-        } catch (IOException e) {
-            log.error("生成word异常", e);
+            if (new File(path).exists()) {
+                ReportHistory reportHistory = new ReportHistory();
+                reportHistory.setType(1);
+                reportHistory.setTime(st);
+//                reportHistoryService.save(reportHistory);
+            }
+        } else {
+            log.info("不需要生成公司报表");
+        }
+    }
+
+    //    @Scheduled(cron = "0 0 * * * *")
+//    @Scheduled(fixedRate = 100)
+    public void generateInspectionReport() {
+        Date lastTime = reportHistoryMapper.getLastTime(2);
+        DateTime lastMonth = DateUtil.beginOfMonth(DateUtil.lastMonth());
+        if (lastTime == null) {
+            lastTime = DateUtil.offsetMonth(lastMonth, -1);
+        }
+        if (lastTime.before(lastMonth)) {
+            log.info("开始生成巡检报表,时间:{}", lastTime);
+            DateTime time = DateUtil.offsetMonth(lastTime, 1);
+            DateTime st = DateUtil.beginOfMonth(time);
+            DateTime et = DateUtil.endOfMonth(time);
+            String path = reportDir + "inspection" + DateUtil.format(st, "yyyyMM") + ".docx";
+            reportService.createInspectionReport(st, et, path);
+            if (new File(path).exists()) {
+                ReportHistory reportHistory = new ReportHistory();
+                reportHistory.setType(2);
+                reportHistory.setTime(st);
+                reportHistoryService.save(reportHistory);
+            }
+
+        } else {
+            log.info("不需要生成巡检报表");
         }
     }
 }

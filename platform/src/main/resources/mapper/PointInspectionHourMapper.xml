@@ -52,4 +52,13 @@
           and t1.create_time &lt;= #{et}
         group by t1.point_id, t2.description
     </select>
+    <select id="getExceed" resultType="com.seu.platform.model.dto.ExceedDTO">
+        select count(1)    as total,
+               sum(iif(up_limit_alarm > 0 or up_up_limit_alarm > 0 or low_limit_alarm > 0 or low_low_limit_alarm > 0, 1,
+                       0)) as exceed
+        from point_inspection_hour
+        where line_id = #{ lineId}
+          and create_time >= #{st}
+          and create_time &lt;= #{et}
+    </select>
 </mapper>
