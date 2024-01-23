@@ -365,5 +365,34 @@
     <select id="getExceedCamera" resultType="com.seu.platform.model.dto.ExceedDTO">
 
     </select>
+    <select id="getLineInspection" resultType="com.seu.platform.model.dto.InspectionStatisticDTO">
+        select sum(iif(t1.exceed = 1, 1, 0)) as exceed,
+               t2.camera_description         as name,
+               count(1) as count
+        from process_line_picture_hist t1 with (nolock),
+             camera_cfg t2
+                 with (nolock)
+        where t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+        group by t2.camera_description
+        order by count desc
+    </select>
+    <select id="getLineInspectionHistory" resultType="com.seu.platform.model.dto.InspectionStatisticDTO">
+        select sum(iif(t1.exceed = 1, 1, 0)) as exceed,
+               t2.camera_description         as name,
+               count(1)                      as count
+        from process_line_picture_hist t1 with (nolock),
+             camera_cfg t2
+                 with (nolock)
+        where t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+          and t1.inspection = 1
+        group by t2.camera_description
+        order by count desc
+    </select>
 
 </mapper>

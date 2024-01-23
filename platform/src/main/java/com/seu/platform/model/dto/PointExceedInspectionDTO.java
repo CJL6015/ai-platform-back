@@ -18,4 +18,10 @@ public class PointExceedInspectionDTO {
     private Integer upCount;
 
     private Integer lowCount;
+
+    private Integer count;
+
+    public Integer getExceed() {
+        return upUpCount + lowLowCount + lowCount + upCount;
+    }
 }

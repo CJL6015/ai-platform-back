@@ -43,7 +43,8 @@
                sum(t1.up_up_limit_alarm)   as up_up_count,
                sum(t1.up_limit_alarm)      as up_count,
                sum(t1.low_limit_alarm)     as low_count,
-               sum(t1.low_low_limit_alarm) as low_low_count
+               sum(t1.low_low_limit_alarm) as low_low_count,
+               count(1) as count
         from point_inspection_hour t1
                  left join point_cfg t2
                            on t1.point_id = t2.point_id

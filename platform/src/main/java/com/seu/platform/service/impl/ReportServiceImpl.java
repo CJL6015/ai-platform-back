@@ -6,9 +6,11 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.seu.platform.dao.entity.PointCfg;
+import com.seu.platform.dao.entity.ProductionLine;
 import com.seu.platform.dao.entity.WarnCfg;
 import com.seu.platform.dao.mapper.*;
 import com.seu.platform.dao.service.PointCfgService;
+import com.seu.platform.dao.service.ProductionLineService;
 import com.seu.platform.dao.service.WarnCfgService;
 import com.seu.platform.model.dto.*;
 import com.seu.platform.service.ReportService;
@@ -54,6 +56,8 @@ public class ReportServiceImpl implements ReportService {
     private final PointStatisticHourMapper pointStatisticHourMapper;
 
     private final LineStopRunStatisticHourMapper lineStopRunStatisticHourMapper;
+
+    private final ProductionLineService productionLineService;
 
 
     /**
@@ -163,12 +167,153 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public void createReport2(Date st, Date et, String path) {
+        try {
+            Resource resource = resourceLoader.getResource("classpath:word/report2.docx");
+            InputStream inputStream = resource.getInputStream();
+            XWPFDocument doc = new XWPFDocument(inputStream);
 
+            Resource resource1 = resourceLoader.getResource("classpath:word/plant.docx");
+            InputStream inputStream1 = resource1.getInputStream();
+            XWPFDocument doc1 = new XWPFDocument(inputStream1);
+            List<XWPFTable> tables1 = doc1.getTables();
+
+            //1.安全评分
+            createPlantScoreTable(tables1.get(0), st, et);
+            //2.定期巡检
+            createPlantPeopleExceedTable(tables1.get(1), st, et);
+
+            List<XWPFTable> tables = doc.getTables();
+            createPlantSummaryTable(tables.get(0), tables1.get(0), tables1.get(1));
+        } catch (IOException e) {
+            log.error("生成二级报表异常", e);
+        }
     }
 
-    @Override
-    public void createReport3(Integer lineId,Date st, Date et, String path) {
 
+
+    @Override
+    public void createReport3(Integer lineId, Date st, Date et, String path) {
+        try {
+            Resource resource = resourceLoader.getResource("classpath:word/report3.docx");
+            InputStream inputStream = resource.getInputStream();
+            XWPFDocument doc = new XWPFDocument(inputStream);
+
+            List<XWPFTable> tables = doc.getTables();
+
+            LambdaQueryWrapper<WarnCfg> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(WarnCfg::getLineId, lineId);
+            WarnCfg one = warnCfgService.getOne(queryWrapper);
+            Double peopleScore = one.getPeopleScore();
+            Double pointScore = one.getScore();
+            Double highScore = one.getHighScore();
+
+            //1.定员巡检
+            createInspectionLineTable(tables.get(0), lineId, st, et);
+
+            //2.工艺参数巡检
+            createPointInspectionLineTable(tables.get(1), lineId, st, et);
+
+            //3.定员历史
+            createInspectionHistoryTable(tables.get(2), lineId, st, et);
+
+            //4.运行参数历史
+            createPointHistoryTable(tables.get(3), lineId, st, et, pointScore, highScore);
+
+            //5.安全评分
+            createPlantScoreTable(tables.get(4), st, et);
+
+            //6.定期巡检
+            createPlantPeopleExceedTable(tables.get(5), st, et);
+
+            //7.替换生产线名
+            replaceName(doc.getParagraphs(), lineId);
+        } catch (IOException e) {
+            log.error("生成三级报表异常");
+        }
+    }
+
+    public void replaceName(List<XWPFParagraph> paragraphs, Integer lineId) {
+        LambdaQueryWrapper<ProductionLine> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ProductionLine::getId, lineId);
+        ProductionLine one = productionLineService.getOne(queryWrapper);
+        String name = one.getName().trim();
+        paragraphs.forEach(p -> {
+            WordUtil.replaceTextInParagraph(p, "line", name);
+        });
+    }
+
+
+    public void createInspectionLineTable(XWPFTable table, Integer lineId, Date st, Date et) {
+        List<InspectionStatisticDTO> lineInspection = processLinePictureHistMapper.getLineInspection(lineId, st, et);
+        int totalCount = 0;
+        int totalExceed = 0;
+        for (int i = 0; i < lineInspection.size(); i++) {
+            InspectionStatisticDTO dto = lineInspection.get(i);
+            XWPFTableRow row = table.createRow();
+            row.getCell(0).setText(String.valueOf(i + 1));
+            row.getCell(1).setText(dto.getName().trim());
+            Integer count = dto.getCount();
+            row.getCell(2).setText(String.valueOf(count));
+            Integer exceed = dto.getExceed();
+            row.getCell(3).setText(String.valueOf(exceed));
+            row.getCell(4).setText(NumberUtil.formatPercent(1.0 * exceed / count, 2));
+            totalCount += count;
+            totalExceed += exceed;
+        }
+        XWPFTableRow row = table.createRow();
+        row.getCell(0).setText(String.valueOf(lineInspection.size() + 1));
+        row.getCell(1).setText("全线");
+        row.getCell(2).setText(String.valueOf(totalCount));
+        row.getCell(3).setText(String.valueOf(totalExceed));
+        row.getCell(4).setText(NumberUtil.formatPercent(1.0 * totalExceed / totalCount, 2));
+    }
+
+    public void createPointInspectionLineTable(XWPFTable table, Integer lineId, Date st, Date et) {
+        List<PointExceedInspectionDTO> pointInspection = pointInspectionHourMapper.getPointInspection(lineId, st, et);
+        for (int i = 0; i < pointInspection.size(); i++) {
+            PointExceedInspectionDTO dto = pointInspection.get(i);
+            XWPFTableRow row = table.createRow();
+            row.getCell(0).setText(String.valueOf(i + 1));
+            row.getCell(1).setText(dto.getName().trim());
+            Integer exceed = dto.getExceed();
+            Integer count = dto.getCount();
+            row.getCell(2).setText(String.valueOf(count));
+            row.getCell(3).setText(String.valueOf(exceed));
+            row.getCell(4).setText(NumberUtil.formatPercent(1.0 * exceed / count, 2));
+        }
+    }
+
+
+    public void createInspectionHistoryTable(XWPFTable table, Integer lineId, Date st, Date et) {
+        List<InspectionStatisticDTO> lineInspection = processLinePictureHistMapper.getLineInspectionHistory(lineId, st, et);
+        for (int i = 0; i < lineInspection.size(); i++) {
+            InspectionStatisticDTO dto = lineInspection.get(i);
+            XWPFTableRow row = table.createRow();
+            row.getCell(0).setText(String.valueOf(i + 1));
+            row.getCell(1).setText(dto.getName().trim());
+            Integer exceed = dto.getExceed();
+            row.getCell(2).setText(String.valueOf(exceed));
+        }
+    }
+
+    public void createPointHistoryTable(XWPFTable table, Integer lineId, Date st, Date et, Double score, Double highScore) {
+        List<PointExceedDTO> pointExceedHistory = pointStatisticHourMapper.getPointExceedHistory(lineId, st, et);
+        for (int i = 0; i < pointExceedHistory.size(); i++) {
+            PointExceedDTO dto = pointExceedHistory.get(i);
+            XWPFTableRow row = table.createRow();
+            row.getCell(0).setText(String.valueOf(i + 1));
+            row.getCell(1).setText(dto.getName().trim());
+            Integer count = dto.getCount();
+            Integer highCount = dto.getHighCount();
+            row.getCell(2).setText(String.valueOf(count));
+            row.getCell(3).setText(String.valueOf(highCount));
+            Double time = dto.getTime();
+            Double highTime = dto.getHighTime();
+            row.getCell(4).setText(String.valueOf(time));
+            row.getCell(5).setText(String.valueOf(highTime));
+            String lineScore = NumberUtil.decimalFormat("#.##", 100 - count * score - highCount * highCount);
+            row.getCell(6).setText(lineScore);
+        }
     }
 
     public void createPeopleExceedTable(XWPFTable table, Date st, Date et, List<String> ips) {

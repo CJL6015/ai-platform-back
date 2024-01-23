@@ -98,6 +98,10 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
 
     List<CountStatisticDTO> getTopProcess(Integer lineId, Date st, Date et);
 
+    List<InspectionStatisticDTO> getLineInspection(Integer lineId, Date st, Date et);
+
+    List<InspectionStatisticDTO> getLineInspectionHistory(Integer lineId, Date st, Date et);
+
     List<TrendDTO> getScoreDaily(Integer lineId, Date st, Date et);
 
     Integer getExceedCount(Integer lineId, Date st, Date et);

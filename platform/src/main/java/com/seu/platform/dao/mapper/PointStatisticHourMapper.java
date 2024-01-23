@@ -138,6 +138,7 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
     Double getPlantScore(Integer plantId, Date st, Date et);
 
 
+    List<PointExceedDTO> getPointExceedHistory(Integer lineId, Date st, Date et);
 
 }
 

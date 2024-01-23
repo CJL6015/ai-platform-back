@@ -318,4 +318,18 @@
         group by t2.description
         order by sum(t1.upup_lowlow_exceeded_count + t1.up_low_exceeded_count) desc
     </select>
+    <select id="getPointExceedHistory" resultType="com.seu.platform.model.dto.PointExceedDTO">
+        select sum(t2.up_low_exceeded_count)          as count,
+               sum(t2.upup_lowlow_exceeded_count)     as high_count,
+               sum(t2.threshold_up_low_exceeded)      as time,
+               sum(t2.threshold_upup_lowlow_exceeded) as high_time,
+               t1.description                         as name
+        from point_cfg t1
+                 left join
+             point_statistic_hour t2 on t1.point_id = t2.point_id
+        where t1.line_id = #{lineId}
+          and t2.statiatic_start_time >= #{st}
+          and t2.statiatic_start_time &lt;= #{et}
+        group by t1.description
+    </select>
 </mapper>
