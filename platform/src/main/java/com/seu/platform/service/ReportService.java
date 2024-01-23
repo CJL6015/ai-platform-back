@@ -8,11 +8,18 @@ import java.util.Date;
  * @date 2024-01-06 13:34
  */
 public interface ReportService {
-    String createReportMonth();
 
     void createLineReport(Integer lineId, Date st, Date et, String path);
 
     void createPlantReport(Date st, Date et, String path);
 
     void createInspectionReport(Date st, Date et, String path);
+
+    void createReport1(Date st, Date et, String path);
+
+
+    void createReport2(Date st, Date et, String path);
+
+    void createReport3(Integer lineId,Date st,Date et,String path);
+
 }

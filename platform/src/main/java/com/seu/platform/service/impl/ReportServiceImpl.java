@@ -70,18 +70,6 @@ public class ReportServiceImpl implements ReportService {
 
     private final Integer[] id2 = {115, 116, 121, 100, 0, 102};
 
-    @Override
-    public String createReportMonth() {
-        try {
-            Resource resource = resourceLoader.getResource("classpath:word/inspection.docx");
-            InputStream inputStream = resource.getInputStream();
-            XWPFDocument doc = new XWPFDocument(inputStream);
-            XWPFTable table = doc.getTables().get(0);
-        } catch (IOException e) {
-            log.error("生成word异常", e);
-        }
-        return null;
-    }
 
     @Override
     public void createLineReport(Integer lineId, Date st, Date et, String path) {
@@ -165,6 +153,22 @@ public class ReportServiceImpl implements ReportService {
         } catch (Exception e) {
             log.error("巡检月报异常", e);
         }
+    }
+
+
+    @Override
+    public void createReport1(Date st, Date et, String path) {
+
+    }
+
+    @Override
+    public void createReport2(Date st, Date et, String path) {
+
+    }
+
+    @Override
+    public void createReport3(Integer lineId,Date st, Date et, String path) {
+
     }
 
     public void createPeopleExceedTable(XWPFTable table, Date st, Date et, List<String> ips) {

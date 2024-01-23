@@ -61,7 +61,7 @@ public class ReportTask {
     }
 
     //    @Scheduled(cron = "0 0 * * * *")
-    @Scheduled(fixedRate = 100)
+//    @Scheduled(fixedRate = 100)
     public void generatePlantReport() {
         Date lastTime = reportHistoryMapper.getLastTime(1);
         DateTime lastMonth = DateUtil.beginOfMonth(DateUtil.lastMonth());
