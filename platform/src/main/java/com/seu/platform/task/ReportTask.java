@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -44,12 +43,16 @@ public class ReportTask {
         }
         if (lastTime.before(lastMonth)) {
             log.info("开始生成生产线报表,时间:{}", lastTime);
-            DateTime time = DateUtil.offsetMonth(lastTime, 1);
+//            DateTime time = DateUtil.offsetMonth(lastTime, 1);
+            DateTime time = DateUtil.date();
             DateTime st = DateUtil.beginOfMonth(time);
             DateTime et = DateUtil.endOfMonth(time);
             for (int i = 1; i <= 4; i++) {
                 String path = reportDir + "line_" + i + DateUtil.format(st, "yyyyMM") + ".docx";
-                reportService.createLineReport(i, st, et, path);
+                reportService.createReport3(i, st, et, path);
+                if (new File(path).exists()) {
+                    log.info("生产线{}报表生成成功", i);
+                }
             }
             ReportHistory reportHistory = new ReportHistory();
             reportHistory.setType(0);
@@ -70,10 +73,11 @@ public class ReportTask {
         }
         if (lastTime.before(lastMonth)) {
             log.info("开始生成公司报表,时间:{}", lastTime);
-            DateTime time = DateUtil.offsetMonth(lastTime, 1);
+//            DateTime time = DateUtil.offsetMonth(lastTime, 1);
+            DateTime time = DateUtil.date();
             DateTime st = DateUtil.beginOfMonth(time);
             DateTime et = DateUtil.endOfMonth(time);
-            String path = reportDir + "plant" + DateUtil.format(st, "yyyyMM") + ".docx";
+            String path = reportDir + "report1" + DateUtil.format(st, "yyyyMM") + ".docx";
             reportService.createPlantReport(st, et, path);
 
             if (new File(path).exists()) {
@@ -97,11 +101,12 @@ public class ReportTask {
         }
         if (lastTime.before(lastMonth)) {
             log.info("开始生成巡检报表,时间:{}", lastTime);
-            DateTime time = DateUtil.offsetMonth(lastTime, 1);
+//            DateTime time = DateUtil.offsetMonth(lastTime, 1);
+            DateTime time = DateUtil.date();
             DateTime st = DateUtil.beginOfMonth(time);
             DateTime et = DateUtil.endOfMonth(time);
-            String path = reportDir + "inspection" + DateUtil.format(st, "yyyyMM") + ".docx";
-            reportService.createInspectionReport(st, et, path);
+            String path = reportDir + "report2" + DateUtil.format(st, "yyyyMM") + ".docx";
+            reportService.createReport2(st, et, path);
             if (new File(path).exists()) {
                 ReportHistory reportHistory = new ReportHistory();
                 reportHistory.setType(2);

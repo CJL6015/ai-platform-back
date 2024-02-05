@@ -184,11 +184,13 @@ public class ReportServiceImpl implements ReportService {
 
             List<XWPFTable> tables = doc.getTables();
             createPlantSummaryTable(tables.get(0), tables1.get(0), tables1.get(1));
+
+            FileOutputStream fileOutputStream = new FileOutputStream(path);
+            doc.write(fileOutputStream);
         } catch (IOException e) {
             log.error("生成二级报表异常", e);
         }
     }
-
 
 
     @Override
@@ -203,9 +205,16 @@ public class ReportServiceImpl implements ReportService {
             LambdaQueryWrapper<WarnCfg> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(WarnCfg::getLineId, lineId);
             WarnCfg one = warnCfgService.getOne(queryWrapper);
+            if (one == null) {
+                one = new WarnCfg();
+            }
             Double peopleScore = one.getPeopleScore();
             Double pointScore = one.getScore();
             Double highScore = one.getHighScore();
+            peopleScore = peopleScore == null ? 2.0 : peopleScore;
+            pointScore = pointScore == null ? 1.0 : pointScore;
+            highScore = highScore == null ? 3.0 : highScore;
+
 
             //1.定员巡检
             createInspectionLineTable(tables.get(0), lineId, st, et);
@@ -214,10 +223,10 @@ public class ReportServiceImpl implements ReportService {
             createPointInspectionLineTable(tables.get(1), lineId, st, et);
 
             //3.定员历史
-            createInspectionHistoryTable(tables.get(2), lineId, st, et);
+            double peopleScoreValue = createInspectionHistoryTable(tables.get(2), lineId, st, et, peopleScore);
 
             //4.运行参数历史
-            createPointHistoryTable(tables.get(3), lineId, st, et, pointScore, highScore);
+            double pointScoreValue = createPointHistoryTable(tables.get(3), lineId, st, et, pointScore, highScore);
 
             //5.安全评分
             createPlantScoreTable(tables.get(4), st, et);
@@ -227,6 +236,17 @@ public class ReportServiceImpl implements ReportService {
 
             //7.替换生产线名
             replaceName(doc.getParagraphs(), lineId);
+
+            String value = NumberUtil.decimalFormat("#.##", (100 - peopleScoreValue - pointScoreValue));
+            //8.替换评分
+            replaceName(doc.getParagraphs(), lineId);
+
+            doc.getParagraphs().forEach(p -> {
+                WordUtil.replaceTextInParagraph(p, "score", value);
+            });
+
+            FileOutputStream fileOutputStream = new FileOutputStream(path);
+            doc.write(fileOutputStream);
         } catch (IOException e) {
             log.error("生成三级报表异常");
         }
@@ -284,8 +304,9 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
-    public void createInspectionHistoryTable(XWPFTable table, Integer lineId, Date st, Date et) {
+    public double createInspectionHistoryTable(XWPFTable table, Integer lineId, Date st, Date et, Double peopleScore) {
         List<InspectionStatisticDTO> lineInspection = processLinePictureHistMapper.getLineInspectionHistory(lineId, st, et);
+        double totalScore = 0;
         for (int i = 0; i < lineInspection.size(); i++) {
             InspectionStatisticDTO dto = lineInspection.get(i);
             XWPFTableRow row = table.createRow();
@@ -293,27 +314,37 @@ public class ReportServiceImpl implements ReportService {
             row.getCell(1).setText(dto.getName().trim());
             Integer exceed = dto.getExceed();
             row.getCell(2).setText(String.valueOf(exceed));
+            double v = (exceed * peopleScore) / 30;
+            totalScore += v;
+            row.getCell(3).setText(NumberUtil.decimalFormat("#.##", v));
         }
+        return totalScore;
     }
 
-    public void createPointHistoryTable(XWPFTable table, Integer lineId, Date st, Date et, Double score, Double highScore) {
+    public double createPointHistoryTable(XWPFTable table, Integer lineId, Date st, Date et, Double score, Double highScore) {
         List<PointExceedDTO> pointExceedHistory = pointStatisticHourMapper.getPointExceedHistory(lineId, st, et);
+        double totalScore = 0;
         for (int i = 0; i < pointExceedHistory.size(); i++) {
             PointExceedDTO dto = pointExceedHistory.get(i);
             XWPFTableRow row = table.createRow();
             row.getCell(0).setText(String.valueOf(i + 1));
             row.getCell(1).setText(dto.getName().trim());
             Integer count = dto.getCount();
+            count = count == null ? 0 : count;
             Integer highCount = dto.getHighCount();
-            row.getCell(2).setText(String.valueOf(count));
-            row.getCell(3).setText(String.valueOf(highCount));
+            highCount = highCount == null ? 0 : highCount;
+            row.getCell(2).setText(String.valueOf(highCount));
+            row.getCell(3).setText(String.valueOf(count));
             Double time = dto.getTime();
             Double highTime = dto.getHighTime();
-            row.getCell(4).setText(String.valueOf(time));
-            row.getCell(5).setText(String.valueOf(highTime));
-            String lineScore = NumberUtil.decimalFormat("#.##", 100 - count * score - highCount * highCount);
+            row.getCell(4).setText(NumberUtil.decimalFormat("#.##", highTime));
+            row.getCell(5).setText(NumberUtil.decimalFormat("#.##", time));
+            double pScore = (count * score + highCount * highScore) / 30;
+            totalScore += pScore;
+            String lineScore = NumberUtil.decimalFormat("#.##", pScore);
             row.getCell(6).setText(lineScore);
         }
+        return totalScore;
     }
 
     public void createPeopleExceedTable(XWPFTable table, Date st, Date et, List<String> ips) {
@@ -452,10 +483,10 @@ public class ReportServiceImpl implements ReportService {
         Double lineScore3 = pointStatisticHourMapper.getLineScore(3, st, et);
         Double lineScore4 = pointStatisticHourMapper.getLineScore(4, st, et);
 
-        lineScore1 = lineScore1 == null ? 0 : lineScore1;
-        lineScore2 = lineScore2 == null ? 0 : lineScore2;
-        lineScore3 = lineScore3 == null ? 0 : lineScore3;
-        lineScore4 = lineScore4 == null ? 0 : lineScore4;
+        lineScore1 = lineScore1 == null ? 0 : lineScore1 / 30;
+        lineScore2 = lineScore2 == null ? 0 : lineScore2 / 30;
+        lineScore3 = lineScore3 == null ? 0 : lineScore3 / 30;
+        lineScore4 = lineScore4 == null ? 0 : lineScore4 / 30;
 
         Integer exceedCount1 = processLinePictureHistMapper.getExceedCount(1, st, et);
         Integer exceedCount2 = processLinePictureHistMapper.getExceedCount(2, st, et);
@@ -482,10 +513,10 @@ public class ReportServiceImpl implements ReportService {
                 peopleScores.add(peopleScore);
             }
         }
-        Double score1 = 100 - lineScore1 - peopleScores.get(0) * exceedCount1;
-        Double score2 = 100 - lineScore2 - peopleScores.get(1) * exceedCount2;
-        Double score3 = 100 - lineScore3 - peopleScores.get(2) * exceedCount3;
-        Double score4 = 100 - lineScore4 - peopleScores.get(3) * exceedCount4;
+        Double score1 = 100 - lineScore1 - peopleScores.get(0) * exceedCount1 / 30;
+        Double score2 = 100 - lineScore2 - peopleScores.get(1) * exceedCount2 / 30;
+        Double score3 = 100 - lineScore3 - peopleScores.get(2) * exceedCount3 / 30;
+        Double score4 = 100 - lineScore4 - peopleScores.get(3) * exceedCount4 / 30;
         String camera1 = processLinePictureHistMapper.getTopCamera(1, st, et, null);
         String camera2 = processLinePictureHistMapper.getTopCamera(2, st, et, null);
         String camera3 = processLinePictureHistMapper.getTopCamera(3, st, et, null);
@@ -550,21 +581,21 @@ public class ReportServiceImpl implements ReportService {
 
         List<XWPFTableRow> rows2 = table2.getRows();
         double rate1 = (Double.parseDouble(rows2.get(1).getCell(3).getText().replace("%", "").replace(",", ""))
-                + Double.parseDouble(rows2.get(2).getCell(3).getText().replace("%", "").replace(",", ""))) / 2;
+                + Double.parseDouble(rows2.get(2).getCell(3).getText().replace("%", "").replace(",", ""))) / 200;
         double rate2 = (Double.parseDouble(rows2.get(1).getCell(4).getText().replace("%", ""))
-                + Double.parseDouble(rows2.get(2).getCell(4).getText().replace("%", "").replace(",", ""))) / 2;
+                + Double.parseDouble(rows2.get(2).getCell(4).getText().replace("%", "").replace(",", ""))) / 200;
         double rate3 = (Double.parseDouble(rows2.get(1).getCell(5).getText().replace("%", "").replace(",", ""))
-                + Double.parseDouble(rows2.get(2).getCell(5).getText().replace("%", "").replace(",", ""))) / 2;
+                + Double.parseDouble(rows2.get(2).getCell(5).getText().replace("%", "").replace(",", ""))) / 200;
         table.getRow(1).getCell(3).setText(NumberUtil.formatPercent(rate1, 2));
         table.getRow(1).getCell(4).setText(NumberUtil.formatPercent(rate2, 2));
         table.getRow(1).getCell(5).setText(NumberUtil.formatPercent(rate3, 2));
 
         double rate4 = (Double.parseDouble(rows2.get(3).getCell(3).getText().replace("%", ""))
-                + Double.parseDouble(rows2.get(4).getCell(3).getText().replace("%", ""))) / 2;
+                + Double.parseDouble(rows2.get(4).getCell(3).getText().replace("%", ""))) / 200;
         double rate5 = (Double.parseDouble(rows2.get(3).getCell(4).getText().replace("%", ""))
-                + Double.parseDouble(rows2.get(4).getCell(4).getText().replace("%", ""))) / 2;
+                + Double.parseDouble(rows2.get(4).getCell(4).getText().replace("%", ""))) / 200;
         double rate6 = (Double.parseDouble(rows2.get(3).getCell(5).getText().replace("%", ""))
-                + Double.parseDouble(rows2.get(4).getCell(5).getText().replace("%", ""))) / 2;
+                + Double.parseDouble(rows2.get(4).getCell(5).getText().replace("%", ""))) / 200;
         table.getRow(2).getCell(3).setText(NumberUtil.formatPercent(rate4, 2));
         table.getRow(2).getCell(4).setText(NumberUtil.formatPercent(rate5, 2));
         table.getRow(2).getCell(5).setText(NumberUtil.formatPercent(rate6, 2));

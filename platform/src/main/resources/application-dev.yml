@@ -40,3 +40,4 @@ static:
   detection-prefix: http://114.55.245.123:8088/api/static/images/
   detection-prefix1: http://114.55.245.123:8088/api/static/images/
   storehouse-prefix: http://10.10.11.15:8088/api/static/storehouse/images/
+  word-prefix: http://localhost:5173/api/report/download/
