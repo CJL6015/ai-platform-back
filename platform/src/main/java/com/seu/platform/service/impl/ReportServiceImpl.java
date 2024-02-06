@@ -631,11 +631,58 @@ public class ReportServiceImpl implements ReportService {
 
 
     @Override
-    public void createReportLevel1(Date st, Date et, String path) {
+    public void createReportLevel1(Date st, Date et, Date lastSt, Date lastEt, String path) {
+        try {
+            Resource resource = resourceLoader.getResource("classpath:word/level1.docx");
+            InputStream inputStream = resource.getInputStream();
+            XWPFDocument doc = new XWPFDocument(inputStream);
 
+            String start = DateUtil.format(st, "yyyy年MM月dd日");
+            String end = DateUtil.format(et, "yyyy年MM月dd日");
+            String time = start + " - " + end;
+            doc.getParagraphs().forEach(p -> WordUtil.replaceTextInParagraph(p, "time", time));
+
+            List<XWPFTable> tables = doc.getTables();
+            setLineTable(st, et, lastSt, lastEt, tables.get(0), 1, 2);
+            setLineTable(st, et, lastSt, lastEt, tables.get(1), 3, 4);
+
+        } catch (IOException e) {
+            log.error("一级报告异常", e);
+        }
     }
 
-    public void setLineDataTotal(XWPFTableRow row, Integer lineId, Date st, Date et) {
+    private void setLineTable(Date st, Date et, Date lastSt, Date lastEt, XWPFTable table, Integer id1, Integer id2) {
+
+        XWPFTableRow row1 = table.getRow(3);
+        LineSafeScoreDTO line1 = setLineDataTotal(id1, st, et, lastSt, lastEt);
+        setLineData(row1, line1);
+
+        XWPFTableRow row2 = table.getRow(4);
+        LineSafeScoreDTO line2 = setLineDataTotal(id2, st, et, lastSt, lastEt);
+        setLineData(row2, line2);
+
+        XWPFTableRow row3 = table.getRow(5);
+        LineSafeScoreDTO avg = LineSafeScoreDTO.avg(line1, line2);
+        setLineData(row3, avg);
+    }
+
+    private void setLineData(XWPFTableRow row, LineSafeScoreDTO line) {
+        row.getCell(2).setText(String.valueOf(line.getRunDay()));
+        row.getCell(3).setText(NumberUtil.decimalFormat("#.##", line.getRunHour()));
+        row.getCell(4).setText(line.getPeopleInspectionRate());
+        row.getCell(5).setText(line.getPeopleInspectionScore());
+        row.getCell(6).setText(line.getPointInspectionRate());
+        row.getCell(7).setText(line.getPointInspectionScore());
+        row.getCell(8).setText(line.getPeopleScore());
+        row.getCell(9).setText(line.getTopProcess());
+        row.getCell(10).setText(line.getPointScore());
+        row.getCell(11).setText(line.getTopPoint());
+        row.getCell(12).setText(NumberUtil.decimalFormat("#.##", line.getScore()));
+        row.getCell(13).setText(line.getScore() > line.getLast() ? "增加" : "降低");
+        row.getCell(13).setText(line.getScore() > line.getLastYear() ? "增加" : "降低");
+    }
+
+    public LineSafeScoreDTO setLineDataTotal(Integer lineId, Date st, Date et, Date lastSt, Date lastEt) {
         LambdaQueryWrapper<WarnCfg> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(WarnCfg::getLineId, lineId);
         WarnCfg one = warnCfgService.getOne(queryWrapper);
@@ -646,7 +693,8 @@ public class ReportServiceImpl implements ReportService {
 
         ExceedDTO peopleExceed = processLinePictureHistMapper.getInspectionExceed(lineId, st, et, null);
         String peopleInspectionRate = peopleExceed.getRate();
-        String peopleInspectionScore = peopleExceed.getScore(one.getPeopleScore());
+        Double peopleScore = one.getPeopleScore();
+        String peopleInspectionScore = peopleExceed.getScore(peopleScore);
 
         PointExceedInspectionDTO pointInspection = pointInspectionHourMapper.getTotalPointInspection(lineId, st, et);
         String pointInspectionRate = pointInspection.getRate();
@@ -655,7 +703,7 @@ public class ReportServiceImpl implements ReportService {
         List<CountStatisticDTO> topProcess = processLinePictureHistMapper.getTopProcess(lineId, st, et);
         int peopleCount = topProcess.stream().mapToInt(CountStatisticDTO::getCount).sum();
         String topName = topProcess.get(0).getName();
-        String peopleTotalScore = NumberUtil.decimalFormat("#.##", peopleCount * one.getPeopleScore());
+        String peopleTotalScore = NumberUtil.decimalFormat("#.##", peopleCount * peopleScore);
 
         List<CountStatisticDTO> topPoint = pointStatisticHourMapper.getTopPoint(lineId, st, et);
         String topPointName = topPoint.stream().limit(3)
@@ -665,7 +713,15 @@ public class ReportServiceImpl implements ReportService {
 
         double safeScore = 100 - Double.parseDouble(peopleTotalScore) - lineScore;
 
-        LineSafeScoreDTO.builder()
+        double lastScore = getScore(lineId, lastSt, lastEt, peopleScore);
+
+        DateTime yearEt = DateUtil.beginOfYear(st);
+        DateTime time = DateUtil.offsetMinute(yearEt, -1);
+        DateTime yearSt = DateUtil.beginOfYear(time);
+        double lastYearScore = getScore(lineId, yearSt, yearEt, peopleScore);
+
+
+        return LineSafeScoreDTO.builder()
                 .runDay(runDay)
                 .runHour(runHour)
                 .peopleInspectionScore(peopleInspectionScore)
@@ -676,17 +732,25 @@ public class ReportServiceImpl implements ReportService {
                 .topProcess(topName)
                 .topPoint(topPointName)
                 .pointScore(NumberUtil.decimalFormat("#.##", lineScore))
-                .score(NumberUtil.decimalFormat("#.##", safeScore))
+                .score(safeScore)
+                .last(lastScore)
+                .lastYear(lastYearScore)
                 .build();
     }
 
+    private double getScore(Integer lineId, Date lastSt, Date lastEt, Double peopleScore) {
+        Integer lastCount = processLinePictureHistMapper.getCount(lineId, null, lastSt, lastEt);
+        Double lastPointScore = pointStatisticHourMapper.getLineScore(lineId, lastSt, lastEt);
+        return 100 - lastPointScore - lastCount * peopleScore;
+    }
+
     @Override
-    public void createReportLevel2(Integer plantId, Date st, Date et, String path) {
+    public void createReportLevel2(Integer plantId, Date st, Date et, Date lastSt, Date lastEt, String path) {
 
     }
 
     @Override
-    public void createReportLevel3(Integer lineId, Date st, Date et, String path) {
+    public void createReportLevel3(Integer lineId, Date st, Date et, Date lastSt, Date lastEt, String path) {
 
     }
 }
