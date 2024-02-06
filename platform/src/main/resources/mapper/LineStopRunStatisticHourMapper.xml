@@ -34,4 +34,15 @@
           and start_time &lt;= #{et}
           and line_id = #{lineId}
     </select>
+    <select id="getLineRun" resultType="com.seu.platform.model.dto.LineRunDTO">
+        select convert(varchar, start_time, 23) as day,
+               sum(run_hour)                    as run_hour
+        from line_stop_run_statistic_hour
+        where run_hour > 0
+          and line_id = #{lineId}
+          and start_time >= #{st}
+          and start_time &lt;= #{et}
+        group by convert(varchar, start_time, 23)
+        order by day
+    </select>
 </mapper>

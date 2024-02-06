@@ -130,6 +130,8 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
 
     String getTopCamera(Integer lineId, Date st, Date et, String cameraIp);
 
+    ExceedDTO getInspectionExceed(Integer lineId, Date st, Date et, String cameraIp);
+
     ExceedDTO getExceed(Integer lineId, Date st, Date et, String cameraIp);
 
 }

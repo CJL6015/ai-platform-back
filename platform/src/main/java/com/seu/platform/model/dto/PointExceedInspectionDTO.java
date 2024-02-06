@@ -1,5 +1,6 @@
 package com.seu.platform.model.dto;
 
+import cn.hutool.core.util.NumberUtil;
 import lombok.Data;
 
 /**
@@ -22,6 +23,37 @@ public class PointExceedInspectionDTO {
     private Integer count;
 
     public Integer getExceed() {
+        initData();
         return upUpCount + lowLowCount + lowCount + upCount;
+    }
+
+    public String getRate() {
+        if (count == null || count == 0) {
+            return "0%";
+        }
+        initData();
+        Integer exceed = getExceed();
+        return NumberUtil.formatPercent(1.0 * exceed / count, 2);
+    }
+
+    public String getScore(Double score, Double highScore) {
+        initData();
+        return NumberUtil.decimalFormat("#.##", getCount() * score + getHighCount() * highScore);
+    }
+
+
+    public Integer getCount() {
+        return upCount + lowCount;
+    }
+
+    public Integer getHighCount() {
+        return upUpCount + lowLowCount;
+    }
+
+    public void initData() {
+        upUpCount = upUpCount == null ? 0 : upUpCount;
+        lowLowCount = lowLowCount == null ? 0 : lowLowCount;
+        upCount = upCount == null ? 0 : upCount;
+        lowCount = lowCount == null ? 0 : lowCount;
     }
 }

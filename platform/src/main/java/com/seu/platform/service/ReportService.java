@@ -20,6 +20,12 @@ public interface ReportService {
 
     void createReport2(Date st, Date et, String path);
 
-    void createReport3(Integer lineId,Date st,Date et,String path);
+    void createReport3(Integer lineId, Date st, Date et, String path);
+
+    void createReportLevel1(Date st, Date et, String path);
+
+    void createReportLevel2(Integer plantId, Date st, Date et, String path);
+
+    void createReportLevel3(Integer lineId, Date st, Date et, String path);
 
 }

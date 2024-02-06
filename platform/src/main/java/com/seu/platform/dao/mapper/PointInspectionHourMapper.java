@@ -27,6 +27,8 @@ public interface PointInspectionHourMapper extends BaseMapper<PointInspectionHou
     List<PointExceedInspectionDTO> getPointInspection(Integer lineId, Date st, Date et);
 
     ExceedDTO getExceed(Integer lineId, Date st, Date et);
+
+    PointExceedInspectionDTO getTotalPointInspection(Integer lineId, Date st, Date et);
 }
 
 

@@ -62,4 +62,15 @@
           and create_time >= #{st}
           and create_time &lt;= #{et}
     </select>
+    <select id="getTotalPointInspection" resultType="com.seu.platform.model.dto.PointExceedInspectionDTO">
+        select sum(up_up_limit_alarm)   as up_up_count,
+               sum(low_low_limit_alarm) as low_low_count,
+               sum(up_limit_alarm)      as up_count,
+               sum(low_limit_alarm)     as low_count,
+               count(1)                 as count
+        from point_inspection_hour
+        where line_id = #{lineId}
+          and create_time >= #{st}
+          and create_time &lt;= #{et}
+    </select>
 </mapper>

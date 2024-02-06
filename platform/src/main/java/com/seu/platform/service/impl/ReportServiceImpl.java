@@ -353,7 +353,7 @@ public class ReportServiceImpl implements ReportService {
         for (int i = 0; i < ips.size(); i++) {
             String ip = ips.get(i);
             XWPFTableRow row = table.getRow(i + 1);
-            ExceedDTO exceed = processLinePictureHistMapper.getExceed(null, st, et, ip);
+            ExceedDTO exceed = processLinePictureHistMapper.getInspectionExceed(null, st, et, ip);
             if (exceed == null) {
                 exceed = new ExceedDTO();
                 exceed.setExceed(0);
@@ -540,7 +540,7 @@ public class ReportServiceImpl implements ReportService {
 
     public void createPlantPeopleExceedTable(XWPFTable table, Date st, Date et) {
         for (int i = 1; i <= 4; i++) {
-            ExceedDTO exceed = processLinePictureHistMapper.getExceed(i, st, et, null);
+            ExceedDTO exceed = processLinePictureHistMapper.getInspectionExceed(i, st, et, null);
             Integer total = exceed.getTotal();
             total = total == null || total == 0 ? 24 * 30 : total;
 
@@ -627,5 +627,66 @@ public class ReportServiceImpl implements ReportService {
             WordUtil.replaceTextInParagraph(paragraph, "point", pointSummary);
             WordUtil.replaceTextInParagraph(paragraph, "time", timeSummary);
         }
+    }
+
+
+    @Override
+    public void createReportLevel1(Date st, Date et, String path) {
+
+    }
+
+    public void setLineDataTotal(XWPFTableRow row, Integer lineId, Date st, Date et) {
+        LambdaQueryWrapper<WarnCfg> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(WarnCfg::getLineId, lineId);
+        WarnCfg one = warnCfgService.getOne(queryWrapper);
+
+        List<LineRunDTO> lineRun = lineStopRunStatisticHourMapper.getLineRun(lineId, st, et);
+        int runDay = lineRun.size();
+        double runHour = lineRun.stream().mapToDouble(LineRunDTO::getRunHour).sum();
+
+        ExceedDTO peopleExceed = processLinePictureHistMapper.getInspectionExceed(lineId, st, et, null);
+        String peopleInspectionRate = peopleExceed.getRate();
+        String peopleInspectionScore = peopleExceed.getScore(one.getPeopleScore());
+
+        PointExceedInspectionDTO pointInspection = pointInspectionHourMapper.getTotalPointInspection(lineId, st, et);
+        String pointInspectionRate = pointInspection.getRate();
+        String pointInspectionScore = pointInspection.getScore(one.getScore(), one.getHighScore());
+
+        List<CountStatisticDTO> topProcess = processLinePictureHistMapper.getTopProcess(lineId, st, et);
+        int peopleCount = topProcess.stream().mapToInt(CountStatisticDTO::getCount).sum();
+        String topName = topProcess.get(0).getName();
+        String peopleTotalScore = NumberUtil.decimalFormat("#.##", peopleCount * one.getPeopleScore());
+
+        List<CountStatisticDTO> topPoint = pointStatisticHourMapper.getTopPoint(lineId, st, et);
+        String topPointName = topPoint.stream().limit(3)
+                .map(CountStatisticDTO::getName)
+                .collect(Collectors.joining(","));
+        Double lineScore = pointStatisticHourMapper.getLineScore(lineId, st, et);
+
+        double safeScore = 100 - Double.parseDouble(peopleTotalScore) - lineScore;
+
+        LineSafeScoreDTO.builder()
+                .runDay(runDay)
+                .runHour(runHour)
+                .peopleInspectionScore(peopleInspectionScore)
+                .peopleInspectionRate(peopleInspectionRate)
+                .pointInspectionRate(pointInspectionRate)
+                .pointInspectionScore(pointInspectionScore)
+                .peopleScore(peopleTotalScore)
+                .topProcess(topName)
+                .topPoint(topPointName)
+                .pointScore(NumberUtil.decimalFormat("#.##", lineScore))
+                .score(NumberUtil.decimalFormat("#.##", safeScore))
+                .build();
+    }
+
+    @Override
+    public void createReportLevel2(Integer plantId, Date st, Date et, String path) {
+
+    }
+
+    @Override
+    public void createReportLevel3(Integer lineId, Date st, Date et, String path) {
+
     }
 }
