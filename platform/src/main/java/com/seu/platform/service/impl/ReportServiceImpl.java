@@ -746,11 +746,87 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public void createReportLevel2(Integer plantId, Date st, Date et, Date lastSt, Date lastEt, String path) {
+        try {
+            Resource resource = resourceLoader.getResource("classpath:word/level2.docx");
+            InputStream inputStream = resource.getInputStream();
+            XWPFDocument doc = new XWPFDocument(inputStream);
 
+            String start = DateUtil.format(st, "yyyy年MM月dd日");
+            String end = DateUtil.format(et, "yyyy年MM月dd日");
+            String time = start + " - " + end;
+            String name;
+            int[] ids;
+            if (plantId == 2) {
+                name = "荆门";
+                ids = new int[]{1, 2};
+            } else {
+                name = "凌河";
+                ids = new int[]{3, 4};
+            }
+            doc.getParagraphs().forEach(p -> {
+                WordUtil.replaceTextInParagraph(p, "time", time);
+                WordUtil.replaceTextInParagraph(p, "name", name);
+            });
+            List<XWPFTable> tables = doc.getTables();
+            setLineTable(st, et, lastSt, lastEt, tables.get(0), ids[0], ids[1]);
+        } catch (IOException e) {
+            log.error("二级报告异常", e);
+        }
     }
 
     @Override
     public void createReportLevel3(Integer lineId, Date st, Date et, Date lastSt, Date lastEt, String path) {
+        try {
+            Resource resource = resourceLoader.getResource("classpath:word/level3.docx");
+            InputStream inputStream = resource.getInputStream();
+            XWPFDocument doc = new XWPFDocument(inputStream);
 
+            //替换生产线名
+            replaceName(doc.getParagraphs(), lineId);
+            //替换时间
+            String start = DateUtil.format(st, "yyyy年MM月dd日");
+            String end = DateUtil.format(et, "yyyy年MM月dd日");
+            String time = start + " - " + end;
+
+
+            List<XWPFTable> tables = doc.getTables();
+
+            XWPFTableRow row = tables.get(0).getRow(3);
+            LineSafeScoreDTO line = setLineDataTotal(lineId, st, et, lastSt, lastEt);
+            setLineData(row, line);
+
+            LambdaQueryWrapper<WarnCfg> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(WarnCfg::getLineId, lineId);
+            WarnCfg one = warnCfgService.getOne(queryWrapper);
+            if (one == null) {
+                one = new WarnCfg();
+            }
+            Double peopleScore = one.getPeopleScore();
+            Double pointScore = one.getScore();
+            Double highScore = one.getHighScore();
+            peopleScore = peopleScore == null ? 2.0 : peopleScore;
+            pointScore = pointScore == null ? 1.0 : pointScore;
+            highScore = highScore == null ? 3.0 : highScore;
+
+            //1.定员巡检
+            createInspectionLineTable(tables.get(1), lineId, st, et);
+
+            //2.工艺参数巡检
+            createPointInspectionLineTable(tables.get(2), lineId, st, et);
+
+            //3.定员历史
+            double peopleScoreValue = createInspectionHistoryTable(tables.get(3), lineId, st, et, peopleScore);
+
+            //4.运行参数历史
+            double pointScoreValue = createPointHistoryTable(tables.get(4), lineId, st, et, pointScore, highScore);
+
+            doc.getParagraphs().forEach(p -> {
+                WordUtil.replaceTextInParagraph(p, "time", time);
+                WordUtil.replaceTextInParagraph(p, "runDay", String.valueOf(line.getRunDay()));
+                WordUtil.replaceTextInParagraph(p, "runHour", String.valueOf(line.getRunHour()));
+            });
+        } catch (IOException e) {
+            log.error("三级报告异常", e);
+        }
     }
 }
