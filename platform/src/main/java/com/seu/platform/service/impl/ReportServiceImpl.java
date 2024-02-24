@@ -5,10 +5,12 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.seu.platform.dao.entity.InspectionCfg;
 import com.seu.platform.dao.entity.PointCfg;
 import com.seu.platform.dao.entity.ProductionLine;
 import com.seu.platform.dao.entity.WarnCfg;
 import com.seu.platform.dao.mapper.*;
+import com.seu.platform.dao.service.InspectionCfgService;
 import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.dao.service.ProductionLineService;
 import com.seu.platform.dao.service.WarnCfgService;
@@ -58,6 +60,8 @@ public class ReportServiceImpl implements ReportService {
     private final LineStopRunStatisticHourMapper lineStopRunStatisticHourMapper;
 
     private final ProductionLineService productionLineService;
+
+    private final InspectionCfgService inspectionCfgService;
 
 
     /**
@@ -217,10 +221,10 @@ public class ReportServiceImpl implements ReportService {
 
 
             //1.定员巡检
-            createInspectionLineTable(tables.get(0), lineId, st, et);
+//            createInspectionLineTable(tables.get(0), lineId, st, et);
 
             //2.工艺参数巡检
-            createPointInspectionLineTable(tables.get(1), lineId, st, et);
+//            createPointInspectionLineTable(tables.get(1), lineId, st, et, peopleScore);
 
             //3.定员历史
             double peopleScoreValue = createInspectionHistoryTable(tables.get(2), lineId, st, et, peopleScore);
@@ -263,20 +267,23 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
-    public void createInspectionLineTable(XWPFTable table, Integer lineId, Date st, Date et) {
+    public void createInspectionLineTable(XWPFTable table, Integer lineId, Date st, Date et, Double peopleScore) {
         List<InspectionStatisticDTO> lineInspection = processLinePictureHistMapper.getLineInspection(lineId, st, et);
         int totalCount = 0;
         int totalExceed = 0;
+        int day = (int) DateUtil.betweenDay(st, et, false);
         for (int i = 0; i < lineInspection.size(); i++) {
             InspectionStatisticDTO dto = lineInspection.get(i);
             XWPFTableRow row = table.createRow();
             row.getCell(0).setText(String.valueOf(i + 1));
             row.getCell(1).setText(dto.getName().trim());
             Integer count = dto.getCount();
+            count = count == null || count == 0 ? day * 24 : count;
             row.getCell(2).setText(String.valueOf(count));
             Integer exceed = dto.getExceed();
             row.getCell(3).setText(String.valueOf(exceed));
             row.getCell(4).setText(NumberUtil.formatPercent(1.0 * exceed / count, 2));
+            row.getCell(5).setText(NumberUtil.decimalFormat("#.##", peopleScore * exceed));
             totalCount += count;
             totalExceed += exceed;
         }
@@ -288,8 +295,9 @@ public class ReportServiceImpl implements ReportService {
         row.getCell(4).setText(NumberUtil.formatPercent(1.0 * totalExceed / totalCount, 2));
     }
 
-    public void createPointInspectionLineTable(XWPFTable table, Integer lineId, Date st, Date et) {
+    public void createPointInspectionLineTable(XWPFTable table, Integer lineId, Date st, Date et, Double score, Double highScore) {
         List<PointExceedInspectionDTO> pointInspection = pointInspectionHourMapper.getPointInspection(lineId, st, et);
+        int day = (int) DateUtil.betweenDay(st, et, false);
         for (int i = 0; i < pointInspection.size(); i++) {
             PointExceedInspectionDTO dto = pointInspection.get(i);
             XWPFTableRow row = table.createRow();
@@ -297,9 +305,11 @@ public class ReportServiceImpl implements ReportService {
             row.getCell(1).setText(dto.getName().trim());
             Integer exceed = dto.getExceed();
             Integer count = dto.getCount();
+            count = count == null || count == 0 ? day * 24 : count;
             row.getCell(2).setText(String.valueOf(count));
             row.getCell(3).setText(String.valueOf(exceed));
-            row.getCell(4).setText(NumberUtil.formatPercent(1.0 * exceed / count, 2));
+            row.getCell(4).setText(dto.getRate());
+            row.getCell(5).setText(dto.getScore(score, highScore));
         }
     }
 
@@ -335,14 +345,10 @@ public class ReportServiceImpl implements ReportService {
             highCount = highCount == null ? 0 : highCount;
             row.getCell(2).setText(String.valueOf(highCount));
             row.getCell(3).setText(String.valueOf(count));
-            Double time = dto.getTime();
-            Double highTime = dto.getHighTime();
-            row.getCell(4).setText(NumberUtil.decimalFormat("#.##", highTime));
-            row.getCell(5).setText(NumberUtil.decimalFormat("#.##", time));
             double pScore = (count * score + highCount * highScore) / 30;
             totalScore += pScore;
             String lineScore = NumberUtil.decimalFormat("#.##", pScore);
-            row.getCell(6).setText(lineScore);
+            row.getCell(4).setText(lineScore);
         }
         return totalScore;
     }
@@ -637,15 +643,16 @@ public class ReportServiceImpl implements ReportService {
             InputStream inputStream = resource.getInputStream();
             XWPFDocument doc = new XWPFDocument(inputStream);
 
-            String start = DateUtil.format(st, "yyyy年MM月dd日");
-            String end = DateUtil.format(et, "yyyy年MM月dd日");
+            String start = DateUtil.format(st, "yyyy年MM月dd日HH时");
+            String end = DateUtil.format(et, "yyyy年MM月dd日HH时");
             String time = start + " - " + end;
             doc.getParagraphs().forEach(p -> WordUtil.replaceTextInParagraph(p, "time", time));
 
             List<XWPFTable> tables = doc.getTables();
             setLineTable(st, et, lastSt, lastEt, tables.get(0), 1, 2);
             setLineTable(st, et, lastSt, lastEt, tables.get(1), 3, 4);
-
+            FileOutputStream fileOutputStream = new FileOutputStream(path);
+            doc.write(fileOutputStream);
         } catch (IOException e) {
             log.error("一级报告异常", e);
         }
@@ -667,6 +674,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private void setLineData(XWPFTableRow row, LineSafeScoreDTO line) {
+        row.getCell(1).setText(line.getLineName());
         row.getCell(2).setText(String.valueOf(line.getRunDay()));
         row.getCell(3).setText(NumberUtil.decimalFormat("#.##", line.getRunHour()));
         row.getCell(4).setText(line.getPeopleInspectionRate());
@@ -679,13 +687,22 @@ public class ReportServiceImpl implements ReportService {
         row.getCell(11).setText(line.getTopPoint());
         row.getCell(12).setText(NumberUtil.decimalFormat("#.##", line.getScore()));
         row.getCell(13).setText(line.getScore() > line.getLast() ? "增加" : "降低");
-        row.getCell(13).setText(line.getScore() > line.getLastYear() ? "增加" : "降低");
+        row.getCell(14).setText(line.getScore() > line.getLastYear() ? "增加" : "降低");
     }
 
     public LineSafeScoreDTO setLineDataTotal(Integer lineId, Date st, Date et, Date lastSt, Date lastEt) {
         LambdaQueryWrapper<WarnCfg> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(WarnCfg::getLineId, lineId);
         WarnCfg one = warnCfgService.getOne(queryWrapper);
+        one = one == null ? new WarnCfg() : one;
+
+        LambdaQueryWrapper<ProductionLine> queryWrapper1 = new LambdaQueryWrapper<>();
+        queryWrapper1.eq(ProductionLine::getId, lineId);
+        ProductionLine line = productionLineService.getOne(queryWrapper1);
+
+        LambdaQueryWrapper<InspectionCfg> queryWrapper2 = new LambdaQueryWrapper<>();
+        queryWrapper2.eq(InspectionCfg::getLineId, lineId);
+        InspectionCfg inspectionCfg = inspectionCfgService.getOne(queryWrapper2);
 
         List<LineRunDTO> lineRun = lineStopRunStatisticHourMapper.getLineRun(lineId, st, et);
         int runDay = lineRun.size();
@@ -694,6 +711,7 @@ public class ReportServiceImpl implements ReportService {
         ExceedDTO peopleExceed = processLinePictureHistMapper.getInspectionExceed(lineId, st, et, null);
         String peopleInspectionRate = peopleExceed.getRate();
         Double peopleScore = one.getPeopleScore();
+        peopleScore = peopleScore == null ? 2 : peopleScore;
         String peopleInspectionScore = peopleExceed.getScore(peopleScore);
 
         PointExceedInspectionDTO pointInspection = pointInspectionHourMapper.getTotalPointInspection(lineId, st, et);
@@ -710,7 +728,7 @@ public class ReportServiceImpl implements ReportService {
                 .map(CountStatisticDTO::getName)
                 .collect(Collectors.joining(","));
         Double lineScore = pointStatisticHourMapper.getLineScore(lineId, st, et);
-
+        lineScore = lineScore == null ? 0 : lineScore;
         double safeScore = 100 - Double.parseDouble(peopleTotalScore) - lineScore;
 
         double lastScore = getScore(lineId, lastSt, lastEt, peopleScore);
@@ -735,12 +753,16 @@ public class ReportServiceImpl implements ReportService {
                 .score(safeScore)
                 .last(lastScore)
                 .lastYear(lastYearScore)
+                .lineName(line.getName())
+                .period(inspectionCfg.getHistoricalPhotoRetentionPeriod())
                 .build();
     }
 
     private double getScore(Integer lineId, Date lastSt, Date lastEt, Double peopleScore) {
         Integer lastCount = processLinePictureHistMapper.getCount(lineId, null, lastSt, lastEt);
+        lastCount = lastCount == null ? 0 : lastCount;
         Double lastPointScore = pointStatisticHourMapper.getLineScore(lineId, lastSt, lastEt);
+        lastPointScore = lastPointScore == null ? 0 : lastPointScore;
         return 100 - lastPointScore - lastCount * peopleScore;
     }
 
@@ -751,8 +773,8 @@ public class ReportServiceImpl implements ReportService {
             InputStream inputStream = resource.getInputStream();
             XWPFDocument doc = new XWPFDocument(inputStream);
 
-            String start = DateUtil.format(st, "yyyy年MM月dd日");
-            String end = DateUtil.format(et, "yyyy年MM月dd日");
+            String start = DateUtil.format(st, "yyyy年MM月dd日HH时");
+            String end = DateUtil.format(et, "yyyy年MM月dd日HH时");
             String time = start + " - " + end;
             String name;
             int[] ids;
@@ -769,6 +791,8 @@ public class ReportServiceImpl implements ReportService {
             });
             List<XWPFTable> tables = doc.getTables();
             setLineTable(st, et, lastSt, lastEt, tables.get(0), ids[0], ids[1]);
+            FileOutputStream fileOutputStream = new FileOutputStream(path);
+            doc.write(fileOutputStream);
         } catch (IOException e) {
             log.error("二级报告异常", e);
         }
@@ -777,15 +801,15 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public void createReportLevel3(Integer lineId, Date st, Date et, Date lastSt, Date lastEt, String path) {
         try {
-            Resource resource = resourceLoader.getResource("classpath:word/level3.docx");
+            Resource resource = resourceLoader.getResource("classpath:word/level3_0.docx");
             InputStream inputStream = resource.getInputStream();
             XWPFDocument doc = new XWPFDocument(inputStream);
 
             //替换生产线名
             replaceName(doc.getParagraphs(), lineId);
             //替换时间
-            String start = DateUtil.format(st, "yyyy年MM月dd日");
-            String end = DateUtil.format(et, "yyyy年MM月dd日");
+            String start = DateUtil.format(st, "yyyy年MM月dd日HH时");
+            String end = DateUtil.format(et, "yyyy年MM月dd日时");
             String time = start + " - " + end;
 
 
@@ -793,7 +817,7 @@ public class ReportServiceImpl implements ReportService {
 
             XWPFTableRow row = tables.get(0).getRow(3);
             LineSafeScoreDTO line = setLineDataTotal(lineId, st, et, lastSt, lastEt);
-            setLineData(row, line);
+            setLineData1(row, line);
 
             LambdaQueryWrapper<WarnCfg> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(WarnCfg::getLineId, lineId);
@@ -809,10 +833,10 @@ public class ReportServiceImpl implements ReportService {
             highScore = highScore == null ? 3.0 : highScore;
 
             //1.定员巡检
-            createInspectionLineTable(tables.get(1), lineId, st, et);
+            createInspectionLineTable(tables.get(1), lineId, st, et, peopleScore);
 
             //2.工艺参数巡检
-            createPointInspectionLineTable(tables.get(2), lineId, st, et);
+            createPointInspectionLineTable(tables.get(2), lineId, st, et, pointScore, highScore);
 
             //3.定员历史
             double peopleScoreValue = createInspectionHistoryTable(tables.get(3), lineId, st, et, peopleScore);
@@ -822,11 +846,30 @@ public class ReportServiceImpl implements ReportService {
 
             doc.getParagraphs().forEach(p -> {
                 WordUtil.replaceTextInParagraph(p, "time", time);
-                WordUtil.replaceTextInParagraph(p, "runDay", String.valueOf(line.getRunDay()));
-                WordUtil.replaceTextInParagraph(p, "runHour", String.valueOf(line.getRunHour()));
+                WordUtil.replaceTextInParagraph(p, "line", line.getLineName());
+                WordUtil.replaceTextInParagraph(p, "day", String.valueOf(line.getRunDay()));
+                WordUtil.replaceTextInParagraph(p, "hour", NumberUtil.decimalFormat("#.##", line.getRunHour()));
+                WordUtil.replaceTextInParagraph(p, "period", String.valueOf(line.getPeriod()));
             });
+
+            FileOutputStream fileOutputStream = new FileOutputStream(path);
+            doc.write(fileOutputStream);
         } catch (IOException e) {
             log.error("三级报告异常", e);
         }
+    }
+
+    private void setLineData1(XWPFTableRow row, LineSafeScoreDTO line) {
+        row.getCell(0).setText(line.getPeopleInspectionRate());
+        row.getCell(1).setText(line.getPeopleInspectionScore());
+        row.getCell(2).setText(line.getPointInspectionRate());
+        row.getCell(3).setText(line.getPointInspectionScore());
+        row.getCell(4).setText(line.getPeopleScore());
+        row.getCell(5).setText(line.getTopProcess());
+        row.getCell(6).setText(line.getPointScore());
+        row.getCell(7).setText(line.getTopPoint());
+        row.getCell(8).setText(NumberUtil.decimalFormat("#.##", line.getScore()));
+        row.getCell(9).setText(line.getScore() > line.getLast() ? "增加" : "降低");
+        row.getCell(10).setText(line.getScore() > line.getLastYear() ? "增加" : "降低");
     }
 }

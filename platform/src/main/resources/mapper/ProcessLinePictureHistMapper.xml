@@ -205,13 +205,13 @@
     <select id="getTopProcess" resultType="com.seu.platform.model.dto.CountStatisticDTO">
         select sum(iif(t1.exceed = 1, 1, 0)) as count,
                t2.camera_description         as name
-        from process_line_picture_hist t1 with (nolock),
-             camera_cfg t2
+        from camera_cfg t2
                  with (nolock)
-        where t1.camera_id = t2.camera_ip
-          and t2.line_id = #{lineId}
-          and t1.update_time >= #{st}
-          and t1.update_time &lt;= #{et}
+                 left join process_line_picture_hist t1 with (nolock)
+                           on t1.camera_id = t2.camera_ip
+                               and t1.update_time >= #{st}
+                               and t1.update_time &lt;= #{et}
+        where t2.line_id = #{lineId}
         group by t2.camera_description
         order by count desc
     </select>

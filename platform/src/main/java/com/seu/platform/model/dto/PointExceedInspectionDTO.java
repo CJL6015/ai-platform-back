@@ -38,11 +38,13 @@ public class PointExceedInspectionDTO {
 
     public String getScore(Double score, Double highScore) {
         initData();
+        score = score == null ? 0.1 : score;
+        highScore = highScore == null ? 0.2 : highScore;
         return NumberUtil.decimalFormat("#.##", getCount() * score + getHighCount() * highScore);
     }
 
 
-    public Integer getCount() {
+    public Integer getExceedCount() {
         return upCount + lowCount;
     }
 

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LineSafeScoreDTO {
+    private String lineName;
     private Integer runDay;
 
     private Double runHour;
@@ -37,6 +38,8 @@ public class LineSafeScoreDTO {
 
     private Double lastYear;
 
+    private Integer period;
+
     public static LineSafeScoreDTO avg(LineSafeScoreDTO dto1, LineSafeScoreDTO dto2) {
         return LineSafeScoreDTO.builder()
                 .runDay((dto1.getRunDay() + dto2.getRunDay()) / 2)
@@ -52,6 +55,7 @@ public class LineSafeScoreDTO {
                 .score((dto1.getScore() + dto2.getScore()) / 2)
                 .last((dto1.getLast() + dto2.getLast()) / 2)
                 .lastYear((dto1.getLastYear() + dto2.getLastYear()) / 2)
+                .lineName("生产点")
                 .build();
     }
 
