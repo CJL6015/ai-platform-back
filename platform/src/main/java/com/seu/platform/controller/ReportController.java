@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -56,14 +57,15 @@ public class ReportController {
 
     @GetMapping("/day")
     public Result<String> getDayReport(Integer level, Integer lineId, Integer plantId) {
-        DateTime time = DateUtil.beginOfMonth(DateUtil.date());
+        DateTime time = DateUtil.beginOfDay(DateUtil.date());
+        time = DateUtil.offsetDay(time, -1);
         String path;
         if (level == 1) {
             path = prefix + "level1_day" + DateUtil.format(time, "yyyyMMdd") + ".docx";
         } else if (level == 2) {
-            path = prefix + "level2_day" + plantId + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level2_day" + plantId + DateUtil.format(time, "yyyyMMdd") + ".docx";
         } else {
-            path = prefix + "level3_day" + lineId + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level3_day" + lineId + DateUtil.format(time, "yyyyMMdd") + ".docx";
         }
         return Result.success(path);
     }
@@ -72,9 +74,10 @@ public class ReportController {
     @GetMapping("/month")
     public Result<String> getMonthReport(Integer level, Integer lineId, Integer plantId) {
         DateTime time = DateUtil.beginOfMonth(DateUtil.date());
+        time = DateUtil.offsetMonth(time, -1);
         String path;
         if (level == 1) {
-            path = prefix + "level1_month" + DateUtil.format(time, "yyyyMMdd") + ".docx";
+            path = prefix + "level1_month" + DateUtil.format(time, "yyyyMM") + ".docx";
         } else if (level == 2) {
             path = prefix + "level2_month" + plantId + DateUtil.format(time, "yyyyMM") + ".docx";
         } else {
@@ -85,10 +88,11 @@ public class ReportController {
 
     @GetMapping("/quarter")
     public Result<String> getQuarterReport(Integer level, Integer lineId, Integer plantId) {
-        DateTime time = DateUtil.beginOfMonth(DateUtil.date());
+        DateTime time = DateUtil.beginOfQuarter(DateUtil.date());
+        time = DateUtil.offsetMonth(time, -3);
         String path;
         if (level == 1) {
-            path = prefix + "level1_quarter" + DateUtil.format(time, "yyyyMMdd") + ".docx";
+            path = prefix + "level1_quarter" + DateUtil.format(time, "yyyyMM") + ".docx";
         } else if (level == 2) {
             path = prefix + "level2_quarter" + plantId + DateUtil.format(time, "yyyyMM") + ".docx";
         } else {
@@ -99,7 +103,8 @@ public class ReportController {
 
     @GetMapping("/year")
     public Result<String> getYearReport(Integer level, Integer lineId, Integer plantId) {
-        DateTime time = DateUtil.beginOfMonth(DateUtil.date());
+        DateTime time = DateUtil.beginOfYear(DateUtil.date());
+        time = DateUtil.offsetMonth(time, -12);
         String path;
         if (level == 1) {
             path = prefix + "level1_year" + DateUtil.format(time, "yyyyMM") + ".docx";
@@ -119,11 +124,15 @@ public class ReportController {
         response.setHeader("Content-Disposition", "attachment;fileName=" + fileName);
         String path = reportDir + fileName;
         try {
-            ServletOutputStream outputStream = response.getOutputStream();
-            byte[] bytes = FileUtil.readBytes(path);
-            outputStream.write(bytes);
-            outputStream.flush();
-            outputStream.close();
+            if (new File(path).exists()) {
+                ServletOutputStream outputStream = response.getOutputStream();
+                byte[] bytes = FileUtil.readBytes(path);
+                outputStream.write(bytes);
+                outputStream.flush();
+                outputStream.close();
+            } else {
+                log.error("文件不存在,path:{}", path);
+            }
         } catch (IOException e) {
             log.error("获取word文档异常:{}", fileName, e);
         }
@@ -131,19 +140,28 @@ public class ReportController {
 
     @GetMapping("/create/report1")
     public Result<Boolean> createReport1() {
-        reportTask.generatePlantReport();
+        reportTask.generateDayLevel1();
+        reportTask.generateMonthLevel1();
+        reportTask.generateQuarterLevel1();
+        reportTask.generateYearLevel1();
         return Result.success();
     }
 
     @GetMapping("/create/report2")
     public Result<Boolean> createReport2() {
-        reportTask.generateInspectionReport();
+        reportTask.generateDayLevel2();
+        reportTask.generateMonthLevel2();
+        reportTask.generateQuarterLevel2();
+        reportTask.generateYearLevel2();
         return Result.success();
     }
 
     @GetMapping("/create/report3")
     public Result<Boolean> createReport3() {
-        reportTask.generateLineReport();
+        reportTask.generateDayLevel3();
+        reportTask.generateMonthLevel3();
+        reportTask.generateQuarterLevel3();
+        reportTask.generateYearLevel3();
         return Result.success();
     }
 }

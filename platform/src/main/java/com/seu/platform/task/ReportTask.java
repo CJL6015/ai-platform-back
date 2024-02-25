@@ -1,5 +1,6 @@
 package com.seu.platform.task;
 
+import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.seu.platform.dao.entity.Plant;
@@ -34,9 +35,9 @@ public class ReportTask {
     private final ReportHistoryService reportHistoryService;
     private final ReportHistoryMapper reportHistoryMapper;
     private final PlantService plantService;
+
     @Value("${static.report-dir}")
     private String reportDir;
-
 
     //    @Scheduled(cron = "0 0 * * * *")
 //    @Scheduled(fixedRate = 1000)
@@ -126,7 +127,7 @@ public class ReportTask {
     /**
      * 一级月报
      */
-
+    @Scheduled(cron = "0 0 * * * *")
     public void generateDayLevel1() {
         Date lastTime = reportHistoryMapper.getLastTime(0);
         DateTime yesterday = DateUtil.beginOfDay(DateUtil.yesterday());
@@ -135,8 +136,7 @@ public class ReportTask {
         }
         if (lastTime.before(yesterday)) {
             log.info("开始生成一级日报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
-            time = DateUtil.offsetDay(time, -2);
+            DateTime time = DateUtil.offsetDay(lastTime, 1);
             DateTime st = DateUtil.beginOfDay(time);
             DateTime et = DateUtil.endOfDay(time);
             DateTime lastSt = DateUtil.offsetDay(st, -1);
@@ -148,25 +148,23 @@ public class ReportTask {
                 ReportHistory reportHistory = new ReportHistory();
                 reportHistory.setType(0);
                 reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
+                reportHistoryService.save(reportHistory);
             }
         } else {
             log.info("不需要生成一级日表");
         }
     }
 
-    //    @Scheduled(cron = "0 0 * * * *")
-//    @Scheduled(fixedRate = 1000)
+    @Scheduled(cron = "0 0 * * * *")
     public void generateMonthLevel1() {
-        Date lastTime = reportHistoryMapper.getLastTime(0);
+        Date lastTime = reportHistoryMapper.getLastTime(1);
         DateTime lastMonth = DateUtil.beginOfMonth(DateUtil.lastMonth());
         if (lastTime == null) {
             lastTime = DateUtil.offsetMonth(lastMonth, -1);
         }
         if (lastTime.before(lastMonth)) {
             log.info("开始生成一级月报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
-            time = DateUtil.offsetMonth(time, -2);
+            DateTime time = DateUtil.offsetMonth(lastTime, 1);
             DateTime st = DateUtil.beginOfMonth(time);
             DateTime et = DateUtil.endOfMonth(time);
             DateTime lastSt = DateUtil.offsetMonth(st, -1);
@@ -176,19 +174,18 @@ public class ReportTask {
 
             if (new File(path).exists()) {
                 ReportHistory reportHistory = new ReportHistory();
-                reportHistory.setType(0);
+                reportHistory.setType(1);
                 reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
+                reportHistoryService.save(reportHistory);
             }
         } else {
             log.info("不需要生成一级月表");
         }
     }
 
-    //    @Scheduled(cron = "0 0 * * * *")
-//    @Scheduled(fixedRate = 1000)
+    @Scheduled(cron = "0 0 * * * *")
     public void generateQuarterLevel1() {
-        Date lastTime = reportHistoryMapper.getLastTime(1);
+        Date lastTime = reportHistoryMapper.getLastTime(2);
         DateTime quarter = DateUtil.beginOfQuarter(DateUtil.date());
         DateTime lastQuarter = DateUtil.offsetMonth(quarter, -3);
         if (lastTime == null) {
@@ -196,7 +193,7 @@ public class ReportTask {
         }
         if (lastTime.before(lastQuarter)) {
             log.info("开始生成一级季报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
+            DateTime time = DateUtil.offsetMonth(lastTime, 1);
             DateTime st = DateUtil.beginOfQuarter(time);
             DateTime et = DateUtil.endOfQuarter(time);
             DateTime lastSt = DateUtil.offsetMonth(st, -3);
@@ -206,26 +203,26 @@ public class ReportTask {
 
             if (new File(path).exists()) {
                 ReportHistory reportHistory = new ReportHistory();
-                reportHistory.setType(1);
+                reportHistory.setType(2);
                 reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
+                reportHistoryService.save(reportHistory);
             }
         } else {
             log.info("不需要生成一级季表");
         }
     }
 
-    //    @Scheduled(fixedRate = 1000)
+    @Scheduled(cron = "0 0 * * * *")
     public void generateYearLevel1() {
-        Date lastTime = reportHistoryMapper.getLastTime(2);
+        Date lastTime = reportHistoryMapper.getLastTime(3);
         DateTime year = DateUtil.beginOfYear(DateUtil.date());
-        DateTime lastYear = DateUtil.offsetMonth(year, -12);
+        DateTime lastYear = DateUtil.offset(year, DateField.YEAR, 1);
         if (lastTime == null) {
-            lastTime = DateUtil.offsetMonth(lastYear, -12);
+            lastTime = DateUtil.offset(lastYear, DateField.YEAR, -1);
         }
         if (lastTime.before(lastYear)) {
             log.info("开始生成一级年报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
+            DateTime time = DateUtil.offset(lastTime, DateField.YEAR, 1);
             DateTime st = DateUtil.beginOfYear(time);
             DateTime et = DateUtil.endOfYear(time);
             DateTime lastSt = DateUtil.offsetMonth(st, -12);
@@ -235,24 +232,25 @@ public class ReportTask {
 
             if (new File(path).exists()) {
                 ReportHistory reportHistory = new ReportHistory();
-                reportHistory.setType(2);
+                reportHistory.setType(3);
                 reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
+                reportHistoryService.save(reportHistory);
             }
         } else {
             log.info("不需要生成一级年表");
         }
     }
 
+    @Scheduled(cron = "0 0 * * * *")
     public void generateDayLevel2() {
-        Date lastTime = reportHistoryMapper.getLastTime(3);
+        Date lastTime = reportHistoryMapper.getLastTime(4);
         DateTime yesterday = DateUtil.beginOfDay(DateUtil.yesterday());
         if (lastTime == null) {
             lastTime = DateUtil.offsetDay(yesterday, -1);
         }
         if (lastTime.before(yesterday)) {
             log.info("开始生成二级日报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
+            DateTime time = DateUtil.offsetDay(lastTime, 1);
             DateTime st = DateUtil.beginOfDay(time);
             DateTime et = DateUtil.endOfDay(time);
             DateTime lastSt = DateUtil.offsetDay(st, -1);
@@ -268,24 +266,24 @@ public class ReportTask {
             }
 
             ReportHistory reportHistory = new ReportHistory();
-            reportHistory.setType(3);
+            reportHistory.setType(4);
             reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
+            reportHistoryService.save(reportHistory);
         } else {
             log.info("不需要生成二级日表");
         }
     }
 
-    //    @Scheduled(fixedRate = 1000)
+    @Scheduled(cron = "0 0 * * * *")
     public void generateMonthLevel2() {
-        Date lastTime = reportHistoryMapper.getLastTime(3);
+        Date lastTime = reportHistoryMapper.getLastTime(5);
         DateTime lastMonth = DateUtil.beginOfMonth(DateUtil.lastMonth());
         if (lastTime == null) {
             lastTime = DateUtil.offsetMonth(lastMonth, -1);
         }
         if (lastTime.before(lastMonth)) {
             log.info("开始生成二级月报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
+            DateTime time = DateUtil.offsetMonth(lastMonth, 1);
             DateTime st = DateUtil.beginOfMonth(time);
             DateTime et = DateUtil.endOfMonth(time);
             DateTime lastSt = DateUtil.offsetMonth(st, -1);
@@ -301,16 +299,17 @@ public class ReportTask {
             }
 
             ReportHistory reportHistory = new ReportHistory();
-            reportHistory.setType(3);
+            reportHistory.setType(5);
             reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
+            reportHistoryService.save(reportHistory);
         } else {
             log.info("不需要生成二级月表");
         }
     }
 
+    @Scheduled(cron = "0 0 * * * *")
     public void generateQuarterLevel2() {
-        Date lastTime = reportHistoryMapper.getLastTime(4);
+        Date lastTime = reportHistoryMapper.getLastTime(6);
         DateTime quarter = DateUtil.beginOfQuarter(DateUtil.date());
         DateTime lastQuarter = DateUtil.offsetMonth(quarter, -3);
         if (lastTime == null) {
@@ -318,7 +317,7 @@ public class ReportTask {
         }
         if (lastTime.before(lastQuarter)) {
             log.info("开始生成二级季报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
+            DateTime time = DateUtil.offsetMonth(lastTime, 3);
             DateTime st = DateUtil.beginOfQuarter(time);
             DateTime et = DateUtil.endOfQuarter(time);
             DateTime lastSt = DateUtil.offsetMonth(st, -3);
@@ -334,23 +333,25 @@ public class ReportTask {
                 }
             }
             ReportHistory reportHistory = new ReportHistory();
-            reportHistory.setType(4);
+            reportHistory.setType(6);
             reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory); } else {
+            reportHistoryService.save(reportHistory);
+        } else {
             log.info("不需要生成二级季表");
         }
     }
 
+    @Scheduled(cron = "0 0 * * * *")
     public void generateYearLevel2() {
-        Date lastTime = reportHistoryMapper.getLastTime(5);
+        Date lastTime = reportHistoryMapper.getLastTime(7);
         DateTime year = DateUtil.beginOfYear(DateUtil.date());
         DateTime lastYear = DateUtil.offsetMonth(year, -12);
         if (lastTime == null) {
-            lastTime = DateUtil.offsetMonth(lastYear, -12);
+            lastTime = DateUtil.offset(lastYear, DateField.YEAR, -1);
         }
         if (lastTime.before(lastYear)) {
             log.info("开始生成二级年报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
+            DateTime time = DateUtil.offset(lastTime, DateField.YEAR, 1);
             DateTime st = DateUtil.beginOfYear(time);
             DateTime et = DateUtil.endOfYear(time);
             DateTime lastSt = DateUtil.offsetMonth(st, -12);
@@ -365,29 +366,29 @@ public class ReportTask {
                 }
             }
             ReportHistory reportHistory = new ReportHistory();
-            reportHistory.setType(5);
+            reportHistory.setType(7);
             reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory); } else {
+            reportHistoryService.save(reportHistory);
+        } else {
             log.info("不需要生成二级季表");
         }
     }
 
-    //    @Scheduled(fixedRate = 1000)
+    @Scheduled(cron = "0 0 * * * *")
     public void generateDayLevel3() {
-        Date lastTime = reportHistoryMapper.getLastTime(6);
+        Date lastTime = reportHistoryMapper.getLastTime(8);
         DateTime yesterday = DateUtil.beginOfDay(DateUtil.yesterday());
         if (lastTime == null) {
             lastTime = DateUtil.offsetDay(yesterday, -1);
         }
         if (lastTime.before(yesterday)) {
             log.info("开始生成三级日报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
-            time = DateUtil.offsetDay(time, -2);
+            DateTime time = DateUtil.offsetDay(lastTime, 1);
             DateTime st = DateUtil.beginOfDay(time);
             DateTime et = DateUtil.endOfDay(time);
             DateTime lastSt = DateUtil.offsetDay(st, -1);
             DateTime lastEt = DateUtil.offsetDay(et, -1);
-            for (int i = 1; i <= 4; i++) {
+            for (int i = 1; i <= 2; i++) {
                 String path = reportDir + "level3_day" + i + DateUtil.format(st, "yyyyMMdd") + ".docx";
                 reportService.createReportLevel3(i, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
@@ -395,49 +396,66 @@ public class ReportTask {
                 }
             }
 
+            for (int i = 3; i <= 4; i++) {
+                String path = reportDir + "level3_day" + i + DateUtil.format(st, "yyyyMMdd") + ".docx";
+                reportService.createReportLevel3_1(i, st, et, lastSt, lastEt, path);
+                if (new File(path).exists()) {
+                    log.info("三级日报生成成功:{}", i);
+                }
+            }
+
             ReportHistory reportHistory = new ReportHistory();
-            reportHistory.setType(6);
+            reportHistory.setType(8);
             reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
+            reportHistoryService.save(reportHistory);
         } else {
             log.info("不需要生成三级日表");
         }
     }
 
-        @Scheduled(fixedRate = 1000)
+    @Scheduled(cron = "0 0 * * * *")
     public void generateMonthLevel3() {
-        Date lastTime = reportHistoryMapper.getLastTime(6);
+        Date lastTime = reportHistoryMapper.getLastTime(9);
         DateTime lastMonth = DateUtil.beginOfMonth(DateUtil.lastMonth());
         if (lastTime == null) {
             lastTime = DateUtil.offsetMonth(lastMonth, -1);
         }
         if (lastTime.before(lastMonth)) {
             log.info("开始生成三级月报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
-            time = DateUtil.offsetMonth(time, -2);
+            DateTime time = DateUtil.offsetMonth(lastTime, 1);
             DateTime st = DateUtil.beginOfMonth(time);
             DateTime et = DateUtil.endOfMonth(time);
             DateTime lastSt = DateUtil.offsetMonth(st, -1);
             DateTime lastEt = DateUtil.offsetMonth(et, -1);
-            for (int i = 1; i <= 4; i++) {
-                String path = reportDir + "level3_month" + i + DateUtil.format(st, "yyyyMM") + ".pdf";
+            for (int i = 1; i <= 2; i++) {
+                String path = reportDir + "level3_month" + i + DateUtil.format(st, "yyyyMM") + ".docx";
                 reportService.createReportLevel3(i, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("三级月报生成成功:{}", i);
                 }
             }
 
+            for (int i = 3; i <= 4; i++) {
+                String path = reportDir + "level3_month" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+                reportService.createReportLevel3_1(i, st, et, lastSt, lastEt, path);
+                if (new File(path).exists()) {
+                    log.info("三级月报生成成功:{}", i);
+                }
+            }
+
             ReportHistory reportHistory = new ReportHistory();
-            reportHistory.setType(6);
+            reportHistory.setType(9);
             reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
+            reportHistoryService.save(reportHistory);
         } else {
             log.info("不需要生成三级月表");
         }
     }
 
+    //    @Scheduled(fixedRate = 100)
+    @Scheduled(cron = "0 0 * * * *")
     public void generateQuarterLevel3() {
-        Date lastTime = reportHistoryMapper.getLastTime(7);
+        Date lastTime = reportHistoryMapper.getLastTime(10);
         DateTime quarter = DateUtil.beginOfQuarter(DateUtil.date());
         DateTime lastQuarter = DateUtil.offsetMonth(quarter, -3);
         if (lastTime == null) {
@@ -445,56 +463,72 @@ public class ReportTask {
         }
         if (lastTime.before(lastQuarter)) {
             log.info("开始生成三级季报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
+            DateTime time = DateUtil.offsetMonth(lastTime, 3);
             DateTime st = DateUtil.beginOfQuarter(time);
             DateTime et = DateUtil.endOfQuarter(time);
             DateTime lastSt = DateUtil.offsetMonth(st, -3);
             DateTime lastEt = DateUtil.offsetMonth(et, -3);
 
-            for (int i = 1; i <= 4; i++) {
+            for (int i = 1; i <= 2; i++) {
                 String path = reportDir + "level3_quarter" + i + DateUtil.format(st, "yyyyMM") + ".docx";
                 reportService.createReportLevel3(i, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
-                    log.info("二级季报生成成功:{}", i);
+                    log.info("三级季报生成成功:{}", i);
+                }
+            }
+
+            for (int i = 3; i <= 4; i++) {
+                String path = reportDir + "level3_quarter" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+                reportService.createReportLevel3_1(i, st, et, lastSt, lastEt, path);
+                if (new File(path).exists()) {
+                    log.info("三级季报生成成功:{}", i);
                 }
             }
             ReportHistory reportHistory = new ReportHistory();
-            reportHistory.setType(7);
+            reportHistory.setType(10);
             reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
+            reportHistoryService.save(reportHistory);
         } else {
             log.info("不需要生成三级季表");
         }
     }
 
+    @Scheduled(cron = "0 0 * * * *")
     public void generateYearLevel3() {
-        Date lastTime = reportHistoryMapper.getLastTime(8);
+        Date lastTime = reportHistoryMapper.getLastTime(11);
         DateTime year = DateUtil.beginOfYear(DateUtil.date());
-        DateTime lastYear = DateUtil.offsetMonth(year, -12);
+        DateTime lastYear = DateUtil.offset(year, DateField.YEAR, -1);
         if (lastTime == null) {
-            lastTime = DateUtil.offsetMonth(lastYear, -12);
+            lastTime = DateUtil.offset(lastYear, DateField.YEAR, -1);
         }
         if (lastTime.before(lastYear)) {
             log.info("开始生成三级年报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
+            DateTime time = DateUtil.offset(lastTime, DateField.YEAR, 1);
             DateTime st = DateUtil.beginOfYear(time);
             DateTime et = DateUtil.endOfYear(time);
-            DateTime lastSt = DateUtil.offsetMonth(st, -12);
-            DateTime lastEt = DateUtil.offsetMonth(et, -12);
+            DateTime lastSt = DateUtil.offset(st, DateField.YEAR, -1);
+            DateTime lastEt = DateUtil.offset(et, DateField.YEAR, -1);
             List<Plant> list = plantService.list();
-            for (int i = 1; i <= 4; i++) {
+            for (int i = 1; i <= 2; i++) {
                 String path = reportDir + "level3_year" + i + DateUtil.format(st, "yyyyMM") + ".docx";
                 reportService.createReportLevel3(i, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
-                    log.info("二级年报生成成功:{}", i);
+                    log.info("三级年报生成成功:{}", i);
+                }
+            }
+            for (int i = 3; i <= 4; i++) {
+                String path = reportDir + "level3_year" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+                reportService.createReportLevel3_1(i, st, et, lastSt, lastEt, path);
+                if (new File(path).exists()) {
+                    log.info("三级年报生成成功:{}", i);
                 }
             }
             ReportHistory reportHistory = new ReportHistory();
-            reportHistory.setType(8);
+            reportHistory.setType(11);
             reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
+            reportHistoryService.save(reportHistory);
         } else {
-            log.info("不需要生成三级季表");
+            log.info("不需要生成三级年表");
         }
     }
 }

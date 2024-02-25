@@ -224,14 +224,16 @@
     <select id="getTopPoint" resultType="com.seu.platform.model.dto.CountStatisticDTO">
         select top 4 t1.description as name,
         sum(t2.up_low_exceeded_count) as count
-        from point_cfg t1 with (nolock),
+        from point_cfg t1 with (nolock) left join
         point_statistic_hour t2 with (nolock)
-        where t1.point_id = t2.point_id
+        on t1.point_id = t2.point_id
         and t2.statiatic_start_time >= #{st}
         and t2.statiatic_start_time &lt;= #{et}
-        <if test="lineId != null">
-            and t1.line_id = #{lineId}
-        </if>
+        <where>
+            <if test="lineId != null">
+                and t1.line_id = #{lineId}
+            </if>
+        </where>
         group by t1.description
         order by count desc
     </select>
@@ -327,9 +329,10 @@
         from point_cfg t1
                  left join
              point_statistic_hour t2 on t1.point_id = t2.point_id
+                 and t2.statiatic_start_time >= #{st}
+                 and t2.statiatic_start_time &lt;= #{et}
         where t1.line_id = #{lineId}
-          and t2.statiatic_start_time >= #{st}
-          and t2.statiatic_start_time &lt;= #{et}
+          and t1.display = 1
         group by t1.description
     </select>
 </mapper>

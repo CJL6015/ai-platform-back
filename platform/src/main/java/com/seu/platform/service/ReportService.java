@@ -28,4 +28,6 @@ public interface ReportService {
 
     void createReportLevel3(Integer lineId, Date st, Date et, Date lastSt, Date lastEt, String path);
 
+    void createReportLevel3_1(Integer lineId, Date st, Date et, Date lastSt, Date lastEt, String path);
+
 }

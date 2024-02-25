@@ -48,9 +48,10 @@
         from point_cfg t2
                  left join point_inspection_hour t1
                            on t1.point_id = t2.point_id
-        where t1.line_id = #{lineId}
-          and t1.create_time >= #{st}
-          and t1.create_time &lt;= #{et}
+                               and t1.create_time >= #{st}
+                               and t1.create_time &lt;= #{et}
+        where t2.line_id = #{lineId}
+          and t2.display = 1
         group by t1.point_id, t2.description
     </select>
     <select id="getExceed" resultType="com.seu.platform.model.dto.ExceedDTO">

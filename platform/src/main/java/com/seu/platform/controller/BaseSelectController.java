@@ -47,8 +47,9 @@ public class BaseSelectController {
         LambdaQueryWrapper<Plant> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Plant::getId, platId);
         Plant plant = plantService.getOne(queryWrapper);
-        if ((token.contains("jingmen") && plant.getName().contains("辽宁"))
-                || (token.contains("liaoning") && plant.getName().contains("荆门"))) {
+        if (((token.contains("jingmen") || token.contains("ruhua") || token.contains("penghua")
+                || token.contains("cangku")) && plant.getName().contains("辽宁"))
+                || ((token.contains("liaoning") || token.contains("leiguan")) && plant.getName().contains("荆门"))) {
             return Result.fail("无权限,请联系管理员");
         }
         List<OptionItemVO> linesOptions = selectService.getLinesOptions(platId);
