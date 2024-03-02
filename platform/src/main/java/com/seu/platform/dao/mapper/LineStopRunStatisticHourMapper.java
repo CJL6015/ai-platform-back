@@ -2,6 +2,7 @@ package com.seu.platform.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seu.platform.dao.entity.LineStopRunStatisticHour;
+import com.seu.platform.model.dto.CountIdDTO;
 import com.seu.platform.model.dto.LineRunDTO;
 import com.seu.platform.model.dto.RunTimeDTO;
 
@@ -21,6 +22,8 @@ public interface LineStopRunStatisticHourMapper extends BaseMapper<LineStopRunSt
     RunTimeDTO getRunTimeByLineId(Integer lineId, Date st, Date et);
 
     List<LineRunDTO> getLineRun(Integer lineId, Date st, Date et);
+
+    List<CountIdDTO> getRunHour(Date st, Date et);
 }
 
 

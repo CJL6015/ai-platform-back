@@ -45,4 +45,12 @@
         group by convert(varchar, start_time, 23)
         order by day
     </select>
+    <select id="getRunHour" resultType="com.seu.platform.model.dto.CountIdDTO">
+        select sum(run_hour) as score,
+               line_id       as id
+        from line_stop_run_statistic_hour
+        where start_time >= #{st}
+          and start_time &lt;= #{et}
+        group by line_id
+    </select>
 </mapper>

@@ -279,13 +279,14 @@ public class ReportServiceImpl implements ReportService {
         int totalCount = 0;
         int totalExceed = 0;
         int day = (int) DateUtil.betweenDay(st, et, false);
+        day = Math.max(1, day);
         Map<String, Integer> map = last.stream().collect(Collectors.toMap(t -> t.getName().trim(),
                 InspectionStatisticDTO::getExceed));
 
         Map<String, Integer> lastYearMap = lastYear.stream().collect(Collectors.toMap(t -> t.getName().trim(),
                 InspectionStatisticDTO::getExceed));
-        int lastTotalCount = 0;
-        int lastYearTotalCount = 0;
+        Integer lastTotalCount = null;
+        Integer lastYearTotalCount = null;
         for (int i = 0; i < lineInspection.size(); i++) {
             InspectionStatisticDTO dto = lineInspection.get(i);
             XWPFTableRow row = table.createRow();
@@ -300,12 +301,23 @@ public class ReportServiceImpl implements ReportService {
             row.getCell(3).setText(String.valueOf(exceed));
             row.getCell(4).setText(NumberUtil.formatPercent(1.0 * exceed / count, 2));
             row.getCell(5).setText(NumberUtil.decimalFormat("#.##", peopleScore * exceed));
-            Integer lastCount = map.getOrDefault(name, 0);
-            String tb = exceed >= lastCount ? "+" : "-";
-            Integer lastYearCount = lastYearMap.getOrDefault(name, 0);
-            String hb = exceed >= lastYearCount ? "+" : "-";
-            lastTotalCount += lastCount;
-            lastYearTotalCount += lastYearCount;
+            Integer lastCount = map.get(name);
+            String tb, hb;
+            if (lastCount == null) {
+                tb = "暂无数据";
+            } else {
+                lastTotalCount = lastTotalCount == null ? 0 : lastTotalCount;
+                tb = exceed >= lastCount ? "+" : "-";
+                lastTotalCount += lastCount;
+            }
+            Integer lastYearCount = lastYearMap.get(name);
+            if (lastYearCount == null) {
+                hb = "暂无数据";
+            } else {
+                lastYearTotalCount = lastYearTotalCount == null ? 0 : lastYearTotalCount;
+                hb = exceed >= lastYearCount ? "+" : "-";
+                lastYearTotalCount += lastYearCount;
+            }
             row.getCell(6).setText(tb + "/" + hb);
             totalCount += count;
             totalExceed += exceed;
@@ -317,8 +329,17 @@ public class ReportServiceImpl implements ReportService {
         row.getCell(3).setText(String.valueOf(totalExceed));
         row.getCell(4).setText(NumberUtil.formatPercent(1.0 * totalExceed / totalCount, 2));
         row.getCell(5).setText(NumberUtil.decimalFormat("#.##", peopleScore * totalExceed));
-        String tb = totalExceed >= lastTotalCount ? "+" : "-";
-        String hb = totalExceed >= lastYearTotalCount ? "+" : "-";
+        String tb, hb;
+        if (lastTotalCount == null) {
+            tb = "暂无数据";
+        } else {
+            tb = totalExceed >= lastTotalCount ? "+" : "-";
+        }
+        if (lastYearTotalCount == null) {
+            hb = "暂无数据";
+        } else {
+            hb = totalExceed >= lastYearTotalCount ? "+" : "-";
+        }
         row.getCell(6).setText(tb + "/" + hb);
     }
 
@@ -334,6 +355,7 @@ public class ReportServiceImpl implements ReportService {
         Map<String, Integer> lastYearMap = lastYear.stream().collect(Collectors.toMap(t -> t.getName().trim(),
                 PointExceedInspectionDTO::getExceed));
         int day = (int) DateUtil.betweenDay(st, et, false);
+        day = Math.max(1, day);
         for (int i = 0; i < pointInspection.size(); i++) {
             PointExceedInspectionDTO dto = pointInspection.get(i);
             XWPFTableRow row = table.createRow();
@@ -346,9 +368,20 @@ public class ReportServiceImpl implements ReportService {
             row.getCell(2).setText(String.valueOf(count));
             row.getCell(3).setText(String.valueOf(exceed));
             row.getCell(4).setText(dto.getRate());
-            row.getCell(5).setText(dto.getScore(score, highScore));
-            String tb = exceed > map.getOrDefault(name, 0) ? "+" : "-";
-            String hb = exceed > lastYearMap.getOrDefault(name, 0) ? "+" : "-";
+            row.getCell(5).setText(dto.getScore(score, highScore, day));
+            String tb, hb;
+            Integer lastCount = map.get(name);
+            if (lastCount == null) {
+                tb = "暂无数据";
+            } else {
+                tb = exceed >= lastCount ? "+" : "-";
+            }
+            Integer lastYearCount = lastYearMap.get(name);
+            if (lastYearCount == null) {
+                hb = "暂无数据";
+            } else {
+                hb = exceed >= lastYearCount ? "+" : "-";
+            }
             row.getCell(6).setText(tb + "/" + hb);
         }
     }
@@ -366,6 +399,8 @@ public class ReportServiceImpl implements ReportService {
         Map<String, Integer> lastYearMap = lastYear.stream().collect(Collectors.toMap(t -> t.getName().trim(),
                 InspectionStatisticDTO::getExceed));
         double totalScore = 0;
+        int day = (int) DateUtil.betweenDay(st, et, true);
+        day = Math.max(1, day);
         for (int i = 0; i < lineInspection.size(); i++) {
             InspectionStatisticDTO dto = lineInspection.get(i);
             XWPFTableRow row = table.createRow();
@@ -374,11 +409,22 @@ public class ReportServiceImpl implements ReportService {
             row.getCell(1).setText(name);
             Integer exceed = dto.getExceed();
             row.getCell(2).setText(String.valueOf(exceed));
-            double v = (exceed * peopleScore) / 30;
+            double v = (exceed * peopleScore) / day;
             totalScore += v;
             row.getCell(3).setText(NumberUtil.decimalFormat("#.##", v));
-            String tb = exceed >= map.getOrDefault(name, 0) ? "+" : "-";
-            String hb = exceed >= lastYearMap.getOrDefault(name, 0) ? "+" : "-";
+            String tb, hb;
+            Integer lastCount = map.get(name);
+            if (lastCount == null) {
+                tb = "暂无数据";
+            } else {
+                tb = exceed >= lastCount ? "+" : "-";
+            }
+            Integer lastYearCount = lastYearMap.get(name);
+            if (lastYearCount == null) {
+                hb = "暂无数据";
+            } else {
+                hb = exceed >= lastYearCount ? "+" : "-";
+            }
             row.getCell(4).setText(tb + "/" + hb);
         }
         return totalScore;
@@ -396,6 +442,8 @@ public class ReportServiceImpl implements ReportService {
         Map<String, Integer> lastYearMap = lastYear.stream().collect(Collectors.toMap(t -> t.getName().trim(),
                 PointExceedDTO::getExceed));
         double totalScore = 0;
+        int day = (int) DateUtil.betweenDay(st, et, true);
+        day = Math.max(1, day);
         for (int i = 0; i < pointExceedHistory.size(); i++) {
             PointExceedDTO dto = pointExceedHistory.get(i);
             XWPFTableRow row = table.createRow();
@@ -408,7 +456,7 @@ public class ReportServiceImpl implements ReportService {
             highCount = highCount == null ? 0 : highCount;
             row.getCell(2).setText(String.valueOf(highCount));
             row.getCell(3).setText(String.valueOf(count));
-            double pScore = (count * score + highCount * highScore) / 30;
+            double pScore = (count * score + highCount * highScore) / day;
             totalScore += pScore;
             String lineScore = NumberUtil.decimalFormat("#.##", pScore);
             row.getCell(4).setText(lineScore);
@@ -433,6 +481,8 @@ public class ReportServiceImpl implements ReportService {
         Map<String, Integer> lastYearMap = lastYear.stream().collect(Collectors.toMap(t -> t.getName().trim(),
                 PointExceedDTO::getExceed));
         double totalScore = 0;
+        int day = (int) DateUtil.betweenDay(st, et, true);
+        day = Math.max(1, day);
         for (int i = 0; i < pointExceedHistory.size(); i++) {
             PointExceedDTO dto = pointExceedHistory.get(i);
             XWPFTableRow row = table.createRow();
@@ -442,7 +492,7 @@ public class ReportServiceImpl implements ReportService {
             Integer count = dto.getCount();
             count = count == null ? 0 : count;
             row.getCell(2).setText(String.valueOf(count));
-            double pScore = (count * score) / 30;
+            double pScore = (count * score) / day;
             totalScore += pScore;
             String lineScore = NumberUtil.decimalFormat("#.##", pScore);
             row.getCell(3).setText(lineScore);
@@ -786,9 +836,26 @@ public class ReportServiceImpl implements ReportService {
         row.getCell(9).setText(line.getTopProcess());
         row.getCell(10).setText(line.getPointScore());
         row.getCell(11).setText(line.getTopPoint());
-        row.getCell(12).setText(NumberUtil.decimalFormat("#.##", line.getScore()));
-        row.getCell(13).setText(line.getScore() > line.getLast() ? "增加" : "降低");
-        row.getCell(14).setText(line.getScore() > line.getLastYear() ? "增加" : "降低");
+        Double score = line.getScore();
+        if (score == null) {
+            row.getCell(12).setText("---");
+            score = 100D;
+        } else {
+            row.getCell(12).setText(NumberUtil.decimalFormat("#.##", score));
+        }
+        String tb, hb;
+        if (line.getLast() == null) {
+            tb = "暂无数据";
+        } else {
+            tb = score > line.getLast() ? "增加" : "降低";
+        }
+        row.getCell(13).setText(tb);
+        if (line.getLastYear() == null) {
+            hb = "暂无数据";
+        } else {
+            hb = score > line.getLastYear() ? "增加" : "降低";
+        }
+        row.getCell(14).setText(hb);
     }
 
     public LineSafeScoreDTO setLineDataTotal(Integer lineId, Date st, Date et, Date lastSt, Date lastEt) {
@@ -809,15 +876,50 @@ public class ReportServiceImpl implements ReportService {
         int runDay = lineRun.size();
         double runHour = lineRun.stream().mapToDouble(LineRunDTO::getRunHour).sum();
 
+
         ExceedDTO peopleExceed = processLinePictureHistMapper.getInspectionExceed(lineId, st, et, null);
         String peopleInspectionRate = peopleExceed.getRate();
         Double peopleScore = one.getPeopleScore();
         peopleScore = peopleScore == null ? 2 : peopleScore;
-        String peopleInspectionScore = peopleExceed.getScore(peopleScore);
+        String peopleInspectionScore = peopleExceed.getScore(peopleScore, runDay);
+
+        Double lastScore = getScore(lineId, lastSt, lastEt, peopleScore);
+        if (lastScore != null) {
+            lastScore = lastScore / runDay;
+        }
+
+        DateTime yearEt = DateUtil.beginOfYear(st);
+        DateTime time = DateUtil.offsetMinute(yearEt, -1);
+        DateTime yearSt = DateUtil.beginOfYear(time);
+        Double lastYearScore = getScore(lineId, yearSt, yearEt, peopleScore);
+        if (lastYearScore != null) {
+            lastYearScore = lastYearScore / 365;
+        }
+        if (runDay == 0 || runHour == 0) {
+            return LineSafeScoreDTO.builder()
+                    .runDay(runDay)
+                    .runHour(runHour)
+                    .peopleInspectionScore("0")
+                    .peopleInspectionRate("0")
+                    .pointInspectionRate("0")
+                    .pointInspectionScore("0")
+                    .peopleScore("0")
+                    .topProcess("")
+                    .topPoint("")
+                    .topProcessList(ListUtil.of(new CountStatisticDTO("", 0)))
+                    .topPointList(ListUtil.of(new CountStatisticDTO("", 0)))
+                    .pointScore("0")
+                    .score(null)
+                    .last(lastScore)
+                    .lastYear(lastYearScore)
+                    .lineName(line.getName())
+                    .period(inspectionCfg.getHistoricalPhotoRetentionPeriod())
+                    .build();
+        }
 
         PointExceedInspectionDTO pointInspection = pointInspectionHourMapper.getTotalPointInspection(lineId, st, et);
         String pointInspectionRate = pointInspection.getRate();
-        String pointInspectionScore = pointInspection.getScore(one.getScore(), one.getHighScore());
+        String pointInspectionScore = pointInspection.getScore(one.getScore(), one.getHighScore(), runDay);
 
         List<CountStatisticDTO> topProcess = processLinePictureHistMapper.getTopProcess(lineId, st, et);
         if (CollUtil.isEmpty(topProcess)) {
@@ -825,7 +927,7 @@ public class ReportServiceImpl implements ReportService {
         }
         int peopleCount = topProcess.stream().mapToInt(CountStatisticDTO::getCount).sum();
         String topName = topProcess.get(0).getName();
-        String peopleTotalScore = NumberUtil.decimalFormat("#.##", peopleCount * peopleScore);
+        String peopleTotalScore = NumberUtil.decimalFormat("#.##", peopleCount * peopleScore / runDay);
 
         List<CountStatisticDTO> topPoint = pointStatisticHourMapper.getTopPoint(lineId, st, et);
         String topPointName = topPoint.stream().limit(3)
@@ -833,14 +935,9 @@ public class ReportServiceImpl implements ReportService {
                 .collect(Collectors.joining(","));
         Double lineScore = pointStatisticHourMapper.getLineScore(lineId, st, et);
         lineScore = lineScore == null ? 0 : lineScore;
-        double safeScore = 100 - Double.parseDouble(peopleTotalScore) - lineScore;
-
-        double lastScore = getScore(lineId, lastSt, lastEt, peopleScore);
-
-        DateTime yearEt = DateUtil.beginOfYear(st);
-        DateTime time = DateUtil.offsetMinute(yearEt, -1);
-        DateTime yearSt = DateUtil.beginOfYear(time);
-        double lastYearScore = getScore(lineId, yearSt, yearEt, peopleScore);
+        lineScore /= runDay;
+        double safeScore = 100 - Double.parseDouble(peopleTotalScore) - lineScore
+                - Double.parseDouble(pointInspectionScore) - Double.parseDouble(peopleInspectionScore);
 
 
         return LineSafeScoreDTO.builder()
@@ -853,6 +950,8 @@ public class ReportServiceImpl implements ReportService {
                 .peopleScore(peopleTotalScore)
                 .topProcess(topName)
                 .topPoint(topPointName)
+                .topPointList(topPoint)
+                .topProcessList(topProcess)
                 .pointScore(NumberUtil.decimalFormat("#.##", lineScore))
                 .score(safeScore)
                 .last(lastScore)
@@ -862,10 +961,13 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    private double getScore(Integer lineId, Date lastSt, Date lastEt, Double peopleScore) {
+    private Double getScore(Integer lineId, Date lastSt, Date lastEt, Double peopleScore) {
         Integer lastCount = processLinePictureHistMapper.getCount(lineId, null, lastSt, lastEt);
-        lastCount = lastCount == null ? 0 : lastCount;
         Double lastPointScore = pointStatisticHourMapper.getLineScore(lineId, lastSt, lastEt);
+        if (lastCount == null && lastPointScore == null) {
+            return null;
+        }
+        lastCount = lastCount == null ? 0 : lastCount;
         lastPointScore = lastPointScore == null ? 0 : lastPointScore;
         return 100 - lastPointScore - lastCount * peopleScore;
     }
@@ -905,7 +1007,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public void createReportLevel3(Integer lineId, Date st, Date et, Date lastSt, Date lastEt, String path) {
         try {
-            Resource resource = resourceLoader.getResource("classpath:word/level3_0.docx");
+            Resource resource = resourceLoader.getResource("classpath:word/level30.docx");
             InputStream inputStream = resource.getInputStream();
             XWPFDocument doc = new XWPFDocument(inputStream);
 
@@ -966,7 +1068,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public void createReportLevel3_1(Integer lineId, Date st, Date et, Date lastSt, Date lastEt, String path) {
         try {
-            Resource resource = resourceLoader.getResource("classpath:word/level3_1.docx");
+            Resource resource = resourceLoader.getResource("classpath:word/level31.docx");
             InputStream inputStream = resource.getInputStream();
             XWPFDocument doc = new XWPFDocument(inputStream);
 
@@ -1025,6 +1127,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private void setLineData1(XWPFTableRow row, LineSafeScoreDTO line) {
+
         row.getCell(0).setText(line.getPeopleInspectionRate());
         row.getCell(1).setText(line.getPeopleInspectionScore());
         row.getCell(2).setText(line.getPointInspectionRate());
@@ -1033,8 +1136,26 @@ public class ReportServiceImpl implements ReportService {
         row.getCell(5).setText(line.getTopProcess());
         row.getCell(6).setText(line.getPointScore());
         row.getCell(7).setText(line.getTopPoint());
-        row.getCell(8).setText(NumberUtil.decimalFormat("#.##", line.getScore()));
-        row.getCell(9).setText(line.getScore() > line.getLast() ? "增加" : "降低");
-        row.getCell(10).setText(line.getScore() > line.getLastYear() ? "增加" : "降低");
+        Double score = line.getScore();
+        if (score == null) {
+            row.getCell(8).setText("---");
+            score = 100D;
+        } else {
+            row.getCell(8).setText(NumberUtil.decimalFormat("#.##", score));
+        }
+        String tb, hb;
+        if (line.getLast() == null) {
+            tb = "暂无数据";
+        } else {
+            tb = score > line.getLast() ? "增加" : "降低";
+        }
+        row.getCell(9).setText(tb);
+        if (line.getLastYear() == null) {
+            hb = "暂无数据";
+        } else {
+            hb = score > line.getLastYear() ? "增加" : "降低";
+        }
+        row.getCell(9).setText(tb);
+        row.getCell(10).setText(hb);
     }
 }

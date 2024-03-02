@@ -24,8 +24,9 @@ public class ExceedDTO {
         return NumberUtil.formatPercent(1.0 * exceed / total, 2);
     }
 
-    public String getScore(Double score) {
+    public String getScore(Double score, int day) {
         exceed = exceed == null ? 0 : exceed;
-        return NumberUtil.decimalFormat("#.##", exceed * score);
+        day = Math.max(1, day);
+        return NumberUtil.decimalFormat("#.##", exceed * score / day);
     }
 }

@@ -6,9 +6,12 @@ import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.seu.platform.dao.entity.WarnCfg;
 import com.seu.platform.dao.mapper.LineStopRunStatisticHourMapper;
+import com.seu.platform.dao.mapper.PointInspectionHourMapper;
 import com.seu.platform.dao.mapper.PointStatisticHourMapper;
 import com.seu.platform.dao.mapper.ProcessLinePictureHistMapper;
 import com.seu.platform.dao.service.WarnCfgService;
+import com.seu.platform.model.dto.CountIdDTO;
+import com.seu.platform.model.dto.PointExceedInspectionDTO;
 import com.seu.platform.model.dto.RunTimeDTO;
 import com.seu.platform.model.entity.Result;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author chenjiale
@@ -35,6 +41,8 @@ public class MainController {
     private final ProcessLinePictureHistMapper processLinePictureHistMapper;
 
     private final WarnCfgService warnCfgService;
+
+    private final PointInspectionHourMapper pointInspectionHourMapper;
 
 
     @GetMapping("/score")
@@ -71,38 +79,37 @@ public class MainController {
         DateTime et = DateUtil.date();
         DateTime st = DateUtil.beginOfDay(et);
         DateTime lastDay = DateUtil.offsetDay(st, -1);
-        List<Double> res = new ArrayList<>();
-        Double lineScore1 = pointStatisticHourMapper.getLineScore(1, lastDay, st);
-        Double lineScore2 = pointStatisticHourMapper.getLineScore(2, lastDay, st);
-        Double lineScore3 = pointStatisticHourMapper.getLineScore(3, lastDay, st);
-        Double lineScore4 = pointStatisticHourMapper.getLineScore(4, lastDay, st);
-        Integer exceedCount1 = processLinePictureHistMapper.getExceedCount(1, lastDay, st);
-        Integer exceedCount2 = processLinePictureHistMapper.getExceedCount(2, lastDay, st);
-        Integer exceedCount3 = processLinePictureHistMapper.getExceedCount(3, lastDay, st);
-        Integer exceedCount4 = processLinePictureHistMapper.getExceedCount(4, lastDay, st);
-        lineScore1 = lineScore1 == null ? 0 : lineScore1;
-        lineScore2 = lineScore2 == null ? 0 : lineScore1;
-        lineScore3 = lineScore3 == null ? 0 : lineScore1;
-        lineScore4 = lineScore4 == null ? 0 : lineScore1;
-        exceedCount1 = exceedCount1 == null ? 0 : exceedCount1;
-        exceedCount2 = exceedCount2 == null ? 0 : exceedCount2;
-        exceedCount3 = exceedCount3 == null ? 0 : exceedCount3;
-        exceedCount4 = exceedCount4 == null ? 0 : exceedCount4;
-        LambdaQueryWrapper<WarnCfg> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(WarnCfg::getLineId, 1);
-        WarnCfg one = warnCfgService.getOne(queryWrapper);
-        Double peopleScore = one.getPeopleScore();
-        peopleScore = peopleScore == null ? 2 : peopleScore;
-        double score1 = 100 - lineScore1 - peopleScore * exceedCount1;
-        double score2 = 100 - lineScore2 - peopleScore * exceedCount2;
-        double score3 = 100 - lineScore3 - peopleScore * exceedCount3;
-        double score4 = 100 - lineScore4 - peopleScore * exceedCount4;
-        res.add((score1 + score2) / 2);
-        res.add((score3 + score4) / 2);
-        res.add(score1);
-        res.add(score2);
-        res.add(score3);
-        res.add(score4);
-        return Result.success(res);
+        List<WarnCfg> list = warnCfgService.list();
+        list.sort(Comparator.comparing(WarnCfg::getLineId));
+        List<Double> scores = new ArrayList<>();
+        List<CountIdDTO> lineScoreList = pointStatisticHourMapper.getLineScoreList(null, lastDay, st);
+        Map<Integer, Double> lineScoreMap = lineScoreList.stream()
+                .collect(Collectors.toMap(CountIdDTO::getId, CountIdDTO::getScore));
+        List<PointExceedInspectionDTO> pointInspectionList = pointInspectionHourMapper.getPointInspectionList(null, lastDay, st);
+        Map<Integer, PointExceedInspectionDTO> inspectionMap = pointInspectionList.stream()
+                .collect(Collectors.toMap(PointExceedInspectionDTO::getLineId, t -> t));
+        List<CountIdDTO> runHour = lineStopRunStatisticHourMapper.getRunHour(lastDay, st);
+        Map<Integer, Double> runMap = runHour.stream().collect(Collectors.toMap(CountIdDTO::getId, CountIdDTO::getScore));
+        for (int i = 1; i <= 4; i++) {
+            Double v = runMap.get(i);
+            if (v == null || Math.abs(v) < 0.01) {
+                scores.add(100D);
+                continue;
+            }
+            Double lineScore = lineScoreMap.getOrDefault(i, 0D);
+            Integer exceedCount = processLinePictureHistMapper.getExceedCount(i, lastDay, st);
+            WarnCfg warnCfg = list.get(i - 1);
+            double peopleScore = warnCfg.getPeopleScore(exceedCount);
+            PointExceedInspectionDTO pointInspection = inspectionMap.get(i);
+            double inspectionScore = 0;
+            if (pointInspection != null) {
+                inspectionScore = Double.parseDouble(pointInspection.getScore(warnCfg.getScore(), warnCfg.getHighScore(), 1));
+            }
+            double s = 100 - lineScore - peopleScore - inspectionScore;
+            scores.add(s);
+        }
+        scores.add(0, (scores.get(2) + scores.get(3)) / 2);
+        scores.add(0, (scores.get(0) + scores.get(1)) / 2);
+        return Result.success(scores);
     }
 }

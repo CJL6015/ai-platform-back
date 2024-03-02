@@ -124,6 +124,8 @@ public interface PointStatisticHourMapper extends BaseMapper<PointStatisticHour>
 
     Double getLineScore(Integer lineId, Date st, Date et);
 
+    List<CountIdDTO> getLineScoreList(Integer lineId, Date st, Date et);
+
     List<String> getTopExceed(Integer lineId, Date st, Date et);
 
 

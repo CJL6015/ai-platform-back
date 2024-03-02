@@ -193,7 +193,7 @@ public class ReportTask {
         }
         if (lastTime.before(lastQuarter)) {
             log.info("开始生成一级季报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.offsetMonth(lastTime, 1);
+            DateTime time = DateUtil.offsetMonth(lastTime, 3);
             DateTime st = DateUtil.beginOfQuarter(time);
             DateTime et = DateUtil.endOfQuarter(time);
             DateTime lastSt = DateUtil.offsetMonth(st, -3);
@@ -216,7 +216,7 @@ public class ReportTask {
     public void generateYearLevel1() {
         Date lastTime = reportHistoryMapper.getLastTime(3);
         DateTime year = DateUtil.beginOfYear(DateUtil.date());
-        DateTime lastYear = DateUtil.offset(year, DateField.YEAR, 1);
+        DateTime lastYear = DateUtil.offset(year, DateField.YEAR, -1);
         if (lastTime == null) {
             lastTime = DateUtil.offset(lastYear, DateField.YEAR, -1);
         }
@@ -283,7 +283,7 @@ public class ReportTask {
         }
         if (lastTime.before(lastMonth)) {
             log.info("开始生成二级月报报表,时间:{}", lastTime);
-            DateTime time = DateUtil.offsetMonth(lastMonth, 1);
+            DateTime time = DateUtil.offsetMonth(lastTime, 1);
             DateTime st = DateUtil.beginOfMonth(time);
             DateTime et = DateUtil.endOfMonth(time);
             DateTime lastSt = DateUtil.offsetMonth(st, -1);
@@ -390,6 +390,10 @@ public class ReportTask {
             DateTime lastEt = DateUtil.offsetDay(et, -1);
             for (int i = 1; i <= 2; i++) {
                 String path = reportDir + "level3_day" + i + DateUtil.format(st, "yyyyMMdd") + ".docx";
+                if (new File(path).exists()) {
+                    log.info("文件存在跳过");
+                    continue;
+                }
                 reportService.createReportLevel3(i, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("三级日报生成成功:{}", i);
@@ -429,6 +433,10 @@ public class ReportTask {
             DateTime lastEt = DateUtil.offsetMonth(et, -1);
             for (int i = 1; i <= 2; i++) {
                 String path = reportDir + "level3_month" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+                if (new File(path).exists()) {
+                    log.info("文件存在跳过");
+                    continue;
+                }
                 reportService.createReportLevel3(i, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("三级月报生成成功:{}", i);
@@ -471,6 +479,10 @@ public class ReportTask {
 
             for (int i = 1; i <= 2; i++) {
                 String path = reportDir + "level3_quarter" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+                if (new File(path).exists()) {
+                    log.info("文件存在跳过");
+                    continue;
+                }
                 reportService.createReportLevel3(i, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("三级季报生成成功:{}", i);

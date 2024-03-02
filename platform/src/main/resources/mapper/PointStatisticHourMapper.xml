@@ -335,4 +335,19 @@
           and t1.display = 1
         group by t1.description
     </select>
+    <select id="getLineScoreList" resultType="com.seu.platform.model.dto.CountIdDTO">
+        select sum(t1.up_low_exceeded_count * t2.score + t1.upup_lowlow_exceeded_count * t2.high_score) as score,
+        t1.line_id as id
+        from point_statistic_hour t1 with (nolock )
+        left join
+        point_cfg t2 with (nolock ) on t1.point_id = t2.point_id
+        where t1.statiatic_start_time >= #{st}
+        and t1.statiatic_start_time &lt;= #{et}
+        <if test="lineId !=null">
+            and t1.line_id = #{lineId}
+        </if>
+        group by t1.line_id
+        order by t1.line_id
+    </select>
+
 </mapper>

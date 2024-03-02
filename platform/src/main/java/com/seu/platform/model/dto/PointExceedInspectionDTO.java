@@ -10,6 +10,7 @@ import lombok.Data;
  */
 @Data
 public class PointExceedInspectionDTO {
+    private Integer lineId;
     private String name;
 
     private Integer upUpCount;
@@ -36,11 +37,11 @@ public class PointExceedInspectionDTO {
         return NumberUtil.formatPercent(1.0 * exceed / count, 2);
     }
 
-    public String getScore(Double score, Double highScore) {
+    public String getScore(Double score, Double highScore, int day) {
         initData();
         score = score == null ? 0.1 : score;
         highScore = highScore == null ? 0.2 : highScore;
-        double s = getExceedCount() * score + getHighCount() * highScore;
+        double s = (getExceedCount() * score + getHighCount() * highScore) / day;
         return NumberUtil.decimalFormat("#.##", s);
     }
 

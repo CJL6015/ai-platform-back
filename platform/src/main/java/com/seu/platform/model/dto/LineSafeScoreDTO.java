@@ -6,6 +6,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -40,7 +45,32 @@ public class LineSafeScoreDTO {
 
     private Integer period;
 
+    private List<CountStatisticDTO> topProcessList;
+
+    private List<CountStatisticDTO> topPointList;
+
+
     public static LineSafeScoreDTO avg(LineSafeScoreDTO dto1, LineSafeScoreDTO dto2) {
+        Double last = null, lastYear = null;
+        if (dto1.getLast() != null && dto2.getLast() != null) {
+            last = (dto1.getLastYear() + dto2.getLastYear()) / 2;
+        }
+        if (dto1.getLastYear() != null && dto2.getLastYear() != null) {
+            lastYear = (dto1.getLastYear() + dto2.getLastYear()) / 2;
+        }
+        double score = 0;
+        int count = 0;
+        Double score1 = dto1.getScore();
+        if (score1 != null) {
+            score += score1;
+            count++;
+        }
+        Double score2 = dto2.getScore();
+        if (score2 != null) {
+            score += score2;
+            count++;
+        }
+        Double s = count == 0 ? null : score / count;
         return LineSafeScoreDTO.builder()
                 .runDay((dto1.getRunDay() + dto2.getRunDay()) / 2)
                 .runHour((dto1.getRunHour() + dto2.getRunHour()) / 2.0)
@@ -49,12 +79,12 @@ public class LineSafeScoreDTO {
                 .pointInspectionRate(getPercentAvg(dto1.getPeopleInspectionScore(), dto2.getPeopleInspectionScore()))
                 .pointInspectionScore(getAvg(dto1.getPointInspectionScore(), dto2.getPointInspectionScore()))
                 .peopleScore(getAvg(dto1.getPeopleScore(), dto2.getPeopleScore()))
-                .topProcess("---")
-                .topPoint("---")
+                .topProcess(getTopName(dto1.getTopProcessList(), dto2.getTopProcessList(), 1))
+                .topPoint(getTopName(dto1.getTopPointList(), dto2.getTopPointList(), 3))
                 .pointScore(getAvg(dto1.getPointScore(), dto2.getPointScore()))
-                .score((dto1.getScore() + dto2.getScore()) / 2)
-                .last((dto1.getLast() + dto2.getLast()) / 2)
-                .lastYear((dto1.getLastYear() + dto2.getLastYear()) / 2)
+                .score(s)
+                .last(last)
+                .lastYear(lastYear)
                 .lineName("生产点")
                 .build();
     }
@@ -73,6 +103,14 @@ public class LineSafeScoreDTO {
         double percent2 = Double.parseDouble(num2);
         double average = (percent1 + percent2) / 2;
         return NumberUtil.decimalFormat("#.##", average);
+    }
+
+    private static String getTopName(List<CountStatisticDTO> list1, List<CountStatisticDTO> list2, int limit) {
+        return Stream.concat(list1.stream(), list2.stream())
+                .sorted(Comparator.comparingInt(CountStatisticDTO::getCount).reversed())
+                .limit(limit)
+                .map(CountStatisticDTO::getName)
+                .collect(Collectors.joining(","));
     }
 
 }

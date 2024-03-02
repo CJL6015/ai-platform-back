@@ -58,4 +58,10 @@ public class WarnCfg implements Serializable {
     private Double peopleScore;
 
     private Double score;
+
+    public double getPeopleScore(Integer count) {
+        count = count == null ? 0 : count;
+        peopleScore = peopleScore == null ? 2 : peopleScore;
+        return count * peopleScore;
+    }
 }
