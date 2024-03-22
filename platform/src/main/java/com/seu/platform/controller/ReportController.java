@@ -158,6 +158,7 @@ public class ReportController {
 
     @GetMapping("/create/report3")
     public Result<Boolean> createReport3() {
+        log.info("开始生成三级报表");
         reportTask.generateDayLevel3();
         reportTask.generateMonthLevel3();
         reportTask.generateQuarterLevel3();

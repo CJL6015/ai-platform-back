@@ -73,6 +73,8 @@
         where line_id = #{lineId}
           and create_time >= #{st}
           and create_time &lt;= #{et}
+          and line_run_condition = 1
+          and equipment_run_condition = 1
     </select>
     <select id="getPointInspectionList" resultType="com.seu.platform.model.dto.PointExceedInspectionDTO">
         select sum(up_up_limit_alarm)   as up_up_count,

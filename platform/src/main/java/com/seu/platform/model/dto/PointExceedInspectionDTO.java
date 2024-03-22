@@ -59,5 +59,7 @@ public class PointExceedInspectionDTO {
         lowLowCount = lowLowCount == null ? 0 : lowLowCount;
         upCount = upCount == null ? 0 : upCount;
         lowCount = lowCount == null ? 0 : lowCount;
+        upCount -= upUpCount;
+        lowCount -= lowLowCount;
     }
 }

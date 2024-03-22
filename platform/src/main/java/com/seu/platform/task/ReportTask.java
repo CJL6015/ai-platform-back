@@ -39,90 +39,6 @@ public class ReportTask {
     @Value("${static.report-dir}")
     private String reportDir;
 
-    //    @Scheduled(cron = "0 0 * * * *")
-//    @Scheduled(fixedRate = 1000)
-    public void generateLineReport() {
-        Date lastTime = reportHistoryMapper.getLastTime(0);
-        DateTime lastMonth = DateUtil.beginOfMonth(DateUtil.lastMonth());
-        if (lastTime == null) {
-            lastTime = DateUtil.offsetMonth(lastMonth, -1);
-        }
-        if (lastTime.before(lastMonth)) {
-            log.info("开始生成生产线报表,时间:{}", lastTime);
-            DateTime time = DateUtil.date();
-            DateTime st = DateUtil.beginOfMonth(time);
-            DateTime et = DateUtil.endOfMonth(time);
-            for (int i = 1; i <= 4; i++) {
-                String path = reportDir + "line_" + i + DateUtil.format(st, "yyyyMM") + ".docx";
-                reportService.createReport3(i, st, et, path);
-                if (new File(path).exists()) {
-                    log.info("生产线{}报表生成成功", i);
-                }
-            }
-            ReportHistory reportHistory = new ReportHistory();
-            reportHistory.setType(0);
-            reportHistory.setTime(st);
-            reportHistoryService.save(reportHistory);
-        } else {
-            log.info("不需要生成报表");
-        }
-    }
-
-    //    @Scheduled(cron = "0 0 * * * *")
-//    @Scheduled(fixedRate = 100)
-    public void generatePlantReport() {
-        Date lastTime = reportHistoryMapper.getLastTime(1);
-        DateTime lastMonth = DateUtil.beginOfMonth(DateUtil.lastMonth());
-        if (lastTime == null) {
-            lastTime = DateUtil.offsetMonth(lastMonth, -1);
-        }
-        if (lastTime.before(lastMonth)) {
-            log.info("开始生成公司报表,时间:{}", lastTime);
-//            DateTime time = DateUtil.offsetMonth(lastTime, 1);
-            DateTime time = DateUtil.date();
-            DateTime st = DateUtil.beginOfMonth(time);
-            DateTime et = DateUtil.endOfMonth(time);
-            String path = reportDir + "report1" + DateUtil.format(st, "yyyyMM") + ".docx";
-            reportService.createPlantReport(st, et, path);
-
-            if (new File(path).exists()) {
-                ReportHistory reportHistory = new ReportHistory();
-                reportHistory.setType(1);
-                reportHistory.setTime(st);
-//                reportHistoryService.save(reportHistory);
-            }
-        } else {
-            log.info("不需要生成公司报表");
-        }
-    }
-
-    //    @Scheduled(cron = "0 0 * * * *")
-//    @Scheduled(fixedRate = 100)
-    public void generateInspectionReport() {
-        Date lastTime = reportHistoryMapper.getLastTime(2);
-        DateTime lastMonth = DateUtil.beginOfMonth(DateUtil.lastMonth());
-        if (lastTime == null) {
-            lastTime = DateUtil.offsetMonth(lastMonth, -1);
-        }
-        if (lastTime.before(lastMonth)) {
-            log.info("开始生成巡检报表,时间:{}", lastTime);
-//            DateTime time = DateUtil.offsetMonth(lastTime, 1);
-            DateTime time = DateUtil.date();
-            DateTime st = DateUtil.beginOfMonth(time);
-            DateTime et = DateUtil.endOfMonth(time);
-            String path = reportDir + "report2" + DateUtil.format(st, "yyyyMM") + ".docx";
-            reportService.createReport2(st, et, path);
-            if (new File(path).exists()) {
-                ReportHistory reportHistory = new ReportHistory();
-                reportHistory.setType(2);
-                reportHistory.setTime(st);
-                reportHistoryService.save(reportHistory);
-            }
-
-        } else {
-            log.info("不需要生成巡检报表");
-        }
-    }
 
     /**
      * 一级月报
@@ -259,6 +175,10 @@ public class ReportTask {
             for (Plant plant : list) {
                 Integer plantId = plant.getId();
                 String path = reportDir + "level2_day" + plantId + DateUtil.format(st, "yyyyMMdd") + ".docx";
+                if (new File(path).exists()) {
+                    log.info("文件存在跳过");
+                    continue;
+                }
                 reportService.createReportLevel2(plantId, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("二级日报生成成功:{}", plant);
@@ -292,6 +212,10 @@ public class ReportTask {
             for (Plant plant : list) {
                 Integer plantId = plant.getId();
                 String path = reportDir + "level2_month" + plantId + DateUtil.format(st, "yyyyMM") + ".docx";
+                if (new File(path).exists()) {
+                    log.info("文件存在跳过");
+                    continue;
+                }
                 reportService.createReportLevel2(plantId, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("二级月报生成成功:{}", plant);
@@ -327,6 +251,10 @@ public class ReportTask {
             for (Plant plant : list) {
                 Integer plantId = plant.getId();
                 String path = reportDir + "level2_quarter" + plantId + DateUtil.format(st, "yyyyMM") + ".docx";
+                if (new File(path).exists()) {
+                    log.info("文件存在跳过");
+                    continue;
+                }
                 reportService.createReportLevel2(plantId, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("二级季报生成成功:{}", plant);
@@ -360,6 +288,10 @@ public class ReportTask {
             for (Plant plant : list) {
                 Integer plantId = plant.getId();
                 String path = reportDir + "level2_year" + plantId + DateUtil.format(st, "yyyyMM") + ".docx";
+                if (new File(path).exists()) {
+                    log.info("文件存在跳过");
+                    continue;
+                }
                 reportService.createReportLevel2(plantId, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("二级年报生成成功:{}", plant);
@@ -407,7 +339,13 @@ public class ReportTask {
                     log.info("三级日报生成成功:{}", i);
                 }
             }
-
+            int i = 5;
+            String path = reportDir + "level3_day" + i + DateUtil.format(st, "yyyyMMdd") + ".docx";
+            log.info("开始仓库报表");
+            reportService.createReportLevel3_2(i, st, et, lastSt, lastEt, path);
+            if (new File(path).exists()) {
+                log.info("三级日报生成成功:{}", i);
+            }
             ReportHistory reportHistory = new ReportHistory();
             reportHistory.setType(8);
             reportHistory.setTime(st);
@@ -445,12 +383,21 @@ public class ReportTask {
 
             for (int i = 3; i <= 4; i++) {
                 String path = reportDir + "level3_month" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+                if (new File(path).exists()) {
+                    log.info("文件存在跳过");
+                    continue;
+                }
                 reportService.createReportLevel3_1(i, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("三级月报生成成功:{}", i);
                 }
             }
-
+            int i = 5;
+            String path = reportDir + "level3_month" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+            reportService.createReportLevel3_2(i, st, et, lastSt, lastEt, path);
+            if (new File(path).exists()) {
+                log.info("三级日报生成成功:{}", i);
+            }
             ReportHistory reportHistory = new ReportHistory();
             reportHistory.setType(9);
             reportHistory.setTime(st);
@@ -491,10 +438,20 @@ public class ReportTask {
 
             for (int i = 3; i <= 4; i++) {
                 String path = reportDir + "level3_quarter" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+                if (new File(path).exists()) {
+                    log.info("文件存在跳过");
+                    continue;
+                }
                 reportService.createReportLevel3_1(i, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("三级季报生成成功:{}", i);
                 }
+            }
+            int i = 5;
+            String path = reportDir + "level3_quarter" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+            reportService.createReportLevel3_2(i, st, et, lastSt, lastEt, path);
+            if (new File(path).exists()) {
+                log.info("三级季报生成成功:{}", i);
             }
             ReportHistory reportHistory = new ReportHistory();
             reportHistory.setType(10);
@@ -520,7 +477,6 @@ public class ReportTask {
             DateTime et = DateUtil.endOfYear(time);
             DateTime lastSt = DateUtil.offset(st, DateField.YEAR, -1);
             DateTime lastEt = DateUtil.offset(et, DateField.YEAR, -1);
-            List<Plant> list = plantService.list();
             for (int i = 1; i <= 2; i++) {
                 String path = reportDir + "level3_year" + i + DateUtil.format(st, "yyyyMM") + ".docx";
                 reportService.createReportLevel3(i, st, et, lastSt, lastEt, path);
@@ -530,10 +486,20 @@ public class ReportTask {
             }
             for (int i = 3; i <= 4; i++) {
                 String path = reportDir + "level3_year" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+                if (new File(path).exists()) {
+                    log.info("文件存在跳过");
+                    continue;
+                }
                 reportService.createReportLevel3_1(i, st, et, lastSt, lastEt, path);
                 if (new File(path).exists()) {
                     log.info("三级年报生成成功:{}", i);
                 }
+            }
+            int i = 5;
+            String path = reportDir + "level3_year" + i + DateUtil.format(st, "yyyyMM") + ".docx";
+            reportService.createReportLevel3_2(i, st, et, lastSt, lastEt, path);
+            if (new File(path).exists()) {
+                log.info("三级年报生成成功:{}", i);
             }
             ReportHistory reportHistory = new ReportHistory();
             reportHistory.setType(11);

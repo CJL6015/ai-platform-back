@@ -9,18 +9,6 @@ import java.util.Date;
  */
 public interface ReportService {
 
-    void createLineReport(Integer lineId, Date st, Date et, String path);
-
-    void createPlantReport(Date st, Date et, String path);
-
-    void createInspectionReport(Date st, Date et, String path);
-
-    void createReport1(Date st, Date et, String path);
-
-
-    void createReport2(Date st, Date et, String path);
-
-    void createReport3(Integer lineId, Date st, Date et, String path);
 
     void createReportLevel1(Date st, Date et, Date lastSt, Date lastEt, String path);
 
@@ -29,5 +17,6 @@ public interface ReportService {
     void createReportLevel3(Integer lineId, Date st, Date et, Date lastSt, Date lastEt, String path);
 
     void createReportLevel3_1(Integer lineId, Date st, Date et, Date lastSt, Date lastEt, String path);
+    void createReportLevel3_2(Integer lineId, Date st, Date et, Date lastSt, Date lastEt, String path);
 
 }

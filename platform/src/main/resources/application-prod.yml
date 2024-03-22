@@ -36,6 +36,7 @@ model:
   input-dir: D:\images_test\
 static:
   report-dir: D:\deploy\report\
+  word-dir: D:\deploy\word\
   root: D:\deploy\images\
   detection-prefix: http://10.10.11.16:8088/api/static/images/
   detection-prefix1: http://10.10.11.15:8088/api/static/images/
