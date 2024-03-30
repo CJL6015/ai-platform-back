@@ -56,62 +56,54 @@ public class ReportController {
     }
 
     @GetMapping("/day")
-    public Result<String> getDayReport(Integer level, Integer lineId, Integer plantId) {
-        DateTime time = DateUtil.beginOfDay(DateUtil.date());
-        time = DateUtil.offsetDay(time, -1);
+    public Result<String> getDayReport(Integer level, Integer lineId, Integer plantId, String time) {
         String path;
         if (level == 1) {
-            path = prefix + "level1_day" + DateUtil.format(time, "yyyyMMdd") + ".docx";
+            path = prefix + "level1_day" + time + ".docx";
         } else if (level == 2) {
-            path = prefix + "level2_day" + plantId + DateUtil.format(time, "yyyyMMdd") + ".docx";
+            path = prefix + "level2_day" + plantId + time + ".docx";
         } else {
-            path = prefix + "level3_day" + lineId + DateUtil.format(time, "yyyyMMdd") + ".docx";
+            path = prefix + "level3_day" + lineId + time + ".docx";
         }
         return Result.success(path);
     }
 
 
     @GetMapping("/month")
-    public Result<String> getMonthReport(Integer level, Integer lineId, Integer plantId) {
-        DateTime time = DateUtil.beginOfMonth(DateUtil.date());
-        time = DateUtil.offsetMonth(time, -1);
+    public Result<String> getMonthReport(Integer level, Integer lineId, Integer plantId, String time) {
         String path;
         if (level == 1) {
-            path = prefix + "level1_month" + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level1_month" +time + ".docx";
         } else if (level == 2) {
-            path = prefix + "level2_month" + plantId + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level2_month" + plantId + time + ".docx";
         } else {
-            path = prefix + "level3_month" + lineId + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level3_month" + lineId + time + ".docx";
         }
         return Result.success(path);
     }
 
     @GetMapping("/quarter")
-    public Result<String> getQuarterReport(Integer level, Integer lineId, Integer plantId) {
-        DateTime time = DateUtil.beginOfQuarter(DateUtil.date());
-        time = DateUtil.offsetMonth(time, -3);
+    public Result<String> getQuarterReport(Integer level, Integer lineId, Integer plantId, String time) {
         String path;
         if (level == 1) {
-            path = prefix + "level1_quarter" + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level1_quarter" + time + ".docx";
         } else if (level == 2) {
-            path = prefix + "level2_quarter" + plantId + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level2_quarter" + plantId + time + ".docx";
         } else {
-            path = prefix + "level3_quarter" + lineId + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level3_quarter" + lineId + time + ".docx";
         }
         return Result.success(path);
     }
 
     @GetMapping("/year")
-    public Result<String> getYearReport(Integer level, Integer lineId, Integer plantId) {
-        DateTime time = DateUtil.beginOfYear(DateUtil.date());
-        time = DateUtil.offsetMonth(time, -12);
+    public Result<String> getYearReport(Integer level, Integer lineId, Integer plantId, String time) {
         String path;
         if (level == 1) {
-            path = prefix + "level1_year" + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level1_year" + time + ".docx";
         } else if (level == 2) {
-            path = prefix + "level2_year" + plantId + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level2_year" + plantId + time + ".docx";
         } else {
-            path = prefix + "level3_year" + lineId + DateUtil.format(time, "yyyyMM") + ".docx";
+            path = prefix + "level3_year" + lineId + time + ".docx";
         }
         return Result.success(path);
     }

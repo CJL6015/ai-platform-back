@@ -34,7 +34,7 @@ public class InspectionTask {
         run.put(4, "KLLGB_STOP_RUN");
     }
 
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 60000)
     public void doTask() {
         List<LineInspection> last = processLinePictureHistService.getLast();
         if (CollUtil.isEmpty(last)) {

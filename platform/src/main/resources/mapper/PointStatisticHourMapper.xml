@@ -178,7 +178,7 @@
           and t1.statiatic_start_time >= #{st}
           and t1.statiatic_start_time &lt;= #{et}
         group by t2.equipment_id, t3.equipment_description
-        order by score
+        order by score desc
     </select>
     <select id="getScoreDaily" resultType="com.seu.platform.model.vo.ScoreDailyVO">
         select sum(t1.up_low_exceeded_count * t2.score + t1.upup_lowlow_exceeded_count * t2.high_score) as score,

@@ -108,8 +108,10 @@ public class MainController {
             double s = 100 - lineScore - peopleScore - inspectionScore;
             scores.add(s);
         }
-        scores.add(0, (scores.get(2) + scores.get(3)) / 2);
-        scores.add(0, (scores.get(0) + scores.get(1)) / 2);
+        double total2 = (scores.get(2) + scores.get(3)) / 2;
+        double total1 = (scores.get(0) + scores.get(1)) / 2;
+        scores.add(0, total2);
+        scores.add(0, total1);
         return Result.success(scores);
     }
 }
