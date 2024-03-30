@@ -19,7 +19,7 @@
     </sql>
     <update id="setInspectionMinute">
         update process_line_picture_hist
-        set inspection =1
+        set inspection = #{code}
         where id = (select top 1 id
                     from process_line_picture_hist
                     where update_time >= #{st}
@@ -213,7 +213,7 @@
                  left join inspection_cfg t3 with (nolock) on t2.line_id = t3.line_id
                  left join process_line_picture_hist t1 with (nolock)
                            on t1.camera_id = t2.camera_ip
-                               and t1.inspection = 1
+                               and (t1.inspection in (1, 2, 3))
         group by t2.camera_ip, t2.line_id
     </select>
 
@@ -237,7 +237,7 @@
     </select>
 
     <select id="getCount" resultType="java.lang.Integer">
-        select count(*) as count
+        select sum(t1.exceed) as count
         from process_line_picture_hist t1
         with (nolock) ,camera_cfg t2 with (nolock)
         where t1.camera_id=t2.camera_ip
@@ -369,7 +369,7 @@
     <select id="getLineInspection" resultType="com.seu.platform.model.dto.InspectionStatisticDTO">
         select sum(iif(t1.exceed = 1, 1, 0)) as exceed,
                t2.camera_description         as name,
-               count(1)                      as count
+               count(t1.id)                      as count
         from camera_cfg t2
                  with (nolock)
                  left join process_line_picture_hist t1 with (nolock)
@@ -384,7 +384,7 @@
     <select id="getLineInspectionHistory" resultType="com.seu.platform.model.dto.InspectionStatisticDTO">
         select sum(iif(t1.exceed = 1, 1, 0)) as exceed,
                t2.camera_description         as name,
-               count(1)                      as count
+               count(t1.id)                  as count
         from camera_cfg t2
                  with (nolock)
                  left join process_line_picture_hist t1 with (nolock)
@@ -410,6 +410,46 @@
         <if test="cameraIp != null and cameraIp !='-1'">
             and t1.camera_id = #{cameraIp}
         </if>
+    </select>
+    <select id="getTotalInspection" resultType="com.seu.platform.model.dto.InspectionStatisticDTO">
+        select sum(iif(people_count is null, 0, people_count)) as exceed
+        from camera_cfg t2
+                 with (nolock)
+                 left join process_line_picture_hist t1 with (nolock)
+                           on t1.camera_id = t2.camera_ip
+                               and t1.update_time >= #{st}
+                               and t1.update_time &lt;= #{et}
+                               and t1.inspection = 1
+        where t2.line_id = #{lineId}
+          and t1.update_time is not null
+        group by DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0)
+    </select>
+    <select id="getLineInspectionHis" resultType="com.seu.platform.model.dto.InspectionStatisticDTO">
+        select sum(iif(t1.exceed = 1, 1, 0)) as exceed,
+               t2.camera_description         as name,
+               count(1)                      as count
+        from camera_cfg t2
+                 with (nolock),
+             process_line_picture_hist t1 with (nolock)
+        where t2.line_id = #{lineId}
+          and t1.camera_id = t2.camera_ip
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+          and t1.inspection = 1
+        group by t2.camera_description
+        order by count desc
+    </select>
+    <select id="getTotalInspectionHis" resultType="com.seu.platform.model.dto.InspectionStatisticDTO">
+        select sum(iif(people_count is null, 0, people_count)) as exceed
+        from camera_cfg t2
+                 with (nolock),
+             process_line_picture_hist t1 with (nolock)
+        where t2.line_id = #{lineId}
+          and t1.camera_id = t2.camera_ip
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
+          and t1.inspection = 1
+        group by DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0)
     </select>
 
 </mapper>

@@ -5,22 +5,34 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
 import com.seu.platform.dao.service.ProcessLinePictureHistService;
+import com.seu.platform.exa.ExaClient;
+import com.seu.platform.exa.model.RecordsFloat;
 import com.seu.platform.model.entity.LineInspection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import javax.annotation.PostConstruct;
+import java.util.*;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class InspectionTask {
     private final ProcessLinePictureHistService processLinePictureHistService;
+
+    private final ExaClient exaClient;
+
+    private Map<Integer, String> run = new HashMap<>(6);
+
+    @PostConstruct
+    public void initMap() {
+        run.put(1, "KLRH3_STOP_RUN");
+        run.put(2, "KLPH_STOP_RUN");
+        run.put(3, "KLLGA_STOP_RUN");
+        run.put(4, "KLLGB_STOP_RUN");
+    }
 
     @Scheduled(fixedDelay = 10000)
     public void doTask() {
@@ -63,13 +75,28 @@ public class InspectionTask {
                 if (Objects.nonNull(nextTime) && nextTime.after(et)) {
                     et = DateTime.of(nextTime);
                 }
-                Boolean result = processLinePictureHistService.setInspectionMinute(cameraIp, st, et);
-                log.info("{}巡检时间为{}-{},结果:{}", cameraIp, st, et, result);
+                RecordsFloat history = exaClient.getHistory(run.get(lineId), st.getTime(), et.getTime() + 300);
+                List<Float> values = history.getValues();
+                Float v;
+                if (CollUtil.isNotEmpty(values)) {
+                    v = values.get(0);
+                } else {
+                    v = 1F;
+                }
+                Boolean result;
+                int code;
+                if (v != null && v > 0) {
+                    code = 3;
+                } else {
+                    code = 1;
+                }
+                result = processLinePictureHistService.setInspectionMinute(cameraIp, st, et, code);
+                log.info("{}巡检时间为{}-{},结果:{},生产线运行状态:{}", cameraIp, st, et, result, code);
             }
         }
     }
 
-//    @Scheduled(fixedDelay = 10000)
+    //    @Scheduled(fixedDelay = 10000)
     public void doTask1() {
         List<LineInspection> last = processLinePictureHistService.getLast1();
         if (CollUtil.isEmpty(last)) {

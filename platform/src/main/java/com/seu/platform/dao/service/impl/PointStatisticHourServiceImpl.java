@@ -209,15 +209,17 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
     public List<ScoreVO> getScores(Integer lineId, TimeRange timeRange) {
         Date st = timeRange.getSt();
         Date et = timeRange.getEt();
-        int day = Math.max(1, (int) DateUtil.betweenDay(st, et, false));
+        int day = Math.max(1, (int) DateUtil.betweenDay(st, et, true));
         List<ScoreVO> score = getBaseMapper().getScore(lineId, st, et);
-        score = score.stream().filter(Objects::nonNull).peek(t -> {
-            String name = t.getName();
-            if (StringUtils.hasText(name)) {
-                t.setName(name.trim());
-            }
-            t.setScore(100 - t.getScore() / day);
-        }).collect(Collectors.toList());
+        score = score.stream().filter(Objects::nonNull)
+                .filter(t -> Objects.nonNull(t.getName()))
+                .peek(t -> {
+                    String name = t.getName();
+                    if (StringUtils.hasText(name)) {
+                        t.setName(name.trim());
+                    }
+                    t.setScore(100 - t.getScore() / day);
+                }).collect(Collectors.toList());
         return score;
     }
 

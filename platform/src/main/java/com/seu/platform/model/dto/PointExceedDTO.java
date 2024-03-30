@@ -19,9 +19,19 @@ public class PointExceedDTO {
 
     private Double highTime;
 
-    public int getExceed() {
+    public Integer getExceed() {
+        if (count == null && highCount == null) {
+            return null;
+        }
         count = count == null ? 0 : count;
         highCount = highCount == null ? 0 : highCount;
         return count + highCount;
+    }
+
+    public Double getScore(Double score, Double highScore, int day) {
+        day = Math.max(1, day);
+        count = count == null ? 0 : count;
+        highCount = highCount == null ? 0 : highCount;
+        return (count * score + highCount * highScore) / day;
     }
 }

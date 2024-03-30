@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.seu.platform.dao.entity.CameraCfg;
 import com.seu.platform.dao.entity.EquipmentCfg;
@@ -21,6 +22,7 @@ import com.seu.platform.service.AnalyzeService;
 import com.seu.platform.service.BenchmarkService;
 import com.seu.platform.util.MathUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
  * @version 1.0
  * @date 2023-10-04 19:32
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BenchmarkServiceImpl implements BenchmarkService {
@@ -137,6 +140,7 @@ public class BenchmarkServiceImpl implements BenchmarkService {
 
     @Override
     public List<Map<String, Object>> getReport(BenchmarkQuery query) {
+        log.info("生成对标报表:{}", JSON.toJSONString(query));
         List<Map<String, Object>> data = new ArrayList<>();
 
         //获取对标时间
@@ -153,6 +157,7 @@ public class BenchmarkServiceImpl implements BenchmarkService {
         //趋势指标
         addTrendIndicator(query, lines, data, time[0], time[1]);
         //相关性指标
+        log.info("对标报表结果:{}", data);
         return data;
     }
 
@@ -341,7 +346,7 @@ public class BenchmarkServiceImpl implements BenchmarkService {
     }
 
     public void addSumIndicator(BenchmarkQuery query, List<Integer> lines, List<Map<String, Object>> data, Date st, Date et) {
-        List<Integer> totalIndicators = query.getTotalIndicators();
+        List<Integer> totalIndicators = query.getSubIndicators();
         if (CollUtil.isNotEmpty(totalIndicators)) {
             for (Integer indicator : totalIndicators) {
                 Map<String, Object> d = new HashMap<>(8);

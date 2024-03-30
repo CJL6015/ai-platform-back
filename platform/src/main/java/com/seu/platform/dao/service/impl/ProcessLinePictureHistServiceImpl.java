@@ -79,6 +79,7 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
         List<String> ips = list.stream().map(t -> t.getCameraIp().trim()).collect(Collectors.toList());
         List<DetectionResultVO> detectionResult = new ArrayList<>();
         if (time != null) {
+            time = DateUtil.beginOfHour(time);
             detectionResult = getBaseMapper().getDetectionResult(ips, time);
         }
         List<DetectionResultVO> res = new ArrayList<>();
@@ -111,7 +112,7 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
         List<Date> detectionTime = cache.getOrDefault(key, getBaseMapper().getDetectionTime(lineId, st, et));
         cache.put(key, detectionTime);
         return detectionTime.stream()
-                .map(t -> DateUtil.format(t, "yyyy-MM-dd HH") + ":00:00")
+                .map(t -> DateUtil.format(t, "yyyy-MM-dd HH:mm:ss"))
                 .collect(Collectors.toList());
     }
 
@@ -253,8 +254,8 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     }
 
     @Override
-    public Boolean setInspectionMinute(String cameraIp, Date st, Date et) {
-        return getBaseMapper().setInspectionMinute(cameraIp, st, et);
+    public Boolean setInspectionMinute(String cameraIp, Date st, Date et, Integer code) {
+        return getBaseMapper().setInspectionMinute(cameraIp, st, et, code);
     }
 
     @Override

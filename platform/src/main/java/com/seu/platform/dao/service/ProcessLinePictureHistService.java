@@ -80,7 +80,7 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
     Integer exceedCount(Integer lineId, Date st, Date et);
 
 
-    Boolean setInspectionMinute(String cameraIp, Date st, Date et);
+    Boolean setInspectionMinute(String cameraIp, Date st, Date et,Integer code);
 
     Boolean setInspectionMinute1(String cameraIp, Date st, Date et);
 

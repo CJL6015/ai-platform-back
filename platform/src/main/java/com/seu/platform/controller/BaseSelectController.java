@@ -8,6 +8,7 @@ import com.seu.platform.dao.service.CameraCfgService;
 import com.seu.platform.dao.service.PlantService;
 import com.seu.platform.dao.service.PointCfgService;
 import com.seu.platform.model.entity.Result;
+import com.seu.platform.model.vo.CameraOptionVO;
 import com.seu.platform.model.vo.OptionItemVO;
 import com.seu.platform.model.vo.SelectAllOptionVO;
 import com.seu.platform.service.SelectService;
@@ -79,15 +80,15 @@ public class BaseSelectController {
     }
 
     @GetMapping("/camera/line/{lineId}")
-    public Result<List<OptionItemVO>> getCameras(@PathVariable Integer lineId) {
+    public Result<List<CameraOptionVO>> getCameras(@PathVariable Integer lineId) {
         LambdaQueryWrapper<CameraCfg> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(CameraCfg::getLineId, lineId);
         List<CameraCfg> list = cameraCfgService.list(queryWrapper);
-        List<OptionItemVO> itemVOList = list.stream().map(c -> OptionItemVO.builder()
-                .id(c.getId())
+        List<CameraOptionVO> itemVOList = list.stream().map(c -> CameraOptionVO.builder()
+                .id(c.getCameraIp())
                 .name(c.getCameraDescription().trim())
                 .build()).collect(Collectors.toList());
-        itemVOList.add(0, new OptionItemVO(-1, "所有工序"));
+        itemVOList.add(0, new CameraOptionVO("-1", "所有工序"));
         return Result.success(itemVOList);
     }
 }

@@ -51,9 +51,15 @@ public class LineSafeScoreDTO {
 
 
     public static LineSafeScoreDTO avg(LineSafeScoreDTO dto1, LineSafeScoreDTO dto2) {
+        if (dto1.getRunDay() == 0) {
+            return dto2;
+        }
+        if (dto2.getRunDay() == 0) {
+            return dto1;
+        }
         Double last = null, lastYear = null;
         if (dto1.getLast() != null && dto2.getLast() != null) {
-            last = (dto1.getLastYear() + dto2.getLastYear()) / 2;
+            last = (dto1.getLast() + dto2.getLast()) / 2;
         }
         if (dto1.getLastYear() != null && dto2.getLastYear() != null) {
             lastYear = (dto1.getLastYear() + dto2.getLastYear()) / 2;

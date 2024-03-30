@@ -60,7 +60,7 @@ public class MainController {
         peopleScore1 = peopleScore1 == null ? 2 : peopleScore1;
         double peopleScore = peopleScore1 * exceedCount;
         lineScore = 100 - lineScore / 4 - peopleScore / 4;
-        String s = NumberUtil.decimalFormat("#0.00", lineScore);
+        String s = NumberUtil.decimalFormat("#.##", lineScore);
         return Result.success(s);
     }
 

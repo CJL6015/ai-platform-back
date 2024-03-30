@@ -36,6 +36,8 @@
         <foreach collection="ids" open="(" close=")" separator="," item="id">
             #{id}
         </foreach>
+        and line_run_condition = 1
+        and equipment_run_condition = 1
         group by point_id;
     </select>
     <select id="getPointInspection" resultType="com.seu.platform.model.dto.PointExceedInspectionDTO">
@@ -48,10 +50,12 @@
         from point_cfg t2
                  left join point_inspection_hour t1
                            on t1.point_id = t2.point_id
-                               and t1.create_time >= #{st}
-                               and t1.create_time &lt;= #{et}
         where t2.line_id = #{lineId}
           and t2.display = 1
+          and t1.create_time >= #{st}
+          and t1.create_time &lt;= #{et}
+          and t1.line_run_condition = 1
+          and t1.equipment_run_condition = 1
         group by t1.point_id, t2.description
     </select>
     <select id="getExceed" resultType="com.seu.platform.model.dto.ExceedDTO">
@@ -62,6 +66,8 @@
         where line_id = #{ lineId}
           and create_time >= #{st}
           and create_time &lt;= #{et}
+          and line_run_condition = 1
+          and equipment_run_condition = 1
     </select>
     <select id="getTotalPointInspection" resultType="com.seu.platform.model.dto.PointExceedInspectionDTO">
         select sum(up_up_limit_alarm)   as up_up_count,
@@ -86,6 +92,8 @@
         from point_inspection_hour
         where create_time >= #{st}
           and create_time &lt;= #{et}
+          and line_run_condition = 1
+          and equipment_run_condition = 1
         group by line_id
     </select>
 </mapper>

@@ -2,6 +2,8 @@ package com.seu.platform.model.dto;
 
 import cn.hutool.core.util.NumberUtil;
 import lombok.Data;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author chenjiale
@@ -9,19 +11,24 @@ import lombok.Data;
  * @date 2024-01-13 21:30
  */
 @Data
+@Slf4j
+@ToString
 public class PointExceedInspectionDTO {
     private Integer lineId;
+
     private String name;
 
-    private Integer upUpCount;
+    private volatile Integer upUpCount;
 
-    private Integer lowLowCount;
+    private volatile Integer lowLowCount;
 
-    private Integer upCount;
+    private volatile Integer upCount;
 
-    private Integer lowCount;
+    private volatile Integer lowCount;
 
-    private Integer count;
+    private volatile Integer count;
+
+    private volatile Boolean init;
 
     public Integer getExceed() {
         initData();
@@ -55,11 +62,15 @@ public class PointExceedInspectionDTO {
     }
 
     public void initData() {
-        upUpCount = upUpCount == null ? 0 : upUpCount;
-        lowLowCount = lowLowCount == null ? 0 : lowLowCount;
-        upCount = upCount == null ? 0 : upCount;
-        lowCount = lowCount == null ? 0 : lowCount;
-        upCount -= upUpCount;
-        lowCount -= lowLowCount;
+        if (!Boolean.TRUE.equals(init)) {
+            init = true;
+            upUpCount = upUpCount == null ? 0 : upUpCount;
+            lowLowCount = lowLowCount == null ? 0 : lowLowCount;
+            upCount = upCount == null ? 0 : upCount;
+            lowCount = lowCount == null ? 0 : lowCount;
+            upCount = upCount - upUpCount;
+            lowCount = lowCount - lowLowCount;
+            log.info("当前巡检超限:{}", this);
+        }
     }
 }
