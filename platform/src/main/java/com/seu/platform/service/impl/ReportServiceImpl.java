@@ -788,36 +788,64 @@ public class ReportServiceImpl implements ReportService {
 
     public void getStoreHousePeople(Long st, Long et, Long lastSt, Long lastEt, XWPFTableRow row) {
         final float limit = 10;
-        final long interval = 60 * 60;
+        final long interval = 5 * 60;
+        final long interval1 = 5 * 60;
         final double s = 2;
-        String p1 = "camera_storehouse1";
-        String p2 = "camera_storehouse2";
-        RecordsFloat history1 = exaClient.getHistory(p1, st, et, interval);
-        RecordsFloat history2 = exaClient.getHistory(p2, st, et, interval);
+        String point = "camera_storehouse";
+        RecordsFloat history = exaClient.getHistory(point, st, et, interval);
+        RecordsFloat history1 = exaClient.getHistory(point, st, et, interval1);
+        List<Float> values = history.getValues();
         List<Float> values1 = history1.getValues();
-        List<Float> values2 = history2.getValues();
-        int exceed1 = 0, exceed2 = 0, count1 = 1, count2 = 0;
+        int count1 = 1, exceed1 = 0, count2 = 1, exceed2 = 0;
+        if (CollUtil.isNotEmpty(values)) {
+            exceed2 = (int) values.stream().filter(t -> t > 0).count();
+            count2 = values.size();
+        }
+
         if (CollUtil.isNotEmpty(values1)) {
-            exceed1 = (int) values1.stream().filter(t -> t > limit).count();
+            exceed1 = (int) values1.stream().filter(t -> t > 0).count();
             count1 = values1.size();
         }
 
-        if (CollUtil.isNotEmpty(values2)) {
-            exceed2 = (int) values2.stream().filter(t -> t > limit).count();
-            count2 = values2.size();
-        }
+
         int day = (int) DateUtil.betweenDay(DateUtil.date(st), DateUtil.date(et), true);
+        day = Math.max(1, day);
         double score1 = exceed1 * s;
         double score2 = exceed2 * s;
 
+        RecordsFloat historyLast = exaClient.getHistory(point, lastSt, lastEt, interval);
+        RecordsFloat historyLast1 = exaClient.getHistory(point, lastSt, lastEt, interval1);
+        List<Float> values2 = historyLast.getValues();
+        List<Float> values3 = historyLast1.getValues();
+        int lastExceed = 0;
+        if (CollUtil.isNotEmpty(values2)) {
+            lastExceed += (int) values2.stream().filter(t -> t > 0).count();
+        }
+
+        if (CollUtil.isNotEmpty(values3)) {
+            lastExceed += (int) values3.stream().filter(t -> t > 0).count();
+        }
+        double lastScore = 100 - lastExceed * s;
+
         String rate1 = NumberUtil.formatPercent(1.0 * exceed1 / count1, 2);
         String rate2 = NumberUtil.formatPercent(1.0 * exceed2 / count2, 2);
-        row.getCell(4).setText(rate1);
-        row.getCell(5).setText(NumberUtil.decimalFormat("#.##", score1));
-        row.getCell(6).setText(rate2);
-        row.getCell(7).setText(NumberUtil.decimalFormat("#.##", score2));
-        row.getCell(8).setText(NumberUtil.decimalFormat("#.##", 100 - score1 - score2));
-        row.getCell(9).setText("暂无数据");
+        row.getCell(0).setText(rate1);
+        row.getCell(1).setText(NumberUtil.decimalFormat("#.##", score1));
+        row.getCell(2).setText("暂无数据");
+        row.getCell(3).setText("暂无数据");
+        row.getCell(4).setText(rate2);
+        row.getCell(5).setText(NumberUtil.decimalFormat("#.##", score2));
+        row.getCell(6).setText("暂无数据");
+        row.getCell(7).setText("暂无数据");
+        double value = 100 - score1 - score2;
+        row.getCell(8).setText(NumberUtil.decimalFormat("#.##", value));
+        String tb = "安全评分同比";
+        if (value > lastScore) {
+            tb += "增加";
+        } else {
+            tb += "减少";
+        }
+        row.getCell(9).setText(tb + Math.abs(value - lastScore) + "分");
         row.getCell(10).setText("暂无数据");
     }
 
