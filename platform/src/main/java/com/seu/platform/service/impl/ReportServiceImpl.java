@@ -126,8 +126,11 @@ public class ReportServiceImpl implements ReportService {
             row.getCell(2).setText(String.valueOf(count));
             Integer exceed = dto.getExceed();
             row.getCell(3).setText(String.valueOf(exceed));
-            count = Math.max(1, count);
-            row.getCell(4).setText(NumberUtil.formatPercent(1.0 * exceed / count, 2));
+            if (count == 0) {
+                row.getCell(4).setText("---");
+            } else {
+                row.getCell(4).setText(NumberUtil.formatPercent(1.0 * exceed / count, 2));
+            }
             Integer lastCount = map.get(name);
             String tb, hb;
             if (lastCount == null) {

@@ -388,10 +388,10 @@
                  with (nolock)
                  left join process_line_picture_hist t1 with (nolock)
                            on t1.camera_id = t2.camera_ip
-                               and t1.update_time >= #{st}
-                               and t1.update_time &lt;= #{et}
                                and t1.inspection > 0
         where t2.line_id = #{lineId}
+          and t1.update_time >= #{st}
+          and t1.update_time &lt;= #{et}
         group by t2.camera_description
         order by count desc
     </select>
