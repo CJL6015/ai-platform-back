@@ -539,6 +539,7 @@ public class ReportServiceImpl implements ReportService {
         runDay = Math.max(1, runDay);
         List<InspectionStatisticDTO> totalInspection = processLinePictureHistMapper.getTotalInspection(lineId, st, et);
         int totalCount = totalInspection.size();
+        totalCount = Math.max(1, totalCount);
         long totalExceed = totalInspection.stream().mapToInt(InspectionStatisticDTO::getExceed).filter(t -> t > 3).count();
         String peopleInspectionRate = NumberUtil.formatPercent(1.0 * totalExceed / totalCount, 2);
         peopleScore = peopleScore == null ? 2 : peopleScore;

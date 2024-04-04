@@ -112,6 +112,8 @@ public class MainController {
         double total1 = (scores.get(0) + scores.get(1)) / 2;
         scores.add(0, total2);
         scores.add(0, total1);
-        return Result.success(scores);
+        return Result.success(scores.stream()
+                .map(t -> Double.parseDouble(NumberUtil.decimalFormat("#.##", t)))
+                .collect(Collectors.toList()));
     }
 }
