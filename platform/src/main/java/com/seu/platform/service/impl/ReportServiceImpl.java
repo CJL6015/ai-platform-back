@@ -505,14 +505,8 @@ public class ReportServiceImpl implements ReportService {
             runDay = RandomUtil.randomInt(10, 13);
             runHour = RandomUtil.randomDouble(70, 80);
         }
-
-        List<InspectionStatisticDTO> totalInspection = processLinePictureHistMapper.getTotalInspection(lineId, st, et);
-        int totalCount = totalInspection.size();
-        long totalExceed = totalInspection.stream().mapToInt(InspectionStatisticDTO::getExceed).filter(t -> t > 3).count();
-        String peopleInspectionRate = NumberUtil.formatPercent(1.0 * totalExceed / totalCount, 2);
         Double peopleScore = one.getPeopleScore();
-        peopleScore = peopleScore == null ? 2 : peopleScore;
-        String peopleInspectionScore = NumberUtil.decimalFormat("#.##", totalExceed * peopleScore / runDay);
+
 
         Double lastScore = getScore(lineId, lastSt, lastEt, peopleScore);
         log.info("lastScore:{}", lastScore);
@@ -542,7 +536,13 @@ public class ReportServiceImpl implements ReportService {
                     .period(inspectionCfg.getInspectionCaptureInterval())
                     .build();
         }
-
+        runDay = Math.max(1, runDay);
+        List<InspectionStatisticDTO> totalInspection = processLinePictureHistMapper.getTotalInspection(lineId, st, et);
+        int totalCount = totalInspection.size();
+        long totalExceed = totalInspection.stream().mapToInt(InspectionStatisticDTO::getExceed).filter(t -> t > 3).count();
+        String peopleInspectionRate = NumberUtil.formatPercent(1.0 * totalExceed / totalCount, 2);
+        peopleScore = peopleScore == null ? 2 : peopleScore;
+        String peopleInspectionScore = NumberUtil.decimalFormat("#.##", totalExceed * peopleScore / runDay);
         PointExceedInspectionDTO pointInspection = pointInspectionHourMapper.getTotalPointInspection(lineId, st, et);
         String pointInspectionRate = pointInspection.getRate();
         String pointInspectionScore = pointInspection.getScore(one.getScore(), one.getHighScore(), runDay);
