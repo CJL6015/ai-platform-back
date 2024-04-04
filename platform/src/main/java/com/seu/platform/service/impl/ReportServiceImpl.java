@@ -126,6 +126,7 @@ public class ReportServiceImpl implements ReportService {
             row.getCell(2).setText(String.valueOf(count));
             Integer exceed = dto.getExceed();
             row.getCell(3).setText(String.valueOf(exceed));
+            count = Math.max(1, count);
             row.getCell(4).setText(NumberUtil.formatPercent(1.0 * exceed / count, 2));
             Integer lastCount = map.get(name);
             String tb, hb;
@@ -277,6 +278,36 @@ public class ReportServiceImpl implements ReportService {
             }
             row.getCell(3).setText(tb + "/" + hb);
         }
+        XWPFTableRow row = table.createRow();
+        List<InspectionStatisticDTO> totalInspection = processLinePictureHistMapper.getTotalInspectionHis(lineId, st, et);
+        List<InspectionStatisticDTO> lastTotalInspection = processLinePictureHistMapper.getTotalInspectionHis(lineId, lastSt, lastEt);
+        List<InspectionStatisticDTO> lastYearTotalInspection = processLinePictureHistMapper.getTotalInspectionHis(lineId, lastYearSt, lastYearEt);
+        int totalCount = totalInspection.size();
+        long totalExceed = totalInspection.stream().mapToInt(InspectionStatisticDTO::getExceed).filter(t -> t > 3).count();
+        row.getCell(0).setText(String.valueOf(lineInspection.size() + 1));
+        row.getCell(1).setText("全线");
+        row.getCell(2).setText(String.valueOf(totalExceed));
+        String tb, hb;
+        if (CollUtil.isEmpty(lastTotalInspection)) {
+            tb = "暂无数据";
+        } else {
+            long lastTotalCount = lastTotalInspection.stream()
+                    .mapToInt(InspectionStatisticDTO::getExceed)
+                    .filter(t -> t > 3).count();
+            tb = totalExceed >= lastTotalCount ? "同比增加" : "同比减少";
+            tb += Math.abs(totalExceed - lastTotalCount) + "次";
+        }
+        if (CollUtil.isEmpty(lastYearTotalInspection)) {
+            hb = "暂无数据";
+        } else {
+            long lastYearTotalCount = lastYearTotalInspection.stream()
+                    .mapToInt(InspectionStatisticDTO::getExceed)
+                    .filter(t -> t > 3).count();
+            hb = totalExceed >= lastYearTotalCount ? "环比增加" : "环比减少";
+            hb += Math.abs(totalExceed - lastYearTotalCount) + "次";
+        }
+        row.getCell(3).setText(tb + "/" + hb);
+
         return totalScore;
     }
 
@@ -524,10 +555,10 @@ public class ReportServiceImpl implements ReportService {
                     .pointInspectionRate("0")
                     .pointInspectionScore("0")
                     .peopleScore("0")
-                    .topProcess("")
-                    .topPoint("")
-                    .topProcessList(ListUtil.of(new CountStatisticDTO("", 0)))
-                    .topPointList(ListUtil.of(new CountStatisticDTO("", 0)))
+                    .topProcess("---")
+                    .topPoint("---")
+                    .topProcessList(ListUtil.of(new CountStatisticDTO("---", 0)))
+                    .topPointList(ListUtil.of(new CountStatisticDTO("---", 0)))
                     .pointScore("0")
                     .score(null)
                     .last(lastScore)
@@ -550,7 +581,7 @@ public class ReportServiceImpl implements ReportService {
 
         List<CountStatisticDTO> topProcess = processLinePictureHistMapper.getTopProcess(lineId, st, et);
         if (CollUtil.isEmpty(topProcess)) {
-            topProcess.add(new CountStatisticDTO("", 0));
+            topProcess.add(new CountStatisticDTO("无", 0));
         }
         int peopleCount = topProcess.stream().mapToInt(CountStatisticDTO::getCount).sum();
         String topName = topProcess.get(0).getName();
@@ -560,6 +591,10 @@ public class ReportServiceImpl implements ReportService {
         String topPointName = topPoint.stream().limit(3)
                 .map(CountStatisticDTO::getName)
                 .collect(Collectors.joining(","));
+        if (!StringUtils.hasText(topPointName)) {
+            topPointName = "无";
+        }
+
         Double lineScore = pointStatisticHourMapper.getLineScore(lineId, st, et);
         lineScore = lineScore == null ? 0 : lineScore;
         lineScore /= runDay;

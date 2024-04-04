@@ -50,12 +50,12 @@
         from point_cfg t2
                  left join point_inspection_hour t1
                            on t1.point_id = t2.point_id
+                               and t1.create_time >= #{st}
+                               and t1.create_time &lt;= #{et}
+                               and t1.line_run_condition = 1
+                               and t1.equipment_run_condition = 1
         where t2.line_id = #{lineId}
           and t2.display = 1
-          and t1.create_time >= #{st}
-          and t1.create_time &lt;= #{et}
-          and t1.line_run_condition = 1
-          and t1.equipment_run_condition = 1
         group by t1.point_id, t2.description
     </select>
     <select id="getExceed" resultType="com.seu.platform.model.dto.ExceedDTO">
@@ -95,5 +95,23 @@
           and line_run_condition = 1
           and equipment_run_condition = 1
         group by line_id
+    </select>
+    <select id="getPointInspectionHistory" resultType="com.seu.platform.model.dto.PointExceedInspectionDTO">
+        select t2.description              as name,
+               sum(t1.up_up_limit_alarm)   as up_up_count,
+               sum(t1.up_limit_alarm)      as up_count,
+               sum(t1.low_limit_alarm)     as low_count,
+               sum(t1.low_low_limit_alarm) as low_low_count,
+               count(1)                    as count
+        from point_cfg t2
+                 left join point_inspection_hour t1
+                           on t1.point_id = t2.point_id
+                               and t1.line_run_condition = 1
+                               and t1.equipment_run_condition = 1
+        where t2.line_id = #{lineId}
+          and t2.display = 1
+          and t1.create_time >= #{st}
+          and t1.create_time &lt;= #{et}
+        group by t1.point_id, t2.description
     </select>
 </mapper>

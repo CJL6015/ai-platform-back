@@ -390,7 +390,7 @@
                            on t1.camera_id = t2.camera_ip
                                and t1.update_time >= #{st}
                                and t1.update_time &lt;= #{et}
-                               and t1.inspection = 1
+                               and t1.inspection > 0
         where t2.line_id = #{lineId}
         group by t2.camera_description
         order by count desc
@@ -447,7 +447,7 @@
           and t1.camera_id = t2.camera_ip
           and t1.update_time >= #{st}
           and t1.update_time &lt;= #{et}
-          and t1.inspection = 1
+          and t1.inspection > 1
         group by DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0)
     </select>
 
