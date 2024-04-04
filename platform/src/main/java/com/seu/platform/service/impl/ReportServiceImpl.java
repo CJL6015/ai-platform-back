@@ -194,12 +194,14 @@ public class ReportServiceImpl implements ReportService {
         List<PointExceedInspectionDTO> lastYear = pointInspectionHourMapper.getPointInspection(lineId, lastYearSt, lastYearEt);
         Map<String, Integer> map = last.stream()
                 .filter(Objects::nonNull)
+                .filter(t -> t.getCount() != null && t.getCount() > 0)
                 .filter(t -> t.getExceed() != null)
                 .filter(t -> t.getName() != null)
                 .collect(Collectors.toMap(t -> t.getName().trim(),
                         PointExceedInspectionDTO::getExceed));
         Map<String, Integer> lastYearMap = lastYear.stream()
                 .filter(Objects::nonNull)
+                .filter(t -> t.getCount() != null && t.getCount() > 0)
                 .filter(t -> t.getExceed() != null)
                 .filter(t -> t.getName() != null)
                 .collect(Collectors.toMap(t -> t.getName().trim(),
@@ -322,12 +324,14 @@ public class ReportServiceImpl implements ReportService {
         List<PointExceedDTO> last = pointStatisticHourMapper.getPointExceedHistory(lineId, lastSt, lastEt);
         List<PointExceedDTO> lastYear = pointStatisticHourMapper.getPointExceedHistory(lineId, lastYearSt, lastYearEt);
         Map<String, Integer> map = last.stream().filter(Objects::nonNull)
+                .filter(t -> t.getCount() != null && t.getCount() > 0)
                 .filter(t -> t.getExceed() != null)
                 .filter(t -> t.getName() != null)
                 .collect(Collectors.toMap(t -> t.getName().trim(),
                         PointExceedDTO::getExceed));
         Map<String, Integer> lastYearMap = lastYear.stream()
                 .filter(Objects::nonNull)
+                .filter(t -> t.getCount() != null && t.getCount() > 0)
                 .filter(t -> t.getExceed() != null)
                 .filter(t -> t.getName() != null)
                 .collect(Collectors.toMap(t -> t.getName().trim(),
