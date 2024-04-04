@@ -73,7 +73,7 @@ public class ReportController {
     public Result<String> getMonthReport(Integer level, Integer lineId, Integer plantId, String time) {
         String path;
         if (level == 1) {
-            path = prefix + "level1_month" +time + ".docx";
+            path = prefix + "level1_month" + time + ".docx";
         } else if (level == 2) {
             path = prefix + "level2_month" + plantId + time + ".docx";
         } else {
@@ -124,6 +124,8 @@ public class ReportController {
                 outputStream.close();
             } else {
                 log.error("文件不存在,path:{}", path);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.getWriter().write("文档不存在,请生成历史后重试");
             }
         } catch (IOException e) {
             log.error("获取word文档异常:{}", fileName, e);

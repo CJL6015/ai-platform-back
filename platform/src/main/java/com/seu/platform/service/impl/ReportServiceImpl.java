@@ -324,15 +324,13 @@ public class ReportServiceImpl implements ReportService {
         List<PointExceedDTO> last = pointStatisticHourMapper.getPointExceedHistory(lineId, lastSt, lastEt);
         List<PointExceedDTO> lastYear = pointStatisticHourMapper.getPointExceedHistory(lineId, lastYearSt, lastYearEt);
         Map<String, Integer> map = last.stream().filter(Objects::nonNull)
-                .filter(t -> t.getCount() != null && t.getCount() > 0)
-                .filter(t -> t.getExceed() != null)
+                .filter(t -> Objects.nonNull(t.getNum()) && t.getNum() > 0)
                 .filter(t -> t.getName() != null)
                 .collect(Collectors.toMap(t -> t.getName().trim(),
                         PointExceedDTO::getExceed));
         Map<String, Integer> lastYearMap = lastYear.stream()
                 .filter(Objects::nonNull)
-                .filter(t -> t.getCount() != null && t.getCount() > 0)
-                .filter(t -> t.getExceed() != null)
+                .filter(t -> Objects.nonNull(t.getNum()) && t.getNum() > 0)
                 .filter(t -> t.getName() != null)
                 .collect(Collectors.toMap(t -> t.getName().trim(),
                         PointExceedDTO::getExceed));
@@ -386,13 +384,13 @@ public class ReportServiceImpl implements ReportService {
         List<PointExceedDTO> lastYear = pointStatisticHourMapper.getPointExceedHistory(lineId, lastYearSt, lastYearEt);
         Map<String, Integer> map = last.stream()
                 .filter(Objects::nonNull)
-                .filter(t -> t.getExceed() != null)
+                .filter(t -> Objects.nonNull(t.getNum()) && t.getNum() > 0)
                 .filter(t -> t.getName() != null)
                 .collect(Collectors.toMap(t -> t.getName().trim(),
                         PointExceedDTO::getExceed));
         Map<String, Integer> lastYearMap = lastYear.stream()
                 .filter(Objects::nonNull)
-                .filter(t -> t.getExceed() != null)
+                .filter(t -> Objects.nonNull(t.getNum()) && t.getNum() > 0)
                 .filter(t -> t.getName() != null)
                 .collect(Collectors.toMap(t -> t.getName().trim(),
                         PointExceedDTO::getExceed));
@@ -467,6 +465,7 @@ public class ReportServiceImpl implements ReportService {
 
         XWPFTableRow row3 = table.getRow(5);
         LineSafeScoreDTO avg = LineSafeScoreDTO.avg(line1, line2);
+        avg.setLineName("生产点");
         setLineData(row3, avg);
     }
 
@@ -484,11 +483,15 @@ public class ReportServiceImpl implements ReportService {
         row.getCell(8).setText(peopleScore);
         if (StringUtils.hasLength(peopleScore) && !"0".equals(peopleScore)) {
             row.getCell(9).setText(line.getTopProcess());
+        } else {
+            row.getCell(9).setText("无");
         }
         String pointScore = line.getPointScore();
         row.getCell(10).setText(pointScore);
         if (StringUtils.hasLength(peopleScore) && !"0".equals(pointScore)) {
             row.getCell(11).setText(line.getTopPoint());
+        } else {
+            row.getCell(11).setText("无");
         }
         if (score == null) {
             row.getCell(12).setText("---");
@@ -590,8 +593,12 @@ public class ReportServiceImpl implements ReportService {
         if (CollUtil.isEmpty(topProcess)) {
             topProcess.add(new CountStatisticDTO("无", 0));
         }
-        int peopleCount = topProcess.stream().mapToInt(CountStatisticDTO::getCount).sum();
+        List<InspectionStatisticDTO> totalInspectionHis = processLinePictureHistMapper.getTotalInspectionHis(lineId, st, et);
+        int peopleCount = (int) totalInspectionHis.stream().
+                mapToInt(InspectionStatisticDTO::getExceed)
+                .filter(t -> t > 3).count();
         String topName = topProcess.get(0).getName();
+        topName = StringUtils.hasText(topName) ? topName : "无";
         String peopleTotalScore = NumberUtil.decimalFormat("#.##", peopleCount * peopleScore / runDay);
 
         List<CountStatisticDTO> topPoint = pointStatisticHourMapper.getTopPoint(lineId, st, et);
@@ -902,12 +909,16 @@ public class ReportServiceImpl implements ReportService {
         row.getCell(4).setText(peopleScore);
         if (StringUtils.hasLength(peopleScore) && !"0".equals(peopleScore)) {
             row.getCell(5).setText(line.getTopProcess());
+        } else {
+            row.getCell(5).setText("无");
         }
 
         String pointScore = line.getPointScore();
         row.getCell(6).setText(pointScore);
         if (StringUtils.hasLength(peopleScore) && !"0".equals(pointScore)) {
             row.getCell(7).setText(line.getTopPoint());
+        } else {
+            row.getCell(7).setText("无");
         }
 
         Double score = line.getScore();

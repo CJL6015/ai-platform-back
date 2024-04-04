@@ -68,8 +68,8 @@
             <option name="tableUIInfoList">
               <list>
                 <TableUIInfo>
-                  <option name="className" value="ReportHistory" />
-                  <option name="tableName" value="report_history" />
+                  <option name="className" value="EquipmentRemainingLifeCfg" />
+                  <option name="tableName" value="equipment_remaining_life_cfg" />
                 </TableUIInfo>
               </list>
             </option>

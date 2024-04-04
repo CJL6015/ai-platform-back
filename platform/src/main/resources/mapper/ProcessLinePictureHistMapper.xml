@@ -426,7 +426,7 @@
     <select id="getLineInspectionHis" resultType="com.seu.platform.model.dto.InspectionStatisticDTO">
         select sum(iif(t1.exceed = 1, 1, 0)) as exceed,
                t2.camera_description         as name,
-               count(1)                      as count
+               count(t1.id)                  as count
         from camera_cfg t2
                  with (nolock),
              process_line_picture_hist t1 with (nolock)
@@ -447,8 +447,39 @@
           and t1.camera_id = t2.camera_ip
           and t1.update_time >= #{st}
           and t1.update_time &lt;= #{et}
-          and t1.inspection > 1
+          and t1.inspection > 0
         group by DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0)
+    </select>
+    <select id="getSnapshotResult" resultType="com.seu.platform.model.vo.DetectionResultVO">
+        select camera_id,
+        DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0) as time ,
+        detection_picture_path,people_count
+        from (
+        select camera_id,
+        update_time,
+        detection_picture_path,
+        people_count,
+        row_number() over (partition by camera_id order
+        by update_time) as rtn
+        from process_line_picture_hist
+        with (nolock)
+        where people_has_checked=1
+        and camera_id in
+        <foreach collection="ips" separator="," item="ip" open="(" close=")">
+            #{ip}
+        </foreach>
+        and DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0)=#{time}
+        and inspection>0
+        ) ranked
+        where rtn =1
+        order by time desc
+    </select>
+    <select id="lastSnapshotTime" resultType="java.util.Date">
+        select DATEADD(HOUR, DATEDIFF(HOUR, 0, max(update_time)), 0) as time
+        from process_line_picture_hist
+                 with (nolock)
+        where people_has_checked = 1
+          and inspection > 0
     </select>
 
 </mapper>

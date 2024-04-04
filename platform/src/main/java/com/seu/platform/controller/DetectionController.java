@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -42,15 +41,21 @@ public class DetectionController {
         return Result.success(detectionResult);
     }
 
+    @GetMapping("/snapshot/{lineId}")
+    public Result<List<DetectionResultVO>> getSnapshotResult(@PathVariable Integer lineId) {
+        List<DetectionResultVO> detectionResult = processLinePictureHistService.getSnapshotResult(lineId);
+        return Result.success(detectionResult);
+    }
+
     @GetMapping("/trend/month/{lineId}")
-    public Result<TrendVO<String, Integer>> getTrendMonth(@PathVariable Integer lineId,TimeRange timeRange) {
-        TrendVO<String, Integer> trendMonth = processLinePictureHistService.getTrendMonth(lineId,timeRange);
+    public Result<TrendVO<String, Integer>> getTrendMonth(@PathVariable Integer lineId, TimeRange timeRange) {
+        TrendVO<String, Integer> trendMonth = processLinePictureHistService.getTrendMonth(lineId, timeRange);
         return Result.success(trendMonth);
     }
 
     @GetMapping("/trend/daily/{lineId}")
-    public Result<TrendVO<String, Integer>> getTrendDaily(@PathVariable Integer lineId,TimeRange timeRange) {
-        TrendVO<String, Integer> trendMonth = processLinePictureHistService.getTrendDaily(lineId,timeRange);
+    public Result<TrendVO<String, Integer>> getTrendDaily(@PathVariable Integer lineId, TimeRange timeRange) {
+        TrendVO<String, Integer> trendMonth = processLinePictureHistService.getTrendDaily(lineId, timeRange);
         return Result.success(trendMonth);
     }
 }

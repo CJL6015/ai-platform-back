@@ -19,10 +19,9 @@ public class PointExceedDTO {
 
     private Double highTime;
 
+    private Integer num;
+
     public Integer getExceed() {
-        if (count == null && highCount == null) {
-            return null;
-        }
         count = count == null ? 0 : count;
         highCount = highCount == null ? 0 : highCount;
         return count + highCount;

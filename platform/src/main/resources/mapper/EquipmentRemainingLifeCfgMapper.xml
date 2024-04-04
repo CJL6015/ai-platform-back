@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seu.platform.dao.mapper.EquipmentRemainingLifeCfgMapper">
+
+    <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.EquipmentRemainingLifeCfg">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="relatedEquipmentId" column="related_equipment_id" jdbcType="INTEGER"/>
+            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="startUseTime" column="start_use_time" jdbcType="TIMESTAMP"/>
+            <result property="designedUsingDays" column="designed_using_days" jdbcType="INTEGER"/>
+            <result property="degree" column="degree" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,related_equipment_id,line_id,
+        description,start_use_time,designed_using_days,
+        degree
+    </sql>
+    <select id="getLife" resultType="com.seu.platform.model.dto.LifeDTO">
+        select t1.description           as name,
+               t1.start_use_time        as time,
+               t1.danger_degree         as degree,
+               t1.designed_using_days   as design,
+               t2.remaining_useful_days as remain
+        from equipment_remaining_life_cfg t1
+                 left join equipment_remaining_useful_life t2
+                           on t1.id = t2.equipment_useful_life_id
+                               and t2.create_time = (select max(t2.create_time) from equipment_remaining_useful_life)
+        where t1.line_id = #{id}
+    </select>
+</mapper>

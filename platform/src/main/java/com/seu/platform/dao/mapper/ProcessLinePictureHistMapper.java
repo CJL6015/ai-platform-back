@@ -36,6 +36,8 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      */
     List<DetectionResultVO> getDetectionResult(List<String> ips, Date time);
 
+    List<DetectionResultVO> getSnapshotResult(List<String> ips, Date time);
+
     List<Date> getDetectionTime(Integer lineId, Date st, Date et);
 
     /**
@@ -44,6 +46,7 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      * @return 最近一次时间
      */
     Date lastTime();
+    Date lastSnapshotTime();
 
     /**
      * 获取月趋势

@@ -60,9 +60,17 @@ public class LineSafeScoreDTO {
         Double last = null, lastYear = null;
         if (dto1.getLast() != null && dto2.getLast() != null) {
             last = (dto1.getLast() + dto2.getLast()) / 2;
+        } else if (dto1.getLast() != null) {
+            last = dto1.getLast();
+        } else if (dto2.getLast() != null) {
+            last = dto2.getLast();
         }
         if (dto1.getLastYear() != null && dto2.getLastYear() != null) {
             lastYear = (dto1.getLastYear() + dto2.getLastYear()) / 2;
+        } else if (dto1.getLastYear() != null) {
+            lastYear = dto1.getLastYear();
+        } else if (dto2.getLastYear() != null) {
+            lastYear = dto2.getLastYear();
         }
         double score = 0;
         int count = 0;
