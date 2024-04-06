@@ -3,6 +3,7 @@ package com.seu.platform.dao.mapper;
 import com.seu.platform.dao.entity.EquipmentRemainingLifeCfg;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seu.platform.model.dto.LifeDTO;
+import com.seu.platform.model.dto.LifeTrendDTO;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
 */
 public interface EquipmentRemainingLifeCfgMapper extends BaseMapper<EquipmentRemainingLifeCfg> {
     List<LifeDTO> getLife(Integer id);
+
 }
 
 

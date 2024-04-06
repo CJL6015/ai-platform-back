@@ -84,7 +84,7 @@ public class AnalyzeServiceImpl implements AnalyzeService {
     public Double getRate(Integer n1, Integer n2) {
         Double res = 100D;
         if (Objects.nonNull(n1) && Objects.nonNull(n2) && n2 != 0) {
-            return res * n1 / n2;
+            return res * (n1 - n2) / n2;
         }
         return 0D;
     }

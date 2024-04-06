@@ -66,7 +66,7 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     @Override
     public List<DetectionResultVO> getDetectionResult(Integer lineId, Date time) {
         if (Objects.isNull(time)) {
-            time = getBaseMapper().lastTime();
+            time = getBaseMapper().lastTime(lineId);
         }
         LambdaQueryWrapper<WarnCfg> queryWrapper1 = new LambdaQueryWrapper<>();
         queryWrapper1.eq(WarnCfg::getLineId, lineId);
@@ -107,7 +107,6 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
 
     @Override
     public List<DetectionResultVO> getSnapshotResult(Integer lineId) {
-        Date time = getBaseMapper().lastSnapshotTime();
         LambdaQueryWrapper<WarnCfg> queryWrapper1 = new LambdaQueryWrapper<>();
         queryWrapper1.eq(WarnCfg::getLineId, lineId);
         WarnCfg one = warnCfgService.getOne(queryWrapper1);
@@ -117,7 +116,7 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
         queryWrapper.eq(CameraCfg::getLineId, lineId);
         List<CameraCfg> list = cameraCfgService.list(queryWrapper);
         List<String> ips = list.stream().map(t -> t.getCameraIp().trim()).collect(Collectors.toList());
-        List<DetectionResultVO> detectionResult = getBaseMapper().getDetectionResult(ips, time);
+        List<DetectionResultVO> detectionResult = getBaseMapper().getSnapshotResult(ips);
         List<DetectionResultVO> res = new ArrayList<>();
         String prefix = (lineId == 3 || lineId == 4 || lineId == 5) ? picturePrefix1 : picturePrefix;
         for (CameraCfg cameraCfg : list) {

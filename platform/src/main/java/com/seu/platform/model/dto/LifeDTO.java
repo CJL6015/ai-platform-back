@@ -17,6 +17,8 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 public class LifeDTO {
+    private Integer id;
+
     private String name;
 
     @JsonFormat(pattern = "yyyy年MM月dd日", timezone = "GMT+8")

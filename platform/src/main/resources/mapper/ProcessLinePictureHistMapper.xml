@@ -30,13 +30,13 @@
 
     <update id="setInspectionMinute1">
         update process_line_picture_hist
-        set inspection =2
+        set inspection = 2
         where id = (select top 1 id
                     from process_line_picture_hist
                     where update_time >= #{st}
                       and update_time &lt;= #{et}
                       and camera_id = #{cameraIp}
-                      and inspection is null
+                      and inspection != 1
                     ORDER BY NEWID())
     </update>
     <select id="getPendingChecks" resultType="com.seu.platform.dao.entity.ProcessLinePictureHist">
@@ -50,7 +50,7 @@
     </select>
     <select id="getDetectionResult" resultType="com.seu.platform.model.vo.DetectionResultVO">
         select camera_id,
-        DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0) as time ,
+        update_time as time ,
         detection_picture_path,people_count
         from (
         select camera_id,
@@ -74,10 +74,12 @@
     </select>
     <select id="lastTime" resultType="java.util.Date">
         select DATEADD(HOUR, DATEDIFF(HOUR, 0, max(update_time)), 0) as time
-        from process_line_picture_hist
-                 with (nolock)
-        where people_has_checked = 1
-          and inspection = 1
+        from process_line_picture_hist t1
+                 with (nolock),
+             camera_cfg t2 with (nolock)
+        where t1.people_has_checked = 1
+          and t1.inspection = 1
+          and t1.camera_id = t2.camera_ip
     </select>
     <select id="getMonthTrend" resultType="com.seu.platform.model.dto.TrendDTO">
         select sum(IIF(t1.exceed = 1, 1, 0)) as count,
@@ -227,12 +229,13 @@
                  left join inspection_cfg t3 with (nolock) on t2.line_id = t3.line_id
                  left join process_line_picture_hist t1 with (nolock)
                            on t1.camera_id = t2.camera_ip
-                               and t1.inspection = 2
+                               and t1.inspection > 1
         group by t2.camera_ip, t2.line_id
     </select>
     <select id="getFirstTime" resultType="java.util.Date">
         select top 1 update_time
         from process_line_picture_hist
+        where camera_id = #{cameraIp}
         order by update_time
     </select>
 
@@ -451,35 +454,34 @@
         group by DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0)
     </select>
     <select id="getSnapshotResult" resultType="com.seu.platform.model.vo.DetectionResultVO">
-        select camera_id,
-        DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0) as time ,
-        detection_picture_path,people_count
-        from (
-        select camera_id,
-        update_time,
+        SELECT camera_id,
+        time,
+        detection_picture_path,
+        people_count
+        FROM (
+        SELECT camera_id,
+        update_time AS time,
         detection_picture_path,
         people_count,
-        row_number() over (partition by camera_id order
-        by update_time) as rtn
-        from process_line_picture_hist
-        with (nolock)
-        where people_has_checked=1
-        and camera_id in
+        ROW_NUMBER() OVER (PARTITION BY camera_id ORDER BY update_time DESC) AS rn
+        FROM process_line_picture_hist WITH (NOLOCK)
+        WHERE people_has_checked = 1
+        AND camera_id IN
         <foreach collection="ips" separator="," item="ip" open="(" close=")">
             #{ip}
         </foreach>
-        and DATEADD(HOUR, DATEDIFF(HOUR, 0, update_time), 0)=#{time}
-        and inspection>0
-        ) ranked
-        where rtn =1
-        order by time desc
+
+        ) AS subquery
+        WHERE rn = 1;
     </select>
     <select id="lastSnapshotTime" resultType="java.util.Date">
         select DATEADD(HOUR, DATEDIFF(HOUR, 0, max(update_time)), 0) as time
-        from process_line_picture_hist
-                 with (nolock)
-        where people_has_checked = 1
-          and inspection > 0
+        from process_line_picture_hist t1
+                 with (nolock),
+             camera_cfg t2 with (nolock)
+        where t1.people_has_checked = 1
+          and t1.camera_id = t2.camera_ip
+          and t2.line_id = #{lineId}
     </select>
 
 </mapper>

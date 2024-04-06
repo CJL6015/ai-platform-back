@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import com.seu.platform.model.entity.Result;
+import com.seu.platform.service.ReportService;
 import com.seu.platform.task.ReportTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,8 @@ public class ReportController {
     private final ResourceLoader resourceLoader;
 
     private final ReportTask reportTask;
+
+    private final ReportService reportService;
 
     @Value("${static.word-prefix}")
     private String prefix;
@@ -106,6 +109,31 @@ public class ReportController {
             path = prefix + "level3_year" + lineId + time + ".docx";
         }
         return Result.success(path);
+    }
+
+    @GetMapping("/level1")
+    public Result createLevel1(String st, String et, String lastSt, String lastEt, String path) {
+        reportService.createReportLevel1(DateUtil.parse(st), DateUtil.parse(et),
+                DateUtil.parse(lastSt), DateUtil.parse(lastEt), reportDir + path);
+        return Result.success();
+    }
+
+    @GetMapping("/level2/{id}")
+    public Result createLevel2(String st, String et, String lastSt, String lastEt, String path, @PathVariable Integer id) {
+        reportService.createReportLevel2(id, DateUtil.parse(st), DateUtil.parse(et),
+                DateUtil.parse(lastSt), DateUtil.parse(lastEt), reportDir + path);
+        return Result.success();
+    }
+
+    @GetMapping("/level3/{id}")
+    public Result createLevel3(String st, String et, String lastSt, String lastEt, String path, @PathVariable Integer id) {
+        reportService.createReportLevel3(id, DateUtil.parse(st), DateUtil.parse(et),
+                DateUtil.parse(lastSt), DateUtil.parse(lastEt), path);
+        reportService.createReportLevel3_1(id, DateUtil.parse(st), DateUtil.parse(et),
+                DateUtil.parse(lastSt), DateUtil.parse(lastEt), path);
+        reportService.createReportLevel3_2(id, DateUtil.parse(st), DateUtil.parse(et),
+                DateUtil.parse(lastSt), DateUtil.parse(lastEt), reportDir + path);
+        return Result.success();
     }
 
 

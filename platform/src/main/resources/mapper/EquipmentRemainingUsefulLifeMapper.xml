@@ -5,15 +5,24 @@
 <mapper namespace="com.seu.platform.dao.mapper.EquipmentRemainingUsefulLifeMapper">
 
     <resultMap id="BaseResultMap" type="com.seu.platform.dao.entity.EquipmentRemainingUsefulLife">
-            <id property="id" column="id" jdbcType="INTEGER"/>
-            <result property="equipmentUsefulLifeId" column="equipment_useful_life_id" jdbcType="INTEGER"/>
-            <result property="lineId" column="line_id" jdbcType="INTEGER"/>
-            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-            <result property="remainingUsefulDays" column="remaining_useful_days" jdbcType="FLOAT"/>
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="equipmentUsefulLifeId" column="equipment_useful_life_id" jdbcType="INTEGER"/>
+        <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="remainingUsefulDaysUp" column="remaining_useful_days_up" jdbcType="FLOAT"/>
+        <result property="remainingUsefulDaysLow" column="remaining_useful_days_low" jdbcType="FLOAT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,equipment_useful_life_id,line_id,
-        create_time,remaining_useful_days
+                id, equipment_useful_life_id, line_id,
+                create_time, remaining_useful_days
     </sql>
+    <select id="getLifeTrendDTO" resultType="com.seu.platform.model.dto.LifeTrendDTO">
+        select remaining_useful_days_up  as up,
+               remaining_useful_days_low as low,
+               create_time               as time
+        from equipment_remaining_useful_life
+        where equipment_useful_life_id = #{id}
+        order by create_time
+    </select>
 </mapper>

@@ -218,7 +218,11 @@ public class PointStatisticHourServiceImpl extends ServiceImpl<PointStatisticHou
                     if (StringUtils.hasText(name)) {
                         t.setName(name.trim());
                     }
-                    t.setScore(100 - t.getScore() / day);
+                    Double score1 = t.getScore();
+                    if (Objects.isNull(score1)) {
+                        score1 = 0D;
+                    }
+                    t.setScore(100 - score1 / day);
                 }).collect(Collectors.toList());
         return score;
     }

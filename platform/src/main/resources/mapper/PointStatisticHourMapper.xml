@@ -170,13 +170,14 @@
         select t2.equipment_id                                                                          as id,
                t3.equipment_description                                                                 as name,
                sum(t1.up_low_exceeded_count * t2.score + t1.upup_lowlow_exceeded_count * t2.high_score) as score
-        from point_statistic_hour t1 with (nolock)
-                 left join
-             point_cfg t2 with (nolock) on t1.point_id = t2.point_id
-                 left join equipment_cfg t3 with (nolock) on t2.equipment_id = t3.id
-        where t1.line_id = #{lineId}
-          and t1.statiatic_start_time >= #{st}
-          and t1.statiatic_start_time &lt;= #{et}
+        from equipment_cfg t3 with (nolock)
+                 left join point_cfg t2 with (nolock)
+                           on t2.equipment_id = t3.id
+                 left join point_statistic_hour t1
+            with (nolock) on t1.point_id = t2.point_id
+            and t1.statiatic_start_time >= #{st}
+            and t1.statiatic_start_time &lt;= #{et}
+        where t3.line_id = #{lineId}
         group by t2.equipment_id, t3.equipment_description
         order by score desc
     </select>
@@ -194,7 +195,7 @@
         order by time
     </select>
     <select id="getCount" resultType="java.lang.Integer">
-        select sum(up_low_exceeded_count) as count
+        select sum(up_low_exceeded_count + upup_lowlow_exceeded_count) as count
         from point_statistic_hour
         where statiatic_start_time >= #{st}
         and statiatic_start_time &lt;= #{et}
@@ -267,8 +268,6 @@
         select STRING_AGG(equipment_id, ',') AS ids
         from point_statistic_hour with (nolock)
         where line_id = #{lineId}
-          and statiatic_start_time >= #{st}
-          and statiatic_start_time &lt;= #{et}
           and up_low_exceeded_count > 0
         group by DATEADD(HOUR, DATEDIFF(HOUR, 0, statiatic_start_time), 0)
     </select>
@@ -276,8 +275,6 @@
         select STRING_AGG(point_id, ',') AS ids
         from point_statistic_hour with (nolock)
         where line_id = #{lineId}
-          and statiatic_start_time >= #{st}
-          and statiatic_start_time &lt;= #{et}
           and up_low_exceeded_count > 0
         group by DATEADD(HOUR, DATEDIFF(HOUR, 0, statiatic_start_time), 0)
     </select>

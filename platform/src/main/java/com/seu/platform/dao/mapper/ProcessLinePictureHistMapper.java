@@ -36,7 +36,7 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      */
     List<DetectionResultVO> getDetectionResult(List<String> ips, Date time);
 
-    List<DetectionResultVO> getSnapshotResult(List<String> ips, Date time);
+    List<DetectionResultVO> getSnapshotResult(List<String> ips);
 
     List<Date> getDetectionTime(Integer lineId, Date st, Date et);
 
@@ -45,8 +45,9 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
      *
      * @return 最近一次时间
      */
-    Date lastTime();
-    Date lastSnapshotTime();
+    Date lastTime(Integer lineId);
+
+    Date lastSnapshotTime(Integer lineId);
 
     /**
      * 获取月趋势
@@ -104,7 +105,9 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
     List<InspectionStatisticDTO> getLineInspection(Integer lineId, Date st, Date et);
 
     List<InspectionStatisticDTO> getLineInspectionHis(Integer lineId, Date st, Date et);
+
     List<InspectionStatisticDTO> getTotalInspection(Integer lineId, Date st, Date et);
+
     List<InspectionStatisticDTO> getTotalInspectionHis(Integer lineId, Date st, Date et);
 
     List<InspectionStatisticDTO> getLineInspectionHistory(Integer lineId, Date st, Date et);
@@ -119,7 +122,7 @@ public interface ProcessLinePictureHistMapper extends BaseMapper<ProcessLinePict
 
     List<LineInspection> getLast1();
 
-    Boolean setInspectionMinute(String cameraIp, Date st, Date et,Integer code);
+    Boolean setInspectionMinute(String cameraIp, Date st, Date et, Integer code);
 
     Boolean setInspectionMinute1(String cameraIp, Date st, Date et);
 

@@ -838,10 +838,10 @@ public class ReportServiceImpl implements ReportService {
 
     public void getStoreHousePeople(Long st, Long et, Long lastSt, Long lastEt, XWPFTableRow row) {
         final float limit = 10;
-        final long interval = 5 * 60;
-        final long interval1 = 5 * 60;
+        final long interval = 60 * 60;
+        final long interval1 = 60 * 60;
         final double s = 2;
-        String point = "camera_storehouse";
+        String point = "camera_storehouse_check";
         RecordsFloat history = exaClient.getHistory(point, st, et, interval);
         RecordsFloat history1 = exaClient.getHistory(point, st, et, interval1);
         List<Float> values = history.getValues();
@@ -860,8 +860,8 @@ public class ReportServiceImpl implements ReportService {
 
         int day = (int) DateUtil.betweenDay(DateUtil.date(st), DateUtil.date(et), true);
         day = Math.max(1, day);
-        double score1 = exceed1 * s;
-        double score2 = exceed2 * s;
+        double score1 = exceed1 * s / day;
+        double score2 = exceed2 * s / day;
 
         RecordsFloat historyLast = exaClient.getHistory(point, lastSt, lastEt, interval);
         RecordsFloat historyLast1 = exaClient.getHistory(point, lastSt, lastEt, interval1);
@@ -875,7 +875,7 @@ public class ReportServiceImpl implements ReportService {
         if (CollUtil.isNotEmpty(values3)) {
             lastExceed += (int) values3.stream().filter(t -> t > 0).count();
         }
-        double lastScore = 100 - lastExceed * s;
+        double lastScore = 100 - lastExceed * s / day;
 
         String rate1 = NumberUtil.formatPercent(1.0 * exceed1 / count1, 2);
         String rate2 = NumberUtil.formatPercent(1.0 * exceed2 / count2, 2);

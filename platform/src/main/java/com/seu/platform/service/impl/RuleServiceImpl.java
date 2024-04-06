@@ -49,6 +49,7 @@ public class RuleServiceImpl implements RuleService {
         List<Set<String>> data = relationEquipment.stream()
                 .map(t -> CollUtil.newHashSet(t.split(",")))
                 .collect(Collectors.toList());
+        log.info("相关性分析:{}", data);
         Apriori apriori = new Apriori(data, 0.1, limit);
         List<List<Object>> lists = apriori.associationRules();
         List<Object[]> group = apriori.getGroup();

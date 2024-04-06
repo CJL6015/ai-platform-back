@@ -65,8 +65,10 @@ public class InspectionTask {
                     et = DateUtil.offsetMinute(st, 1);
                     if (0 == inspection.getMode()) {
                         Random random = new Random();
-                        int minutes = random.nextInt(60);
-                        et = DateUtil.offsetMinute(st, minutes);
+                        int between = (int) DateUtil.between(st, DateUtil.date(), DateUnit.MINUTE);
+                        int minutes = random.nextInt(Math.min(50, between - 5));
+                        st = DateUtil.offsetMinute(st, minutes);
+                        et = DateUtil.offsetMinute(st, 1);
                     }
                     inspectionTime = st;
                     lineId = inspection.getLineId();
@@ -86,7 +88,7 @@ public class InspectionTask {
                 Boolean result;
                 int code;
                 if (v != null && v > 0) {
-                    code = 3;
+                    code = 2;
                 } else {
                     code = 1;
                 }
@@ -96,8 +98,9 @@ public class InspectionTask {
         }
     }
 
-    //    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 60000)
     public void doTask1() {
+        log.info("开始普通巡检");
         List<LineInspection> last = processLinePictureHistService.getLast1();
         if (CollUtil.isEmpty(last)) {
             log.info("本次巡检暂无配置");
@@ -108,7 +111,7 @@ public class InspectionTask {
             for (LineInspection inspection : last) {
                 Date time = inspection.getTime();
                 String cameraIp = inspection.getCameraIp().trim();
-                int interval = 10;
+                int interval = 20;
                 if (Objects.isNull(time)) {
                     time = processLinePictureHistService.getFirstTime(cameraIp);
                     time = DateUtil.offsetMinute(time, -interval);
