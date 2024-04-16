@@ -839,7 +839,7 @@ public class ReportServiceImpl implements ReportService {
     public void getStoreHousePeople(Long st, Long et, Long lastSt, Long lastEt, XWPFTableRow row) {
         final float limit = 10;
         final long interval = 60 * 60;
-        final long interval1 = 60 * 60;
+        final long interval1 =  60;
         final double s = 2;
         String point = "camera_storehouse_check";
         RecordsFloat history = exaClient.getHistory(point, st, et, interval);

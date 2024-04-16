@@ -138,8 +138,8 @@ public class ExaClient {
         Map<String, Object> body = new HashMap<>(Numbers.FOUR);
         body.put("Name", point);
         body.put("Aggregator", "avg");
-        body.put("Start", st - TIME_DELTA);
-        body.put("End", et - TIME_DELTA);
+        body.put("Start", st );
+        body.put("End", et );
         body.put("Interval", 300);
 
         try (HttpResponse response = HttpUtil.createPost(getHistoryUrl)
@@ -148,8 +148,6 @@ public class ExaClient {
                 .execute()) {
             String post = response.body();
             result = JSON.parseObject(post, RecordsFloat.class);
-            List<Long> timestamps = result.getTimestamps();
-            result.setTimestamps(timestamps.stream().map(t -> t + TIME_DELTA).collect(Collectors.toList()));
         } catch (Exception e) {
             log.error("exa获取历史异常,point:{},st:{},et:{}", point, st, et);
         }
@@ -169,8 +167,8 @@ public class ExaClient {
         Map<String, Object> body = new HashMap<>(Numbers.FOUR);
         body.put("Name", point);
         body.put("Aggregator", "avg");
-        body.put("Start", st - TIME_DELTA);
-        body.put("End", et - TIME_DELTA);
+        body.put("Start", st );
+        body.put("End", et );
         body.put("Interval", interval);
 
         try (HttpResponse response = HttpUtil.createPost(getHistoryUrl)
@@ -179,8 +177,6 @@ public class ExaClient {
                 .execute()) {
             String post = response.body();
             result = JSON.parseObject(post, RecordsFloat.class);
-            List<Long> timestamps = result.getTimestamps();
-            result.setTimestamps(timestamps.stream().map(t -> t + TIME_DELTA).collect(Collectors.toList()));
         } catch (Exception e) {
             log.error("exa获取历史异常,point:{},st:{},et:{}", point, st, et);
         }
@@ -200,8 +196,8 @@ public class ExaClient {
         Map<String, Object> body = new HashMap<>(Numbers.FOUR);
         body.put("Name", point);
         body.put("Aggregator", "avg");
-        body.put("Start", st - TIME_DELTA);
-        body.put("End", et - TIME_DELTA);
+        body.put("Start", st );
+        body.put("End", et );
         body.put("Interval", 300);
 
         try (HttpResponse response = HttpUtil.createPost(getHistoryUrl)
@@ -210,8 +206,6 @@ public class ExaClient {
                 .execute()) {
             String post = response.body();
             result = JSON.parseObject(post, RecordsFloat.class);
-            List<Long> timestamps = result.getTimestamps();
-            result.setTimestamps(timestamps.stream().map(t -> t + TIME_DELTA).collect(Collectors.toList()));
         } catch (Exception e) {
             log.error("exa获取历史异常,point:{},st:{},et:{}", point, st, et);
         }

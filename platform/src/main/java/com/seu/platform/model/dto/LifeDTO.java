@@ -1,11 +1,12 @@
 package com.seu.platform.model.dto;
 
-import cn.hutool.core.date.DateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
+
+import java.util.Date;
 
 /**
  * @author chenjiale
@@ -17,16 +18,23 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 public class LifeDTO {
-    private Integer id;
+    private Long id;
 
     private String name;
 
     @JsonFormat(pattern = "yyyy年MM月dd日", timezone = "GMT+8")
-    private DateTime time;
+    private Date time;
 
-    private DateTime degree;
+    private String degree;
 
-    private Integer design;
+    private Double design;
 
-    private Float remain;
+    private Double up;
+
+    private Double low;
+
+    private String remain;
+
+    private String expire;
+
 }

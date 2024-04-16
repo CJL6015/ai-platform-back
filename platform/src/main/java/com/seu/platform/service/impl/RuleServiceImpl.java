@@ -15,6 +15,7 @@ import com.seu.platform.model.vo.RelationVO;
 import com.seu.platform.service.RuleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -87,6 +88,7 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public RelationVO getSupportPoint(Integer lineId, Double limit) {
         LambdaQueryWrapper<PointCfg> queryWrapper = new LambdaQueryWrapper<>();
+
         queryWrapper.eq(PointCfg::getLineId, lineId)
                 .orderBy(Boolean.TRUE, Boolean.TRUE, PointCfg::getId);
         List<PointCfg> list = pointCfgService.list(queryWrapper);

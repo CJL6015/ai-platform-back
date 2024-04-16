@@ -5,6 +5,7 @@ import com.seu.platform.dao.entity.ProcessLinePictureHist;
 import com.seu.platform.model.dto.*;
 import com.seu.platform.model.entity.LineInspection;
 import com.seu.platform.model.vo.DetectionResultVO;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.Date;
 import java.util.List;

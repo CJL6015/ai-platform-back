@@ -23,6 +23,7 @@ import com.seu.platform.service.BenchmarkService;
 import com.seu.platform.util.MathUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -389,17 +390,20 @@ public class BenchmarkServiceImpl implements BenchmarkService {
         }
     }
 
+    @Cacheable("BenchmarkServiceImpl-queryWrapper")
     public Integer getPointCount(Integer lineId) {
         LambdaQueryWrapper<PointCfg> queryWrapper = new LambdaQueryWrapper<>();
         return pointCfgMapper.selectCount(queryWrapper);
     }
 
+    @Cacheable("BenchmarkServiceImpl-getCameraCount")
     public Integer getCameraCount(Integer lineId) {
         LambdaQueryWrapper<CameraCfg> queryWrapper = new LambdaQueryWrapper<>();
         return cameraCfgMapper.selectCount(queryWrapper);
     }
 
 
+    @Cacheable("BenchmarkServiceImpl-getEquipmentCount")
     public Integer getEquipmentCount(Integer lineId) {
         LambdaQueryWrapper<EquipmentCfg> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(EquipmentCfg::getLineId, lineId);
@@ -448,22 +452,26 @@ public class BenchmarkServiceImpl implements BenchmarkService {
         data.put("P" + line, value);
     }
 
+    @Cacheable("BenchmarkServiceImpl-getCountAvg")
     public Integer getParamExceedCount(Integer lineId, Date st, Date et) {
         int day = (int) DateUtil.betweenDay(st, et, false);
         return pointStatisticHourMapper.getCountAvg(lineId, st, et) / day;
     }
 
+    @Cacheable("BenchmarkServiceImpl-getLineScore")
     public Double getParamExceedScore(Integer lineId, Date st, Date et) {
         long day = DateUtil.betweenDay(st, et, false);
         return pointStatisticHourMapper.getLineScore(lineId, st, et) / day;
     }
 
+    @Cacheable("BenchmarkServiceImpl-exceedCount")
     public Integer getInspectionExceedCount(Integer lineId, Date st, Date et) {
         int day = (int) DateUtil.betweenDay(st, et, false);
         Integer i = processLinePictureHistMapper.exceedCount(lineId, st, et);
         return i / day;
     }
 
+    @Cacheable("BenchmarkServiceImpl-getInspectionExceedScore")
     public Double getInspectionExceedScore(Integer lineId, Date st, Date et) {
         long day = DateUtil.betweenDay(st, et, false);
         Integer i = processLinePictureHistMapper.exceedCount(lineId, st, et);

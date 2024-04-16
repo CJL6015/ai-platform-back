@@ -53,6 +53,7 @@ public class InspectionTask {
                 time = DateUtil.offsetHour(time, -interval);
             }
             DateTime lasTime = DateUtil.beginOfHour(time);
+            log.info("{}上次巡检时间:{}", inspection.getCameraIp(), DateUtil.format(lasTime, "yyyy-MM-dd HH:mm:ss"));
             long diff = DateUtil.between(lasTime, now, DateUnit.HOUR);
             if (diff > interval) {
                 DateTime st;
@@ -73,12 +74,16 @@ public class InspectionTask {
                     inspectionTime = st;
                     lineId = inspection.getLineId();
                 }
+                log.info("获取下一个时间");
                 Date nextTime = processLinePictureHistService.getNextTime(cameraIp, st);
+                log.info("下一个时间:{}", nextTime);
                 if (Objects.nonNull(nextTime) && nextTime.after(et)) {
                     et = DateTime.of(nextTime);
                 }
-                RecordsFloat history = exaClient.getHistory(run.get(lineId), st.getTime(), et.getTime() + 300);
+                log.info("获取base plus运行状态,st:{},et:{}", st.getTime(), et.getTime());
+                RecordsFloat history = exaClient.getHistory(run.get(lineId), st.getTime(), et.getTime(), (et.getTime() - st.getTime()) / 1000);
                 List<Float> values = history.getValues();
+                log.info("exa运行状态:{}", values);
                 Float v;
                 if (CollUtil.isNotEmpty(values)) {
                     v = values.get(0);
@@ -87,13 +92,15 @@ public class InspectionTask {
                 }
                 Boolean result;
                 int code;
-                if (v != null && v > 0) {
-                    code = 2;
+                if (v != null && v > 0.2) {
+                    code = 3;
                 } else {
                     code = 1;
                 }
                 result = processLinePictureHistService.setInspectionMinute(cameraIp, st, et, code);
                 log.info("{}巡检时间为{}-{},结果:{},生产线运行状态:{}", cameraIp, st, et, result, code);
+            } else {
+                log.info("{}不需要巡检", inspection.getCameraIp());
             }
         }
     }
@@ -107,7 +114,7 @@ public class InspectionTask {
             return;
         }
         try {
-            DateTime now = DateUtil.beginOfHour(new Date());
+            DateTime now = DateUtil.date();
             for (LineInspection inspection : last) {
                 Date time = inspection.getTime();
                 String cameraIp = inspection.getCameraIp().trim();
@@ -117,6 +124,7 @@ public class InspectionTask {
                     time = DateUtil.offsetMinute(time, -interval);
                 }
                 DateTime lasTime = DateUtil.beginOfMinute(time);
+                log.info("{}上次普通巡检时间:{}", cameraIp, DateUtil.format(lasTime, "yyyy-MM-dd HH:mm:ss"));
                 long diff = DateUtil.between(lasTime, now, DateUnit.MINUTE);
                 if (diff > interval) {
                     Date st;
@@ -126,6 +134,8 @@ public class InspectionTask {
                     et = DateUtil.offsetMinute(st, 1);
                     Boolean result = processLinePictureHistService.setInspectionMinute1(cameraIp, st, et);
                     log.info("{}普通巡检时间为{}-{},结果:{}", cameraIp, st, et, result);
+                } else {
+                    log.info("{}不需要普通巡检", cameraIp);
                 }
             }
         } catch (Exception e) {

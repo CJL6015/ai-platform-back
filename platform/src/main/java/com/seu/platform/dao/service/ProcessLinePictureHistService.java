@@ -38,7 +38,7 @@ public interface ProcessLinePictureHistService extends IService<ProcessLinePictu
     List<DetectionResultVO> getSnapshotResult(Integer lineId);
 
 
-    List<String> getTimes(Integer lineId);
+    List<String> getTimes(Integer lineId,Date time);
 
     /**
      * 获取月趋势

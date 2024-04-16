@@ -18,11 +18,17 @@
                 create_time, remaining_useful_days
     </sql>
     <select id="getLifeTrendDTO" resultType="com.seu.platform.model.dto.LifeTrendDTO">
-        select remaining_useful_days_up  as up,
-               remaining_useful_days_low as low,
-               create_time               as time
+        select create_time as time,
+        remaining_useful_days_up as up,
+        remaining_useful_days_low as low
         from equipment_remaining_useful_life
         where equipment_useful_life_id = #{id}
+        <if test="st !=null">
+            and create_time >=#{st}
+        </if>
+        <if test="et != null">
+            and create_time &lt;=#{et}
+        </if>
         order by create_time
     </select>
 </mapper>

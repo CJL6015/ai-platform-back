@@ -22,4 +22,6 @@ public class RelationTableVO {
     private String support;
 
     private String relevant;
+
+    private String remark;
 }

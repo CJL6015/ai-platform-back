@@ -1,8 +1,10 @@
 package com.seu.platform.controller;
 
+import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.thread.ThreadFactoryBuilder;
 import com.seu.platform.model.entity.Result;
 import com.seu.platform.service.ReportService;
 import com.seu.platform.task.ReportTask;
@@ -16,6 +18,12 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author chenjiale
@@ -33,10 +41,11 @@ public class ReportController {
     private final ReportTask reportTask;
 
     private final ReportService reportService;
-
+    private final ThreadPoolExecutor executorService = new ThreadPoolExecutor(4, 4,
+            1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(20),
+            new ThreadFactoryBuilder().setNamePrefix("report-").build());
     @Value("${static.word-prefix}")
     private String prefix;
-
     @Value("${static.report-dir}")
     private String reportDir;
 
@@ -62,13 +71,44 @@ public class ReportController {
     public Result<String> getDayReport(Integer level, Integer lineId, Integer plantId, String time) {
         String path;
         if (level == 1) {
-            path = prefix + "level1_day" + time + ".docx";
+            path = "level1_day" + time + ".docx";
         } else if (level == 2) {
-            path = prefix + "level2_day" + plantId + time + ".docx";
+            path = "level2_day" + plantId + time + ".docx";
         } else {
-            path = prefix + "level3_day" + lineId + time + ".docx";
+            path = "level3_day" + lineId + time + ".docx";
         }
-        return Result.success(path);
+        if (!new File(reportDir + path).exists()) {
+            try {
+                SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+                final Date st = DateUtil.beginOfDay(format.parse(time));
+                final Date et = DateUtil.endOfDay(st);
+                final Date lastSt = DateUtil.offsetDay(st, -1);
+                final Date lastEt = DateUtil.offsetDay(et, -1);
+                log.info("开始生成报表:st:{},et:{},lastSt:{},lastEt:{},path:{}", st, et, lastSt, lastEt, path);
+                if (level == 1) {
+                    executorService.execute(() -> reportService.createReportLevel1(st, et,
+                            lastSt, lastEt, reportDir + path));
+                } else if (level == 2) {
+                    executorService.execute(() -> reportService.createReportLevel2(plantId, st, et,
+                            lastSt, lastEt, reportDir + path));
+                } else {
+                    if (lineId <= 2) {
+                        executorService.execute(() -> reportService.createReportLevel3(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    } else if (lineId == 5) {
+                        executorService.execute(() -> reportService.createReportLevel3_2(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    }else {
+                        executorService.execute(() -> reportService.createReportLevel3_1(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    }
+                }
+            } catch (ParseException e) {
+                log.error("转时间异常:{}", time, e);
+            }
+            return Result.fail("该报表未生成,正在生成,请稍后重试");
+        }
+        return Result.success(prefix + path);
     }
 
 
@@ -76,39 +116,132 @@ public class ReportController {
     public Result<String> getMonthReport(Integer level, Integer lineId, Integer plantId, String time) {
         String path;
         if (level == 1) {
-            path = prefix + "level1_month" + time + ".docx";
+            path = "level1_month" + time + ".docx";
         } else if (level == 2) {
-            path = prefix + "level2_month" + plantId + time + ".docx";
+            path = "level2_month" + plantId + time + ".docx";
         } else {
-            path = prefix + "level3_month" + lineId + time + ".docx";
+            path = "level3_month" + lineId + time + ".docx";
         }
-        return Result.success(path);
+        if (!new File(reportDir + path).exists()) {
+            try {
+                SimpleDateFormat format = new SimpleDateFormat("yyyyMM");
+                final Date st = DateUtil.beginOfDay(format.parse(time));
+                final Date et = DateUtil.endOfMonth(st);
+                final Date lastSt = DateUtil.offsetMonth(st, -1);
+                final Date lastEt = DateUtil.offsetMonth(et, -1);
+                log.info("开始生成报表:st:{},et:{},lastSt:{},lastEt:{},path:{}", st, et, lastSt, lastEt, path);
+                if (level == 1) {
+                    executorService.execute(() -> reportService.createReportLevel1(st, et,
+                            lastSt, lastEt, reportDir + path));
+                } else if (level == 2) {
+                    executorService.execute(() -> reportService.createReportLevel2(plantId, st, et,
+                            lastSt, lastEt, reportDir + path));
+                } else {
+                    if (lineId <= 2) {
+                        executorService.execute(() -> reportService.createReportLevel3(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    } else if (lineId == 5) {
+                        executorService.execute(() -> reportService.createReportLevel3_2(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    }else {
+                        executorService.execute(() -> reportService.createReportLevel3_1(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    }
+                }
+            } catch (ParseException e) {
+                log.error("转时间异常:{}", time, e);
+            }
+            return Result.fail("该报表未生成,正在生成,请稍后重试");
+        }
+        return Result.success(prefix + path);
     }
 
     @GetMapping("/quarter")
     public Result<String> getQuarterReport(Integer level, Integer lineId, Integer plantId, String time) {
         String path;
         if (level == 1) {
-            path = prefix + "level1_quarter" + time + ".docx";
+            path = "level1_quarter" + time + ".docx";
         } else if (level == 2) {
-            path = prefix + "level2_quarter" + plantId + time + ".docx";
+            path = "level2_quarter" + plantId + time + ".docx";
         } else {
-            path = prefix + "level3_quarter" + lineId + time + ".docx";
+            path = "level3_quarter" + lineId + time + ".docx";
         }
-        return Result.success(path);
+        if (!new File(reportDir + path).exists()) {
+            try {
+                SimpleDateFormat format = new SimpleDateFormat("yyyyMM");
+                final Date st = DateUtil.beginOfDay(format.parse(time));
+                final Date et = DateUtil.beginOfQuarter(st);
+                final Date lastSt = DateUtil.offsetMonth(st, -3);
+                final Date lastEt = DateUtil.offsetMonth(et, -3);
+                log.info("开始生成报表:st:{},et:{},lastSt:{},lastEt:{},path:{}", st, et, lastSt, lastEt, path);
+                if (level == 1) {
+                    executorService.execute(() -> reportService.createReportLevel1(st, et,
+                            lastSt, lastEt, reportDir + path));
+                } else if (level == 2) {
+                    executorService.execute(() -> reportService.createReportLevel2(plantId, st, et,
+                            lastSt, lastEt, reportDir + path));
+                } else {
+                    if (lineId <= 2) {
+                        executorService.execute(() -> reportService.createReportLevel3(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    } else if (lineId == 5) {
+                        executorService.execute(() -> reportService.createReportLevel3_2(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    }else {
+                        executorService.execute(() -> reportService.createReportLevel3_1(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    }
+                }
+            } catch (ParseException e) {
+                log.error("转时间异常:{}", time, e);
+            }
+            return Result.fail("该报表未生成,正在生成,请稍后重试");
+        }
+        return Result.success(prefix + path);
     }
 
     @GetMapping("/year")
     public Result<String> getYearReport(Integer level, Integer lineId, Integer plantId, String time) {
         String path;
         if (level == 1) {
-            path = prefix + "level1_year" + time + ".docx";
+            path = "level1_year" + time + ".docx";
         } else if (level == 2) {
-            path = prefix + "level2_year" + plantId + time + ".docx";
+            path = "level2_year" + plantId + time + ".docx";
         } else {
-            path = prefix + "level3_year" + lineId + time + ".docx";
+            path = "level3_year" + lineId + time + ".docx";
         }
-        return Result.success(path);
+        if (!new File(reportDir + path).exists()) {
+            try {
+                SimpleDateFormat format = new SimpleDateFormat("yyyyMM");
+                final Date st = DateUtil.beginOfDay(format.parse(time));
+                final Date et = DateUtil.beginOfYear(st);
+                final Date lastSt = DateUtil.offset(st, DateField.YEAR, -1);
+                final Date lastEt = DateUtil.offset(et, DateField.YEAR, -1);
+                log.info("开始生成报表:st:{},et:{},lastSt:{},lastEt:{},path:{}", st, et, lastSt, lastEt, path);
+                if (level == 1) {
+                    executorService.execute(() -> reportService.createReportLevel1(st, et,
+                            lastSt, lastEt, reportDir + path));
+                } else if (level == 2) {
+                    executorService.execute(() -> reportService.createReportLevel2(plantId, st, et,
+                            lastSt, lastEt, reportDir + path));
+                } else {
+                    if (lineId <= 2) {
+                        executorService.execute(() -> reportService.createReportLevel3(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    } else if (lineId == 5) {
+                        executorService.execute(() -> reportService.createReportLevel3_2(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    }else {
+                        executorService.execute(() -> reportService.createReportLevel3_1(lineId, st, et,
+                                lastSt, lastEt, reportDir + path));
+                    }
+                }
+            } catch (ParseException e) {
+                log.error("转时间异常:{}", time, e);
+            }
+            return Result.fail("该报表未生成,正在生成,请稍后重试");
+        }
+        return Result.success(prefix + path);
     }
 
     @GetMapping("/level1")

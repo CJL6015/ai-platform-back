@@ -215,7 +215,7 @@
                  left join inspection_cfg t3 with (nolock) on t2.line_id = t3.line_id
                  left join process_line_picture_hist t1 with (nolock)
                            on t1.camera_id = t2.camera_ip
-                               and (t1.inspection in (1, 2, 3))
+                               and (t1.inspection in (1, 3))
         group by t2.camera_ip, t2.line_id
     </select>
 

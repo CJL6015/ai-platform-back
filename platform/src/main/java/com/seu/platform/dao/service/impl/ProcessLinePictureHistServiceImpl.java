@@ -22,7 +22,7 @@ import com.seu.platform.util.MathUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -59,11 +59,13 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     }
 
     @Override
+    @Cacheable("getPendingChecks")
     public List<ProcessLinePictureHist> getPendingChecks(Integer count, Set<Long> ids) {
         return getBaseMapper().getPendingChecks(count, ids);
     }
 
     @Override
+    @Cacheable("getDetectionResult")
     public List<DetectionResultVO> getDetectionResult(Integer lineId, Date time) {
         if (Objects.isNull(time)) {
             time = getBaseMapper().lastTime(lineId);
@@ -140,21 +142,17 @@ public class ProcessLinePictureHistServiceImpl extends ServiceImpl<ProcessLinePi
     }
 
     @Override
-    public List<String> getTimes(Integer lineId) {
-        Date et = new Date();
-        DateTime st = DateUtil.offsetDay(et, -1);
-        String key = DateUtil.format(st, "yyyy-MM-dd HH") + lineId;
-        List<Date> detectionTime = cache.getOrDefault(key, getBaseMapper().getDetectionTime(lineId, st, et));
-        cache.put(key, detectionTime);
+    public List<String> getTimes(Integer lineId, Date time) {
+        log.info("查询时间:{}", time);
+        Date et = DateUtil.endOfDay(time);
+        DateTime st = DateUtil.beginOfDay(time);
+        List<Date> detectionTime = getBaseMapper().getDetectionTime(lineId, st, et);
+        log.info("巡检时间:{}", detectionTime);
         return detectionTime.stream()
                 .map(t -> DateUtil.format(t, "yyyy-MM-dd HH:mm:ss"))
                 .collect(Collectors.toList());
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
-    public void clearCache() {
-        cache = new HashMap<>(16);
-    }
 
     @Override
     public TrendVO<String, Integer> getTrendMonth(Integer lineId, TimeRange timeRange) {

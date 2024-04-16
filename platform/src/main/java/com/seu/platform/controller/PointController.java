@@ -9,6 +9,7 @@ import com.seu.platform.model.entity.Result;
 import com.seu.platform.model.vo.*;
 import com.seu.platform.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ public class PointController {
     }
 
     @GetMapping("/inspection/trend/month/line/{lineId}")
+    @Cacheable("point-getInspectionTrendMonth")
     public Result<TrendVO<String, Integer>> getInspectionTrendMonth(@PathVariable Integer lineId,
                                                                     TimeRange timeRange) {
         TrendVO<String, Integer> pointInspectionTrendMonth = pointStatisticHourService.getPointInspectionTrendMonth(
@@ -56,6 +58,7 @@ public class PointController {
     }
 
     @GetMapping("/inspection/trend/daily/line/{lineId}")
+    @Cacheable("point-getInspectionTrendDaily")
     public Result<TrendVO<String, Integer>> getInspectionTrendDaily(@PathVariable Integer lineId,
                                                                     TimeRange timeRange) {
         TrendVO<String, Integer> pointInspectionTrendDaily = pointStatisticHourService.getPointInspectionTrendDaily(
@@ -64,12 +67,14 @@ public class PointController {
     }
 
     @GetMapping("/benchmark/line/{lineId}")
+    @Cacheable("point-getBenchmark")
     public Result<BenchmarkDataVO> getBenchmark(@PathVariable Integer lineId, Integer num) {
         BenchmarkDataVO benchmarkData = pointStatisticHourService.getBenchmarkData(lineId, num);
         return Result.success(benchmarkData);
     }
 
     @GetMapping("/trend/month/detail/line/{lineId}")
+    @Cacheable("point-getTrendDetailMonth")
     public Result<TrendDetailVO> getTrendDetailMonth(@PathVariable Integer lineId) {
         TrendDetailVO trendDetailMonth = pointStatisticHourService.getTrendDetailMonth(lineId);
         return Result.success(trendDetailMonth);

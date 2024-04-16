@@ -20,12 +20,15 @@
         degree
     </sql>
     <select id="getLife" resultType="com.seu.platform.model.dto.LifeDTO">
-        SELECT t1.id                                                                  as id,
-               t1.description                                                         AS name,
-               t1.start_use_time                                                      AS time,
-               t1.danger_degree                                                       AS degree,
-               t1.designed_using_days                                                 AS design,
-               CONCAT(t2.remaining_useful_days_low, '-', t2.remaining_useful_days_up) AS remain
+        SELECT t1.id                        as id,
+               t1.description               AS name,
+               t1.start_use_time            AS time,
+               t1.danger_degree             AS degree,
+               t1.designed_using_days       AS design,
+               t2.remaining_useful_days_up  AS up,
+               t2.remaining_useful_days_low AS low,
+               t1.danger_degree             AS remain,
+               t1.danger_degree             AS expire
         FROM equipment_remaining_life_cfg t1
                  LEFT JOIN equipment_remaining_useful_life t2
                            ON t1.id = t2.equipment_useful_life_id

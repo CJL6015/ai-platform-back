@@ -19,7 +19,7 @@ import java.util.Date;
 public class LifeTrendDTO {
     private Date time;
 
-    private Integer up;
+    private Double up;
 
-    private Integer low;
+    private Double low;
 }
